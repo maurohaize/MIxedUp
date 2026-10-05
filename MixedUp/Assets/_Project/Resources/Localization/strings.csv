@@ -1,0 +1,50 @@
+key,eu,es,en
+# --- UI ---
+ui.hp,OSASUNA,VIDA,HEALTH
+ui.inventory,INBENTARIOA,INVENTARIO,INVENTORY
+ui.order,ESKAERA,PEDIDO,ORDER
+ui.empty_slot,HUTSIK,VACÍO,EMPTY
+ui.teammate,LAGUNA,COMPAÑERO,TEAMMATE
+ui.paused,PAUSA,PAUSA,PAUSED
+ui.resume,JARRAITU,SEGUIR,RESUME
+ui.language,HIZKUNTZA,IDIOMA,LANGUAGE
+ui.quit,IRTEN,SALIR,QUIT
+ui.retry,BERRIRO SAIATU,REINTENTAR,RETRY
+ui.game_over,GAME OVER,GAME OVER,GAME OVER
+ui.death_cause,HERIOTZAREN KAUSA,CAUSA DE MUERTE,CAUSE OF DEATH
+ui.puzzle_title,KUTXA GUZTIAK FURGONETAN!,¡TODAS LAS CAJAS EN EL CAMIÓN!,ALL BOXES IN THE TRUCK!
+ui.puzzle_todo,Furgonetaren 2D puzzlea 2. fasean iritsiko da.,El puzle 2D del camión llega en la Fase 2.,The 2D truck puzzle arrives in Phase 2.
+# --- Interaction prompts ---
+prompt.pickup,HARTU {0},COGER {0},PICK UP {0}
+prompt.inventory_full,INBENTARIOA BETETA,INVENTARIO LLENO,INVENTORY FULL
+prompt.pass,KUTXA PASATU ({0}),PASAR CAJA ({0}),PASS BOX ({0})
+prompt.take_back,HARTU {0} LAGUNARENGANDIK,COGER {0} DEL COMPAÑERO,TAKE {0} FROM TEAMMATE
+prompt.teammate_full,LAGUNAREN INBENTARIOA BETETA DAGO,EL COMPAÑERO TIENE EL INVENTARIO LLENO,TEAMMATE INVENTORY FULL
+prompt.deliver,ENTREGATU {0},ENTREGAR {0},DELIVER {0}
+prompt.truck_empty,ERAMAN KUTXAK FURGONETARA,TRAE LAS CAJAS AL CAMIÓN,BRING THE BOXES TO THE TRUCK
+prompt.truck_reject,KUTXA HAU EZ DAGO ESKAERAN,ESTA CAJA NO ESTÁ EN EL PEDIDO,THIS BOX IS NOT IN THE ORDER
+# --- Boxes ---
+box.normal.name,NORMALA,NORMAL,NORMAL
+box.hot.name,BEROA,CALOR,HOT
+box.electric.name,ELEKTRIKOA,ELÉCTRICA,ELECTRIC
+box.frozen.name,IZOZTUA,HIELO,FROZEN
+box.toxic.name,TOXIKOA,TÓXICA,TOXIC
+box.normal.desc,Ez du eraginik.,Sin efectos.,No effect.
+box.hot.desc,"Eramaten duena erretzen du, geroz eta gehiago. Azkar entregatu edo pasatu.","Quema a quien la lleva, cada vez más. Entrégala rápido o pásala.","Burns its carrier, more and more. Deliver it fast or pass it on."
+box.electric.desc,Kaltegabea... urarekin ukitu arte.,Inofensiva... hasta que toca el agua.,Harmless... until it touches water.
+box.frozen.desc,Lurra patinaje-pista bihurtzen da.,El suelo se convierte en una pista de patinaje.,The ground turns into an ice rink.
+box.toxic.desc,"Zenbat eta denbora gehiago eraman, orduan eta lausoago ikusten duzu.",Cuanto más tiempo la llevas menos ves.,The longer you carry it the less you see.
+# --- Effect banners ---
+effect.heat,BEROA!,¡CALOR!,HOT!
+effect.electric,ELEKTRIKOA: SAIHESTU URA,ELÉCTRICA: ¡EVITA EL AGUA!,ELECTRIC: AVOID WATER!
+effect.frozen,IZOZTUA: LERRATZEN ZARA,HIELO: ¡RESBALAS!,FROZEN: YOU SLIP!
+effect.toxic,TOXIKOA: IKUSMENA GALTZEN,TÓXICA: PIERDES VISIÓN,TOXIC: VISION FADING
+# --- Death causes ---
+death.heat,Kutxa beroegia eramanda errea zen.,Se achicharró por llevar una caja demasiado caliente.,Got roasted carrying a box that was way too hot.
+death.electric_water,Kutxa elektrikoak ura ukitu zuen.,La caja eléctrica entró en contacto con el agua.,The electric box touched the water.
+death.fall,Altuegitik erori zen.,Se cayó desde demasiado alto.,Fell from way too high.
+death.void,Hutsera erori zen.,Cayó al vacío.,Fell into the void.
+# --- Toasts ---
+toast.delivered,{0} entregatuta,{0} entregada,{0} delivered
+toast.passed,{0} pasatuta,{0} pasada,{0} passed
+toast.teammate_died,Lagunak hil da: {0},El compañero ha muerto: {0},Your teammate died: {0}
