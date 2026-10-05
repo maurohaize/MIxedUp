@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4015a76e41365e40a1789060e4a63fc, type: 3}
+  m_Name: BoxDatabase
+  m_EditorClassIdentifier: MixedUp.Runtime::MixedUp.BoxDatabase
+  boxes:
+  - {fileID: 11400000, guid: 9051dece5b80a344e8103641f33c03bf, type: 2}
+  - {fileID: 11400000, guid: b109700df0c1ab5498b8d3a7ade34e48, type: 2}
+  - {fileID: 11400000, guid: 549c83724ce51f2479cd1c51e7867915, type: 2}
+  - {fileID: 11400000, guid: 49dccd04c67e468459a966db24ebaa71, type: 2}
+  - {fileID: 11400000, guid: d344dc2af5506cf4891915201e24e89b, type: 2}
