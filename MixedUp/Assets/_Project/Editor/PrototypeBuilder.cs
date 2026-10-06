@@ -50,11 +50,19 @@ namespace MixedUp.EditorTools
             EnsureFolder("Assets/Scenes");
 
             ImportArt();
+            ImportUi();
+            UiFactory.Font = CreateUiFont();
             var assets = CreateData();
             var mats = CreateMaterials();
             var art = CreateArt(assets, mats);
             var prefabs = CreatePrefabs(assets, mats, art);
             BuildScene(assets, mats, art, prefabs);
+            BuildMainMenuScene(assets, mats, art, prefabs);
+            EditorBuildSettings.scenes = new[]
+            {
+                new EditorBuildSettingsScene(MenuScenePath, true),
+                new EditorBuildSettingsScene(ScenePath, true)
+            };
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();

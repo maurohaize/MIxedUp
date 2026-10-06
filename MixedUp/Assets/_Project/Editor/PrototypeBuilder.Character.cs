@@ -133,6 +133,11 @@ namespace MixedUp.EditorTools
             var root = new GameObject("CharacterPreview");
             var parts = BuildCharacterModel("Visual", root.transform, m);
             AddAppearance(root, parts, palette, true);
+
+            var idle = root.AddComponent<CharacterIdle>();
+            idle.body = parts.body;
+            idle.handLeft = parts.handLeft;
+            idle.handRight = parts.handRight;
             return root;
         }
 

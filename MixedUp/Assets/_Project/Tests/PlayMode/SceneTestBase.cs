@@ -15,6 +15,11 @@ namespace MixedUp.Tests
     public abstract class SceneTestBase
     {
         protected const string ScenePath = "Assets/Scenes/Level_Prototype.unity";
+        protected const string MenuScenePath = "Assets/Scenes/MainMenu.unity";
+
+        /// <summary>The scene each test starts in. Override to test another scene.</summary>
+        protected virtual string SceneToLoad => ScenePath;
+        protected virtual bool NeedsPlayer => true;
         const string LanguagePref = "settings.language";
         const string ComboPref = "combos.learned";
         const string WalletPref = "wallet.coins";
@@ -44,7 +49,7 @@ namespace MixedUp.Tests
         [UnitySetUp]
         public IEnumerator SetUp()
         {
-            if (!File.Exists(ScenePath)) Assert.Ignore("Missing " + ScenePath + ". Run MixedUp > Build Phase 1 Prototype first.");
+            if (!File.Exists(SceneToLoad)) Assert.Ignore("Missing " + SceneToLoad + ". Run MixedUp > Build Prototype Scene first.");
 
             hadLanguagePref = PlayerPrefs.HasKey(LanguagePref);
             savedLanguage = PlayerPrefs.GetInt(LanguagePref, 0);
@@ -66,20 +71,23 @@ namespace MixedUp.Tests
             }
 
 #if UNITY_EDITOR
-            yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(ScenePath, new LoadSceneParameters(LoadSceneMode.Single));
+            yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(SceneToLoad, new LoadSceneParameters(LoadSceneMode.Single));
 #else
             Assert.Ignore("These tests load the scene by asset path and only run in the editor.");
 #endif
             yield return null;
             yield return null;
 
-            player = PlayerRegistry.Local;
-            Assert.IsNotNull(player, "no local player registered");
-            status = player.GetComponent<PlayerStatus>();
-            interactor = player.GetComponent<PlayerInteractor>();
-            truck = Object.FindAnyObjectByType<Truck>();
-            pickups = Object.FindObjectsByType<BoxPickup>();
-            ui = Object.FindAnyObjectByType<UIManager>();
+            if (NeedsPlayer)
+            {
+                player = PlayerRegistry.Local;
+                Assert.IsNotNull(player, "no local player registered");
+                status = player.GetComponent<PlayerStatus>();
+                interactor = player.GetComponent<PlayerInteractor>();
+                truck = Object.FindAnyObjectByType<Truck>();
+                pickups = Object.FindObjectsByType<BoxPickup>();
+                ui = Object.FindAnyObjectByType<UIManager>();
+            }
             Resolve();
 
             yield return new WaitForSeconds(0.6f);

@@ -23,6 +23,7 @@ namespace MixedUp
         public GameObject puzzlePanel;
         public GameObject resultsPanel;
         public ManualPanel manualPanel;
+        public SettingsPanel settingsPanel;
         public PaperWipe wipe;
         public ResultsScreen resultsScreen;
         public TMP_Text deathCauseLabel;
@@ -30,15 +31,14 @@ namespace MixedUp
 
         [Header("Buttons")]
         public Button resumeButton;
+        public Button settingsButton;
         public Button manualButton;
+        public Button menuButton;
         public Button pauseQuitButton;
         public Button retryButton;
-        public Button gameOverQuitButton;
+        public Button gameOverMenuButton;
         public Button resultsRetryButton;
-        public Button resultsQuitButton;
-        public Button basqueButton;
-        public Button spanishButton;
-        public Button englishButton;
+        public Button resultsMenuButton;
 
         GameManager game;
 
@@ -49,15 +49,18 @@ namespace MixedUp
             puzzlePanel.SetActive(false);
             resultsPanel.SetActive(false);
             manualPanel.gameObject.SetActive(false);
+            settingsPanel.gameObject.SetActive(false);
             wipe.sheet.gameObject.SetActive(false);
 
-            basqueButton.onClick.AddListener(() => Localization.SetLanguage(Language.Basque));
-            spanishButton.onClick.AddListener(() => Localization.SetLanguage(Language.Spanish));
-            englishButton.onClick.AddListener(() => Localization.SetLanguage(Language.English));
             manualButton.onClick.AddListener(manualPanel.Show);
+            settingsButton.onClick.AddListener(settingsPanel.Open);
         }
 
-        void OnEnable() => PlayerRegistry.LocalChanged += Bind;
+        void OnEnable()
+        {
+            PlayerRegistry.LocalChanged += Bind;
+            GameManager.EscapeInterceptor = HandleEscape;
+        }
 
         void Start()
         {
@@ -66,20 +69,41 @@ namespace MixedUp
             {
                 game.StateChanged += OnStateChanged;
                 resumeButton.onClick.AddListener(game.Resume);
+                menuButton.onClick.AddListener(game.GoToMainMenu);
                 pauseQuitButton.onClick.AddListener(game.Quit);
                 retryButton.onClick.AddListener(game.Restart);
-                gameOverQuitButton.onClick.AddListener(game.Quit);
+                gameOverMenuButton.onClick.AddListener(game.GoToMainMenu);
                 resultsRetryButton.onClick.AddListener(game.Restart);
-                resultsQuitButton.onClick.AddListener(game.Quit);
+                resultsMenuButton.onClick.AddListener(game.GoToMainMenu);
             }
             Bind(PlayerRegistry.Local);
         }
 
-        void OnDisable() => PlayerRegistry.LocalChanged -= Bind;
+        void OnDisable()
+        {
+            PlayerRegistry.LocalChanged -= Bind;
+            if (GameManager.EscapeInterceptor == (System.Func<bool>)HandleEscape) GameManager.EscapeInterceptor = null;
+        }
 
         void OnDestroy()
         {
             if (game != null) game.StateChanged -= OnStateChanged;
+        }
+
+        /// <summary>Escape closes the topmost sub-menu first; only when there is none does it pause or resume.</summary>
+        bool HandleEscape()
+        {
+            if (settingsPanel.IsOpen)
+            {
+                settingsPanel.Close();
+                return true;
+            }
+            if (manualPanel.gameObject.activeSelf)
+            {
+                manualPanel.Hide();
+                return true;
+            }
+            return false;
         }
 
         void Bind(PlayerController player)
@@ -99,6 +123,7 @@ namespace MixedUp
             gameOverPanel.SetActive(state == GameState.GameOver);
             resultsPanel.SetActive(state == GameState.Results);
             if (state != GameState.Paused && state != GameState.TruckPuzzle) manualPanel.Hide();
+            if (state != GameState.Paused) settingsPanel.Close();
 
             if (state == GameState.TruckPuzzle)
             {

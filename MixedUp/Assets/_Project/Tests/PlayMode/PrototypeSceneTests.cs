@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
@@ -353,16 +353,21 @@ namespace MixedUp.Tests
             var orderTitle = Object.FindObjectsByType<LocalizedText>().First(t => t.key == "ui.order");
             var label = orderTitle.GetComponent<TMP_Text>();
 
-            ui.basqueButton.onClick.Invoke();
+            yield return Tap(Key.Escape);
+            ui.settingsButton.onClick.Invoke();
+            yield return null;
+            Assert.IsTrue(ui.settingsPanel.IsOpen);
+
+            ui.settingsPanel.basqueButton.onClick.Invoke();
             yield return null;
             Assert.AreEqual(Language.Basque, Localization.Current);
             Assert.AreEqual("ESKAERA", label.text);
 
-            ui.englishButton.onClick.Invoke();
+            ui.settingsPanel.englishButton.onClick.Invoke();
             yield return null;
             Assert.AreEqual("ORDER", label.text);
 
-            ui.spanishButton.onClick.Invoke();
+            ui.settingsPanel.spanishButton.onClick.Invoke();
             yield return null;
             Assert.AreEqual("PEDIDO", label.text);
         }

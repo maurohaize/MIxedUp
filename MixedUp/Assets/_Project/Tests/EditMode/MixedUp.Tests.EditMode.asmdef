@@ -3,6 +3,7 @@
     "rootNamespace": "MixedUp.Tests",
     "references": [
         "MixedUp.Runtime",
+        "Unity.TextMeshPro",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

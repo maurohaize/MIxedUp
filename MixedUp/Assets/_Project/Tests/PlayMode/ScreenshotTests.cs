@@ -170,6 +170,41 @@ namespace MixedUp.Tests
             SetKey(UnityEngine.InputSystem.Key.W, false);
         }
 
+        // ------------------------------------------------------------- menus
+
+        [UnityTest, Explicit("Needs a GPU; writes PNGs")]
+        public IEnumerator MenusGallery()
+        {
+            yield return Tap(UnityEngine.InputSystem.Key.Escape);
+            yield return Capture("40_pause");
+
+            ui.settingsButton.onClick.Invoke();
+            yield return null;
+            yield return Capture("41_settings");
+
+            ui.settingsPanel.clothesSwatches[9].onClick.Invoke();
+            ui.settingsPanel.skinSwatches[4].onClick.Invoke();
+            ui.settingsPanel.basqueButton.onClick.Invoke();
+            yield return null;
+            yield return Capture("42_settings_basque_orange");
+            CharacterCustomization.Reset();
+            Localization.SetLanguage(Language.English);
+            yield return null;
+            yield return Capture("43_settings_english");
+            ui.settingsPanel.Close();
+            Localization.SetLanguage(Language.Spanish);
+
+            ui.manualButton.onClick.Invoke();
+            yield return null;
+            yield return Capture("44_manual");
+            ui.manualPanel.Hide();
+            yield return Tap(UnityEngine.InputSystem.Key.Escape);
+
+            status.Kill(DeathCause.Fall);
+            yield return new WaitForSecondsRealtime(2f);
+            yield return Capture("45_game_over");
+        }
+
         // --------------------------------------------------------- phase two
 
         [UnityTest, Explicit("Needs a GPU; writes PNGs")]

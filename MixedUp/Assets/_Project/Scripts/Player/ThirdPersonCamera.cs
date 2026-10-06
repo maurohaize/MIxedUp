@@ -52,15 +52,18 @@ namespace MixedUp
             Vector2 look = GameInput.Look.ReadValue<Vector2>();
             bool gamepad = GameInput.Look.activeControl != null && GameInput.Look.activeControl.device is Gamepad;
 
+            float invert = GameSettings.InvertY ? -1f : 1f;
             if (gamepad)
             {
-                yaw += look.x * gamepadSensitivity * Time.deltaTime;
-                pitch -= look.y * gamepadSensitivity * Time.deltaTime;
+                float speed = gamepadSensitivity * GameSettings.GamepadSensitivity * Time.deltaTime;
+                yaw += look.x * speed;
+                pitch -= look.y * speed * invert;
             }
             else
             {
-                yaw += look.x * mouseSensitivity;
-                pitch -= look.y * mouseSensitivity;
+                float speed = mouseSensitivity * GameSettings.MouseSensitivity;
+                yaw += look.x * speed;
+                pitch -= look.y * speed * invert;
             }
             pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
         }

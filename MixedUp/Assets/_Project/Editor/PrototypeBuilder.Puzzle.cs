@@ -255,7 +255,7 @@ namespace MixedUp.EditorTools
             var panel = FullScreenDim("ResultsPanel", canvas, new Color(0.99f, 0.82f, 0.56f, 0.97f));
             ui.resultsPanel = panel.gameObject;
             var screen = panel.gameObject.AddComponent<ResultsScreen>();
-            var card = CenteredCard(panel, new Vector2(1000f, 920f));
+            var card = CenteredCard(panel, new Vector2(1100f, 960f));
 
             screen.titleLabel = CardText(card, "", null, 62f, 120f, Ink);
             screen.boxesLabel = CardText(card, "", null, 46f, 64f, Ink);
@@ -287,8 +287,14 @@ namespace MixedUp.EditorTools
 
             screen.walletLabel = CardText(card, "", null, 38f, 56f, new Color(Ink.r, Ink.g, Ink.b, 0.7f));
             ui.resultsRetryButton = CardButton(card, "", "ui.retry", 90f);
-            ui.resultsQuitButton = CardButton(card, "", "ui.quit", 90f);
+            ui.resultsMenuButton = CardButton(card, "", "ui.main_menu", 90f);
             ui.resultsScreen = screen;
+
+            // The author's own drawing of the payment, tucked into the corner of the card.
+            var art = UiFactory.NewSprite("Art", card, "art_win");
+            art.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
+            UiFactory.Place(art.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(60f, 30f), new Vector2(330f, 245f));
+            art.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 6f);
         }
 
         static ManualPanel BuildManualPanel(Transform canvas, GameAssets a)

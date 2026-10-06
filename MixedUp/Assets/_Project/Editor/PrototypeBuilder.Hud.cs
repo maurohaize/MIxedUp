@@ -13,7 +13,7 @@ namespace MixedUp.EditorTools
     {
         static readonly Color Ink = UiFactory.Ink;
 
-        static void BuildHud(GameAssets a, Truck truck, TruckPuzzleController puzzle)
+        static void BuildHud(GameAssets a, Prefabs prefabs, Truck truck, TruckPuzzleController puzzle)
         {
             var canvasGo = new GameObject("UI", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             var canvas = canvasGo.GetComponent<Canvas>();
@@ -47,6 +47,7 @@ namespace MixedUp.EditorTools
             BuildPausePanel(canvasGo.transform, ui);
             BuildGameOverPanel(canvasGo.transform, ui);
             BuildPuzzleUi(canvasGo.transform, ui, a, puzzle);
+            ui.settingsPanel = BuildSettingsPanel(canvasGo.transform, a, prefabs.preview);
 
             // Save the scene tidy: only the HUD is visible, the other screens open when needed.
             ui.pausePanel.SetActive(false);
@@ -54,6 +55,7 @@ namespace MixedUp.EditorTools
             ui.puzzlePanel.SetActive(false);
             ui.resultsPanel.SetActive(false);
             ui.manualPanel.gameObject.SetActive(false);
+            ui.settingsPanel.gameObject.SetActive(false);
             ui.wipe.sheet.gameObject.SetActive(false);
         }
 
@@ -101,9 +103,10 @@ namespace MixedUp.EditorTools
             var value = UiFactory.NewText("Value", inner, "100", 30f, Ink, TextAlignmentOptions.TopRight);
             UiFactory.Place(value.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-18f, -8f), new Vector2(120f, 36f));
 
-            var barBg = UiFactory.NewImage("BarBackground", inner, new Color(Ink.r, Ink.g, Ink.b, 0.25f));
-            UiFactory.Place(barBg.rectTransform, Vector2.zero, Vector2.zero, new Vector2(18f, 14f), new Vector2(394f, 26f));
-            var fill = UiFactory.NewImage("Fill", barBg.transform, new Color(0.75f, 0.28f, 0.25f));
+            var barBg = UiFactory.NewSprite("BarBackground", inner, "slider_track", sliced: true, slicedScale: 1.5f);
+            barBg.color = new Color(1f, 1f, 1f, 0.55f);
+            UiFactory.Place(barBg.rectTransform, Vector2.zero, Vector2.zero, new Vector2(18f, 12f), new Vector2(394f, 30f));
+            var fill = UiFactory.NewSprite("Fill", barBg.transform, "bar_brick", sliced: true, slicedScale: 1.6f);
             UiFactory.Stretch(fill.rectTransform);
 
             var hud = root.gameObject.AddComponent<HealthHud>();
@@ -136,14 +139,16 @@ namespace MixedUp.EditorTools
             {
                 var bannerRect = UiFactory.NewRect("Banner" + (i + 1), row);
                 bannerRect.sizeDelta = new Vector2(600f, 58f);
-                var bg = UiFactory.NewImage("Background", bannerRect, new Color(Ink.r, Ink.g, Ink.b, 0.2f));
+                var bg = UiFactory.NewSprite("Background", bannerRect, "paper", sliced: true, slicedScale: 5f);
+                bg.color = new Color(Ink.r, Ink.g, Ink.b, 0.2f);
                 UiFactory.Stretch(bg.rectTransform);
                 var label = UiFactory.NewText("Label", bannerRect, "", 30f, Ink);
                 UiFactory.Stretch(label.rectTransform, 8f);
 
-                var barBg = UiFactory.NewImage("BarBackground", bannerRect, new Color(Ink.r, Ink.g, Ink.b, 0.3f));
-                UiFactory.Place(barBg.rectTransform, Vector2.zero, Vector2.zero, new Vector2(8f, 4f), new Vector2(584f, 8f));
-                var fill = UiFactory.NewImage("Fill", barBg.transform, Color.white);
+                var barBg = UiFactory.NewSprite("BarBackground", bannerRect, "slider_track", sliced: true, slicedScale: 3f);
+                barBg.color = new Color(1f, 1f, 1f, 0.5f);
+                UiFactory.Place(barBg.rectTransform, Vector2.zero, Vector2.zero, new Vector2(10f, 4f), new Vector2(580f, 12f));
+                var fill = UiFactory.NewSprite("Fill", barBg.transform, "brush_white", sliced: true, slicedScale: 3f);
                 UiFactory.Stretch(fill.rectTransform);
 
                 hud.banners[i] = new EffectHud.BannerView
@@ -229,8 +234,8 @@ namespace MixedUp.EditorTools
             {
                 var inner = UiFactory.Panel("Slot" + (i + 1), row, new Vector2(190f, 210f), out var root);
 
-                var selection = UiFactory.NewImage("Selection", root, UiFactory.Highlight);
-                UiFactory.Stretch(selection.rectTransform, -10f);
+                var selection = UiFactory.NewSprite("Selection", root, "highlight", sliced: true, slicedScale: 2.2f);
+                UiFactory.Stretch(selection.rectTransform, -22f);
                 selection.transform.SetAsFirstSibling();
 
                 var icon = UiFactory.NewImage("Icon", inner, Color.white);
@@ -243,9 +248,11 @@ namespace MixedUp.EditorTools
                 var label = UiFactory.NewText("Name", inner, "", 28f, Ink);
                 UiFactory.Place(label.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 38f), new Vector2(180f, 40f));
 
-                var barBg = UiFactory.NewImage("SeverityBackground", inner, new Color(Ink.r, Ink.g, Ink.b, 0.2f));
-                UiFactory.Place(barBg.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 14f), new Vector2(160f, 14f));
-                var fill = UiFactory.NewImage("Fill", barBg.transform, new Color(0.55f, 0.75f, 0.45f));
+                var barBg = UiFactory.NewSprite("SeverityBackground", inner, "slider_track", sliced: true, slicedScale: 2.5f);
+                barBg.color = new Color(1f, 1f, 1f, 0.5f);
+                UiFactory.Place(barBg.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 20f), new Vector2(150f, 18f));
+                var fill = UiFactory.NewSprite("Fill", barBg.transform, "brush_white", sliced: true, slicedScale: 2.5f);
+                fill.color = new Color(0.55f, 0.75f, 0.45f);
                 UiFactory.Stretch(fill.rectTransform);
 
                 hud.slots[i] = new InventoryHud.SlotView
@@ -303,14 +310,14 @@ namespace MixedUp.EditorTools
             return image.rectTransform;
         }
 
-        static RectTransform CenteredCard(Transform parent, Vector2 size)
+        static RectTransform CenteredCard(Transform parent, Vector2 size, bool tape = true)
         {
-            var inner = UiFactory.Panel("Card", parent, size, out var root);
+            var inner = UiFactory.Panel("Card", parent, size, out var root, true, tape);
             UiFactory.Place(root, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, size);
 
             var layout = inner.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(40, 40, 30, 30);
-            layout.spacing = 18f;
+            layout.padding = new RectOffset(70, 70, 60, 60);
+            layout.spacing = 14f;
             layout.childAlignment = TextAnchor.UpperCenter;
             layout.childControlWidth = true;
             layout.childControlHeight = false;
@@ -326,9 +333,10 @@ namespace MixedUp.EditorTools
             return label;
         }
 
-        static Button CardButton(Transform card, string text, string key, float height)
+        static Button CardButton(Transform card, string text, string key, float height,
+            UiFactory.ButtonStyle style = UiFactory.ButtonStyle.SignRight)
         {
-            var button = UiFactory.NewButton("Button", card, text, key, new Vector2(0f, height));
+            var button = UiFactory.NewButton("Button", card, text, key, new Vector2(0f, height), style);
             return button;
         }
 
@@ -336,40 +344,46 @@ namespace MixedUp.EditorTools
         {
             var panel = FullScreenDim("PausePanel", canvas, new Color(0f, 0f, 0f, 0.55f));
             ui.pausePanel = panel.gameObject;
-            var card = CenteredCard(panel, new Vector2(660f, 760f));
+            var card = CenteredCard(panel, new Vector2(760f, 900f));
+            card.GetComponent<VerticalLayoutGroup>().padding = new RectOffset(80, 80, 70, 60);
 
-            CardText(card, "", "ui.paused", 80f, 100f, Ink);
-            ui.resumeButton = CardButton(card, "", "ui.resume", 90f);
-            ui.manualButton = CardButton(card, "", "ui.manual", 90f);
-            CardText(card, "", "ui.language", 40f, 56f, Ink);
+            CardText(card, "", "ui.paused", 100f, 112f, Ink);
+            var underline = UiFactory.NewSprite("Underline", card, "underline");
+            underline.rectTransform.sizeDelta = new Vector2(0f, 26f);
 
-            var row = UiFactory.NewRect("Languages", card);
-            row.sizeDelta = new Vector2(0f, 80f);
-            var layout = row.gameObject.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 12f;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = true;
-            ui.basqueButton = UiFactory.NewButton("Basque", row, "EUSKARA", null, new Vector2(0f, 80f));
-            ui.spanishButton = UiFactory.NewButton("Spanish", row, "ESPAÑOL", null, new Vector2(0f, 80f));
-            ui.englishButton = UiFactory.NewButton("English", row, "ENGLISH", null, new Vector2(0f, 80f));
-
-            ui.pauseQuitButton = CardButton(card, "", "ui.quit", 90f);
+            ui.resumeButton = CardButton(card, "", "ui.resume", 100f);
+            ui.settingsButton = CardButton(card, "", "ui.settings", 100f);
+            ui.manualButton = CardButton(card, "", "ui.manual", 100f);
+            ui.menuButton = CardButton(card, "", "ui.main_menu", 100f);
+            ui.pauseQuitButton = CardButton(card, "", "ui.quit", 100f);
         }
 
         static void BuildGameOverPanel(Transform canvas, UIManager ui)
         {
             var panel = FullScreenDim("GameOverPanel", canvas, new Color(0.35f, 0.05f, 0.05f, 0.8f));
             ui.gameOverPanel = panel.gameObject;
-            var card = CenteredCard(panel, new Vector2(900f, 900f));
 
-            CardText(card, "", "ui.game_over", 130f, 170f, new Color(0.7f, 0.15f, 0.1f));
-            CardText(card, "", "ui.death_cause", 48f, 64f, Ink);
-            ui.deathCauseLabel = CardText(card, "", null, 46f, 170f, Ink);
-            ui.quipLabel = CardText(card, "", null, 38f, 70f, new Color(Ink.r, Ink.g, Ink.b, 0.65f));
-            ui.retryButton = CardButton(card, "", "ui.retry", 90f);
-            ui.gameOverQuitButton = CardButton(card, "", "ui.quit", 90f);
+            var card = UiFactory.Panel("Card", panel, new Vector2(1500f, 800f), out var root, true, true);
+            UiFactory.Place(root, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1500f, 800f));
+
+            // The author's own drawing of the exploding boxes, on the left.
+            var art = UiFactory.NewSprite("Art", card, "art_gameover");
+            At(art.rectTransform, 70f, 130f, 560f, 560f);
+            art.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 3f);
+
+            var title = UiFactory.NewText("Title", card, "", 130f, UiFactory.Danger, TextAlignmentOptions.Center, "ui.game_over");
+            At(title.rectTransform, 660f, 70f, 760f, 150f);
+            var cause = UiFactory.NewText("CauseTitle", card, "", 44f, new Color(Ink.r, Ink.g, Ink.b, 0.75f), TextAlignmentOptions.Center, "ui.death_cause");
+            At(cause.rectTransform, 660f, 235f, 760f, 56f);
+            ui.deathCauseLabel = UiFactory.NewText("Cause", card, "", 52f, Ink, TextAlignmentOptions.Center);
+            At(ui.deathCauseLabel.rectTransform, 680f, 292f, 720f, 170f);
+            ui.quipLabel = UiFactory.NewText("Quip", card, "", 36f, new Color(Ink.r, Ink.g, Ink.b, 0.7f), TextAlignmentOptions.Center);
+            At(ui.quipLabel.rectTransform, 680f, 460f, 720f, 70f);
+
+            ui.retryButton = UiFactory.NewButton("Retry", card, "", "ui.retry", new Vector2(520f, 100f));
+            At((RectTransform)ui.retryButton.transform, 690f, 545f, 520f, 100f);
+            ui.gameOverMenuButton = UiFactory.NewButton("Menu", card, "", "ui.main_menu", new Vector2(520f, 100f));
+            At((RectTransform)ui.gameOverMenuButton.transform, 690f, 650f, 520f, 96f);
         }
     }
 }

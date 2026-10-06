@@ -62,11 +62,10 @@ namespace MixedUp.EditorTools
             puzzle.rules = a.rules;
 
             ConfigureCamera();
-            BuildHud(a, truck, puzzle);
+            BuildHud(a, p, truck, puzzle);
             BuildEventSystem();
 
             EditorSceneManager.SaveScene(scene, ScenePath);
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
         }
 
         static void ConfigureLighting(ArtAssets art)

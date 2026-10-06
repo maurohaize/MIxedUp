@@ -18,7 +18,14 @@ namespace MixedUp
     [DefaultExecutionOrder(-200)]
     public class GameManager : MonoBehaviour
     {
+        public const string MainMenuScene = "MainMenu";
+
         public static GameManager Instance { get; private set; }
+        /// <summary>
+        /// Lets the UI consume the Escape key (to close a sub-menu) before it pauses or resumes the game.
+        /// Return true when the key was used.
+        /// </summary>
+        public static Func<bool> EscapeInterceptor;
         public static bool InputBlocked => Instance != null && Instance.State != GameState.Playing;
 
         public Truck truck;
@@ -64,7 +71,7 @@ namespace MixedUp
         void Update()
         {
             if (State == GameState.Playing) ElapsedPlaySeconds += Time.deltaTime;
-            if (GameInput.Pause.WasPressedThisFrame()) TogglePause();
+            if (GameInput.Pause.WasPressedThisFrame() && !(EscapeInterceptor?.Invoke() ?? false)) TogglePause();
         }
 
         void OnLocalChanged(PlayerController player)
@@ -136,6 +143,13 @@ namespace MixedUp
 #else
             SceneManager.LoadScene(scene.name);
 #endif
+        }
+
+        public void GoToMainMenu()
+        {
+            Time.timeScale = 1f;
+            if (Application.CanStreamedLevelBeLoaded(MainMenuScene)) SceneManager.LoadScene(MainMenuScene);
+            else Quit();
         }
 
         public void Quit()
