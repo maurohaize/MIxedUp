@@ -9,6 +9,8 @@ namespace MixedUp
         public bool OnSlippery;
         public bool InMud;
         public bool OnFire;
+        /// <summary>Standing on ice laid over the water; cancels InWater.</summary>
+        public bool OnIceSheet;
     }
 
     /// <summary>Movement tweaks accumulated from every effect a player is suffering.</summary>

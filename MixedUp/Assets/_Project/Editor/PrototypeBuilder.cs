@@ -19,6 +19,9 @@ namespace MixedUp.EditorTools
         const string IconsDir = Root + "/Art/UI/Boxes";
         const string ScenePath = "Assets/Scenes/Level_Prototype.unity";
 
+        /// <summary>Ink material for the outline of the props (hull pushed along the baked smooth normals).</summary>
+        static Material propInk;
+
         sealed class GameAssets
         {
             public BoxData normal, hot, electric, frozen, toxic;
@@ -31,7 +34,7 @@ namespace MixedUp.EditorTools
         /// <summary>Flat-colour materials for primitive shapes (planks, ramps). Textured props use the palette material.</summary>
         sealed class Mats
         {
-            public Material character, wood, woodDark, stone, ice, marker, boots, outline, face;
+            public Material character, wood, woodDark, stone, ice, marker, boots, outline, face, snow;
         }
 
         sealed class Prefabs
@@ -192,7 +195,8 @@ namespace MixedUp.EditorTools
                 woodDark = Mat("WoodDark", new Color(0.5f, 0.37f, 0.21f)),
                 stone = Mat("Stone", new Color(0.52f, 0.5f, 0.44f)),
                 ice = Mat("Ice", new Color(0.6f, 0.8f, 0.86f), 0.7f),
-                marker = Mat("Marker", new Color(0.87f, 0.73f, 0.53f))
+                marker = Mat("Marker", new Color(0.87f, 0.73f, 0.53f)),
+                snow = Mat("Snow", new Color(0.96f, 0.95f, 0.93f), 0.25f)
             };
             CreateCharacterMaterials(m);
             return m;
@@ -235,7 +239,7 @@ namespace MixedUp.EditorTools
         }
 
         static GameObject Prim(PrimitiveType type, string name, Transform parent, Vector3 position, Vector3 scale,
-            Material material, bool collider = true, Quaternion? rotation = null)
+            Material material, bool collider = true, Quaternion? rotation = null, bool ink = false)
         {
             var go = GameObject.CreatePrimitive(type);
             go.name = name;
@@ -245,7 +249,23 @@ namespace MixedUp.EditorTools
             go.transform.localScale = scale;
             go.GetComponent<Renderer>().sharedMaterial = material;
             if (!collider) Object.DestroyImmediate(go.GetComponent<Collider>());
+            if (ink && type == PrimitiveType.Cube) InkCube(go, material);
             return go;
+        }
+
+        static Mesh inkedCube;
+
+        /// <summary>Gives a primitive cube the inked outline: a copy of the cube mesh with smooth normals and a second submesh.</summary>
+        static void InkCube(GameObject go, Material material)
+        {
+            if (propInk == null) return;
+            if (inkedCube == null)
+            {
+                var builtin = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+                inkedCube = SaveMesh(OutlineBake.Bake(builtin, "Prim_Cube_Inked"));
+            }
+            go.GetComponent<MeshFilter>().sharedMesh = inkedCube;
+            go.GetComponent<Renderer>().sharedMaterials = new[] { material, propInk };
         }
 
         static void SetRef(Object target, string field, Object value)

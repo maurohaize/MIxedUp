@@ -15,7 +15,7 @@ MonoBehaviour:
   displayNameKey: effect.heat
   hudColor: {r: 0.9, g: 0.35, b: 0.2, a: 1}
   overlay: 1
-  screenOverlay: {fileID: 2800000, guid: 94ca4c8221d50c340880e83b39f0bbc7, type: 3}
+  screenOverlay: {fileID: 2800000, guid: abbb19b4e7810a946b6468661017ceb0, type: 3}
   startDamagePerSecond: 2
   maxDamagePerSecond: 10
   rampSeconds: 30

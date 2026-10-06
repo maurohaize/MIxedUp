@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: MixedUp.Runtime::MixedUp.ElectricEffect
   displayNameKey: effect.electric
   hudColor: {r: 0.95, g: 0.8, b: 0.2, a: 1}
-  overlay: 0
+  overlay: 1
   screenOverlay: {fileID: 2800000, guid: ddbfaff3154453a4ea173e5d6841007f, type: 3}
   shockDamage: 60
   shockInterval: 0.75

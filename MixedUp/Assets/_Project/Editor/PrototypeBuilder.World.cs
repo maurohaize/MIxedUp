@@ -102,28 +102,28 @@ namespace MixedUp.EditorTools
 
         static WorldMeshes CreateWorldMeshes() => new WorldMeshes
         {
-            hay = SaveMesh(LowPolyProps.HayBale()),
-            haystack = SaveMesh(LowPolyProps.Haystack()),
-            barrel = SaveMesh(LowPolyProps.Barrel()),
-            crate = SaveMesh(LowPolyProps.Crate()),
-            lamp = SaveMesh(LowPolyProps.LampPost()),
-            log = SaveMesh(LowPolyProps.Log()),
-            mushroom = SaveMesh(LowPolyProps.Mushroom("Prop_Mushroom")),
-            mushroomSmall = SaveMesh(LowPolyProps.Mushroom("Prop_MushroomSmall")),
-            sweeperPost = SaveMesh(LowPolyProps.SweeperPost()),
-            sweeperArm = SaveMesh(LowPolyProps.SweeperArm()),
-            tent = SaveMesh(LowPolyProps.Tent()),
-            campfire = SaveMesh(LowPolyProps.Campfire("Prop_Campfire", 1f)),
-            bonfire = SaveMesh(LowPolyProps.Campfire("Prop_Bonfire", 1.45f)),
-            windmill = SaveMesh(LowPolyProps.Windmill()),
-            blades = SaveMesh(LowPolyProps.WindmillBlades()),
-            farmhouse = SaveMesh(LowPolyProps.Farmhouse()),
-            barn = SaveMesh(LowPolyProps.Barn()),
-            well = SaveMesh(LowPolyProps.Well()),
-            scarecrow = SaveMesh(LowPolyProps.Scarecrow()),
-            cropRow = SaveMesh(LowPolyProps.CropRow()),
+            hay = SaveInkedMesh(LowPolyProps.HayBale()),
+            haystack = SaveInkedMesh(LowPolyProps.Haystack()),
+            barrel = SaveInkedMesh(LowPolyProps.Barrel()),
+            crate = SaveInkedMesh(LowPolyProps.Crate()),
+            lamp = SaveInkedMesh(LowPolyProps.LampPost()),
+            log = SaveInkedMesh(LowPolyProps.Log()),
+            mushroom = SaveInkedMesh(LowPolyProps.Mushroom("Prop_Mushroom")),
+            mushroomSmall = SaveInkedMesh(LowPolyProps.Mushroom("Prop_MushroomSmall")),
+            sweeperPost = SaveInkedMesh(LowPolyProps.SweeperPost()),
+            sweeperArm = SaveInkedMesh(LowPolyProps.SweeperArm()),
+            tent = SaveInkedMesh(LowPolyProps.Tent()),
+            campfire = SaveInkedMesh(LowPolyProps.Campfire("Prop_Campfire", 1f)),
+            bonfire = SaveInkedMesh(LowPolyProps.Campfire("Prop_Bonfire", 1.45f)),
+            windmill = SaveInkedMesh(LowPolyProps.Windmill()),
+            blades = SaveInkedMesh(LowPolyProps.WindmillBlades()),
+            farmhouse = SaveInkedMesh(LowPolyProps.Farmhouse()),
+            barn = SaveInkedMesh(LowPolyProps.Barn()),
+            well = SaveInkedMesh(LowPolyProps.Well()),
+            scarecrow = SaveInkedMesh(LowPolyProps.Scarecrow()),
+            cropRow = SaveInkedMesh(LowPolyProps.CropRow()),
             mud = new[] { SaveMesh(LowPolyProps.MudPatch(3.1f, 1)), SaveMesh(LowPolyProps.MudPatch(2.6f, 2)), SaveMesh(LowPolyProps.MudPatch(2.2f, 3)) },
-            stones = new[] { SaveMesh(LowPolyProps.StepStone(1)), SaveMesh(LowPolyProps.StepStone(2)), SaveMesh(LowPolyProps.StepStone(3)) },
+            stones = new[] { SaveInkedMesh(LowPolyProps.StepStone(1)), SaveInkedMesh(LowPolyProps.StepStone(2)), SaveInkedMesh(LowPolyProps.StepStone(3)) },
             lilies = new[] { SaveMesh(LowPolyProps.Lily(1)), SaveMesh(LowPolyProps.Lily(2)) }
         };
 
@@ -178,7 +178,7 @@ namespace MixedUp.EditorTools
             {
                 Vector3 post = Vector3.Lerp(from, to, i / (float)segments);
                 post.y = GroundHeight(post.x, post.z);
-                Prim(PrimitiveType.Cube, "FencePost", parent, post + Vector3.up * 0.6f, new Vector3(0.2f, 1.2f, 0.2f), m.woodDark);
+                Prim(PrimitiveType.Cube, "FencePost", parent, post + Vector3.up * 0.6f, new Vector3(0.2f, 1.2f, 0.2f), m.woodDark, true, null, true);
             }
             for (int i = 0; i < segments; i++)
             {
@@ -245,7 +245,8 @@ namespace MixedUp.EditorTools
             camp.SetParent(world, false);
 
             Prop(camp, "Tent", wm.tent, mat, 16.8f, -30.2f, -35f, 1f, Solid.Box, new Vector3(0f, 0.8f, 0f), new Vector3(2.6f, 1.6f, 2.6f));
-            Prop(camp, "Campfire", wm.campfire, mat, 12.2f, -29.6f, 0f);
+            var campfire = Prop(camp, "Campfire", wm.campfire, mat, 12.2f, -29.6f, 0f);
+            AddFireFx(campfire.transform, new Vector3(0f, 0.25f, 0f), 1f);
             Prop(camp, "SeatA", wm.log, mat, 12.2f, -31.7f, 0f, 0.7f, Solid.Box, new Vector3(0f, 0.28f, 0f), new Vector3(2.3f, 0.6f, 0.6f));
             Prop(camp, "SeatB", wm.log, mat, 10.1f, -28.6f, 72f, 0.7f, Solid.Box, new Vector3(0f, 0.28f, 0f), new Vector3(2.3f, 0.6f, 0.6f));
             Prop(camp, "SeatC", wm.log, mat, 14.3f, -27.7f, -62f, 0.7f, Solid.Box, new Vector3(0f, 0.28f, 0f), new Vector3(2.3f, 0.6f, 0.6f));
@@ -253,7 +254,8 @@ namespace MixedUp.EditorTools
             Prop(camp, "Barrel", wm.barrel, mat, 19.8f, -28.5f, 40f, 1f, Solid.Capsule, new Vector3(0f, 0.475f, 0f), new Vector3(0.4f, 0.95f, 0f));
             Prop(camp, "Crate", wm.crate, mat, 14.6f, -33.4f, 25f, 1f, Solid.Box, new Vector3(0f, 0.45f, 0f), new Vector3(0.95f, 0.9f, 0.95f));
             Prop(camp, "Crate", wm.crate, mat, 15.8f, -33.2f, -15f, 0.85f, Solid.Box, new Vector3(0f, 0.45f, 0f), new Vector3(0.95f, 0.9f, 0.95f));
-            Prop(camp, "Lamp", wm.lamp, mat, 10.3f, -25.6f, 0f, 1f, Solid.Capsule, new Vector3(0f, 1.5f, 0f), new Vector3(0.12f, 3f, 0f));
+            var startLamp = Prop(camp, "Lamp", wm.lamp, mat, 10.3f, -25.6f, 0f, 1f, Solid.Capsule, new Vector3(0f, 1.5f, 0f), new Vector3(0.12f, 3f, 0f));
+            AddLampLight(startLamp.transform, new Vector3(0f, 2.78f, 0f));
         }
 
         static void BuildMudSwamp(Transform world, WorldMeshes wm, Material mat)
@@ -278,7 +280,8 @@ namespace MixedUp.EditorTools
             camp.SetParent(world, false);
 
             const float x = 12.2f, z = 32.2f;
-            Prop(camp, "Bonfire", wm.bonfire, mat, x, z, 0f);
+            var bonfire = Prop(camp, "Bonfire", wm.bonfire, mat, x, z, 0f);
+            AddFireFx(bonfire.transform, new Vector3(0f, 0.35f, 0f), 1.6f);
             HazardSphere(camp, "FireZone", new Vector3(x, GroundHeight(x, z) + 0.35f, z), 1.25f, HazardType.Fire);
 
             Prop(camp, "SeatA", wm.log, mat, x - 3.3f, z + 0.3f, 90f, 0.8f, Solid.Box, new Vector3(0f, 0.3f, 0f), new Vector3(2.6f, 0.7f, 0.7f));
@@ -322,7 +325,7 @@ namespace MixedUp.EditorTools
             group.SetParent(world, false);
 
             const float top = 2.4f;
-            Prim(PrimitiveType.Cube, "Platform", group, new Vector3(-18f, top * 0.5f, 43f), new Vector3(5f, top, 5f), m.stone);
+            Prim(PrimitiveType.Cube, "Platform", group, new Vector3(-18f, top * 0.5f, 43f), new Vector3(5f, top, 5f), m.stone, true, null, true);
             Prim(PrimitiveType.Cube, "PlatformCap", group, new Vector3(-18f, top + 0.06f, 43f), new Vector3(5.3f, 0.12f, 5.3f), m.woodDark, false);
 
             // The walk-up ramp on the north side.
@@ -331,7 +334,7 @@ namespace MixedUp.EditorTools
             var rotation = Quaternion.LookRotation((high - low).normalized, Vector3.up);
             const float thickness = 0.4f;
             var center = (low + high) * 0.5f - rotation * Vector3.up * (thickness * 0.5f);
-            Prim(PrimitiveType.Cube, "Ramp", group, center, new Vector3(3f, thickness, (high - low).magnitude), m.wood, true, rotation);
+            Prim(PrimitiveType.Cube, "Ramp", group, center, new Vector3(3f, thickness, (high - low).magnitude), m.wood, true, rotation, true);
 
             // The bounce pad.
             var pad = Prop(group, "BounceMushroom", wm.mushroom, mat, -18f, 38.6f, 0f, 1f, Solid.None, default, default, null, false);
@@ -346,6 +349,7 @@ namespace MixedUp.EditorTools
         {
             const float x = 22f, z = 19f;
             var tower = Prop(world, "Windmill", wm.windmill, mat, x, z, 180f, 1f, Solid.Capsule, new Vector3(0f, 3.5f, 0f), new Vector3(2.0f, 7f, 0f));
+            AddLampLight(tower.transform, new Vector3(0f, 2.6f, 2.5f), 9f, 2.2f);
 
             var blades = MeshObject("Blades", tower.transform, wm.blades, mat);
             blades.transform.localPosition = new Vector3(0f, 5.1f, 2.35f);
@@ -360,8 +364,10 @@ namespace MixedUp.EditorTools
             var farm = new GameObject("Farm").transform;
             farm.SetParent(world, false);
 
-            Prop(farm, "Farmhouse", wm.farmhouse, mat, -3f, 47f, 180f, 1f, Solid.Box, new Vector3(0f, 1.6f, 0f), new Vector3(6.6f, 3.2f, 5f));
-            Prop(farm, "Barn", wm.barn, mat, 9f, 48.5f, 200f, 1f, Solid.Box, new Vector3(0f, 2.1f, 0f), new Vector3(7.6f, 4.2f, 6.2f));
+            var house = Prop(farm, "Farmhouse", wm.farmhouse, mat, -3f, 47f, 180f, 1f, Solid.Box, new Vector3(0f, 1.6f, 0f), new Vector3(6.6f, 3.2f, 5f));
+            AddLampLight(house.transform, new Vector3(0.1f, 2.5f, 2.9f), 9f, 2.2f);
+            var barn = Prop(farm, "Barn", wm.barn, mat, 9f, 48.5f, 200f, 1f, Solid.Box, new Vector3(0f, 2.1f, 0f), new Vector3(7.6f, 4.2f, 6.2f));
+            AddLampLight(barn.transform, new Vector3(0f, 3.6f, 3.5f), 10f, 2.2f);
             Prop(farm, "Well", wm.well, mat, -9.5f, 41.5f, 0f, 1f, Solid.Capsule, new Vector3(0f, 0.5f, 0f), new Vector3(1f, 1f, 0f));
             Prop(farm, "Haystack", wm.haystack, mat, 14.5f, 43f, 0f, 1f, Solid.Capsule, new Vector3(0f, 1f, 0f), new Vector3(1.4f, 2.4f, 0f));
             Prop(farm, "Haystack", wm.haystack, mat, -10f, 50.5f, 30f, 0.85f, Solid.Capsule, new Vector3(0f, 1f, 0f), new Vector3(1.4f, 2.4f, 0f));
@@ -399,7 +405,12 @@ namespace MixedUp.EditorTools
 
             var lilies = new[] { (23.6f, 7.2f), (24.9f, 9.4f), (22.8f, 10.6f), (17.4f, 8.1f), (16.3f, 10.3f), (24.2f, 6.1f) };
             for (int i = 0; i < lilies.Length; i++)
-                Prop(stones, "Lily", wm.lilies[i % 2], mat, lilies[i].Item1, lilies[i].Item2, i * 40f, 1f, Solid.None, default, default, -0.1f);
+            {
+                var lily = Prop(stones, "Lily", wm.lilies[i % 2], mat, lilies[i].Item1, lilies[i].Item2, i * 40f, 1f, Solid.None, default, default, -0.1f, false);
+                var bob = lily.AddComponent<Bob>();
+                bob.height = 0.025f;
+                bob.swayDegrees = 3f;
+            }
         }
 
         static void BuildLampsAndSigns(Transform world, WorldMeshes wm, Material mat, ArtAssets art)
@@ -423,7 +434,8 @@ namespace MixedUp.EditorTools
                         if (p.y > -8f && p.y < 1f && p.x < -3f) continue;           // the ice hill
                         if (p.x < -40f || p.x > 40f || p.y < -32f || p.y > 52f) continue;
                         if (Vector2.Distance(p, V(22f, 26f)) < 5f) continue;        // keep the sweeper's gate clear
-                        Prop(props, "Lamp", wm.lamp, mat, p.x, p.y, 0f, 1f, Solid.Capsule, new Vector3(0f, 1.5f, 0f), new Vector3(0.12f, 3f, 0f));
+                        var lamp = Prop(props, "Lamp", wm.lamp, mat, p.x, p.y, 0f, 1f, Solid.Capsule, new Vector3(0f, 1.5f, 0f), new Vector3(0.12f, 3f, 0f));
+                        AddLampLight(lamp.transform, new Vector3(0f, 2.78f, 0f));
                     }
                     carried = 6f;
                 }

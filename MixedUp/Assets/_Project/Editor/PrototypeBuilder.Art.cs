@@ -24,6 +24,7 @@ namespace MixedUp.EditorTools
             public GameObject truck, warehouse, cartel;
             public GameObject[] trees, rocks;
             public Mesh groundSouth, groundNorth, riverBed, water, hills;
+            public LowPoly.HillField hillField;
             public Mesh[] clouds, tufts, flowers, bushes;
             public VolumeProfile post;
         }
@@ -95,6 +96,7 @@ namespace MixedUp.EditorTools
             CreateBoxModels(a, art);
             CreateProps(art, m);
             CreateMeshes(art);
+            CreateFx(art);
             CreateSky(art);
             CreatePostProcessing(art);
             AssignEffectOverlays(a);
@@ -192,11 +194,32 @@ namespace MixedUp.EditorTools
                     if (f.name != nodeName) Object.DestroyImmediate(f.gameObject);
             }
 
+            // Some hand-made models have parts whose faces point inwards: you would see through them. Turn those round.
+            foreach (var f in instance.GetComponentsInChildren<MeshFilter>())
+            {
+                if (f.sharedMesh == null) continue;
+                var fixedMesh = MeshAudit.FixInsideOut(f.sharedMesh, f.transform.localToWorldMatrix);
+                if (fixedMesh == null) continue;
+                fixedMesh.name = prefabName + "_" + f.name.Replace('.', '_') + "_Fixed";
+                f.sharedMesh = SaveMesh(fixedMesh);
+            }
+
             var renderers = instance.GetComponentsInChildren<Renderer>();
             foreach (var r in renderers) r.sharedMaterial = material;
 
-            var bounds = renderers[0].bounds;
-            foreach (var r in renderers) bounds.Encapsulate(r.bounds);
+            // Every model gets the same inked outline as the character: bake smooth normals and draw the hull as a second material.
+            if (propInk != null)
+            {
+                foreach (var f in instance.GetComponentsInChildren<MeshFilter>())
+                {
+                    var renderer = f.GetComponent<Renderer>();
+                    if (f.sharedMesh == null || renderer == null) continue;
+                    f.sharedMesh = SaveMesh(OutlineBake.Bake(f.sharedMesh, prefabName + "_" + f.name.Replace('.', '_') + "_Inked"));
+                    renderer.sharedMaterials = new[] { material, propInk };
+                }
+            }
+
+            var bounds = TightBounds(instance.transform);
             float scale = mode == SizeMode.Height ? size / bounds.size.y : size;
 
             var root = new GameObject(prefabName);
@@ -214,9 +237,7 @@ namespace MixedUp.EditorTools
             instance.transform.SetParent(holder, false);
 
             // World-space bounds after the transform, relative to the prefab root at the origin.
-            var finalRenderers = root.GetComponentsInChildren<Renderer>();
-            var finalBounds = finalRenderers[0].bounds;
-            foreach (var r in finalRenderers) finalBounds.Encapsulate(r.bounds);
+            var finalBounds = TightBounds(root.transform);
 
             if (collider == ColliderKind.Box)
             {
@@ -235,7 +256,36 @@ namespace MixedUp.EditorTools
             return SavePrefab(root, prefabName);
         }
 
+        /// <summary>
+        /// The box around the real vertices. Renderer.bounds is the box of the rotated mesh bounds, which is looser than the mesh
+        /// whenever a node is rotated: standing a rock on that box leaves it hovering above the ground.
+        /// </summary>
+        static Bounds TightBounds(Transform root)
+        {
+            bool any = false;
+            var bounds = new Bounds();
+            foreach (var filter in root.GetComponentsInChildren<MeshFilter>())
+            {
+                if (filter.sharedMesh == null || filter.GetComponent<Renderer>() == null) continue;
+                var matrix = filter.transform.localToWorldMatrix;
+                foreach (var v in filter.sharedMesh.vertices)
+                {
+                    var p = matrix.MultiplyPoint3x4(v);
+                    if (!any) { bounds = new Bounds(p, Vector3.zero); any = true; }
+                    else bounds.Encapsulate(p);
+                }
+            }
+            return bounds;
+        }
+
         // --------------------------------------------------------------- meshes
+
+        /// <summary>Saves a generated mesh prepared for the inked outline (smooth normals and a second submesh).</summary>
+        static Mesh SaveInkedMesh(Mesh mesh)
+        {
+            OutlineBake.Apply(mesh);
+            return SaveMesh(mesh);
+        }
 
         static Mesh SaveMesh(Mesh mesh)
         {
@@ -258,7 +308,8 @@ namespace MixedUp.EditorTools
             art.groundNorth = SaveMesh(LowPoly.Terrain("Ground_North", -45f, 13f, 45f, 55f, 1f, LowPoly.Grass, 2, GroundHeight, TrailColor));
             art.riverBed = SaveMesh(LowPoly.River("River_Bed", -45f, 45f, 5f, 13f, -0.4f, -0.12f));
             art.water = SaveMesh(LowPoly.Water("River_Water", -45f, 45f, 5f, 13f, -0.12f));
-            art.hills = SaveMesh(LowPoly.Hills("Hills", new Rect(-45f, -35f, 90f, 90f), 5f, 300f, 7));
+            art.hillField = new LowPoly.HillField(new Rect(-45f, -35f, 90f, 90f), 5f, 300f, 7, RoadCalm);
+            art.hills = SaveMesh(LowPoly.Hills("Hills", art.hillField));
 
             art.clouds = new[]
             {
@@ -275,7 +326,7 @@ namespace MixedUp.EditorTools
             };
             art.bushes = new[]
             {
-                SaveMesh(LowPoly.Bush("Bush_Olive", 6, 12)), SaveMesh(LowPoly.Bush("Bush_Green", 12, 18))
+                SaveInkedMesh(LowPoly.Bush("Bush_Olive", 6, 12)), SaveInkedMesh(LowPoly.Bush("Bush_Green", 12, 18))
             };
         }
 
@@ -334,18 +385,21 @@ namespace MixedUp.EditorTools
 
         static void AssignEffectOverlays(GameAssets a)
         {
-            void Assign(string effectPath, string overlayFile)
+            void Assign(string effectPath, string overlayFile, EffectOverlay? mode = null)
             {
                 var effect = AssetDatabase.LoadAssetAtPath<BoxEffect>(effectPath);
                 var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(OverlaysDir + "/" + overlayFile);
                 if (effect == null || texture == null) return;
                 effect.screenOverlay = texture;
+                if (mode.HasValue) effect.overlay = mode.Value;
                 EditorUtility.SetDirty(effect);
             }
 
-            Assign(DataDir + "/Effects/Effect_Heat.asset", "overlay_hot.png");
-            Assign(DataDir + "/Effects/Effect_Frozen.asset", "overlay_frozen.png");
-            Assign(DataDir + "/Effects/Effect_Electric.asset", "overlay_electric.png");
+            // Every box has its own hand-drawn frame around the screen (the toxic one also keeps its fog).
+            Assign(DataDir + "/Effects/Effect_Heat.asset", "overlay_hot_frame.png", EffectOverlay.Vignette);
+            Assign(DataDir + "/Effects/Effect_Frozen.asset", "overlay_frozen.png", EffectOverlay.Vignette);
+            Assign(DataDir + "/Effects/Effect_Electric.asset", "overlay_electric.png", EffectOverlay.Vignette);
+            Assign(DataDir + "/Effects/Effect_Toxic.asset", "overlay_toxic_frame.png", EffectOverlay.Fog);
         }
 
         static void ConfigureRenderPipelineAssets()

@@ -114,3 +114,7 @@ quip.1,Hori ez zegoen planean.,Eso no estaba en el plan.,That was not the plan.
 quip.2,Aseguruak ez du hau estaltzen.,El seguro no cubre esto.,Insurance does not cover this.
 quip.3,Gutxienez kutxak ez dira apurtu... edo bai.,Al menos las cajas no se han roto... o sí.,At least the boxes did not break... or did they.
 quip.4,Erreakzio nahiko lehergarria!,¡Menuda reacción más explosiva!,What an explosive reaction!
+prompt.take_all,GUZTIAK HARTU,QUITAR TODAS,TAKE ALL
+ui.reset_progress,PROGRESOA BERRIRO,REINICIAR PROGRESO,RESET PROGRESS
+ui.reset_progress_confirm,ZIUR? SAKATU BERRIRO,¿SEGURO? PULSA OTRA VEZ,SURE? PRESS AGAIN
+ui.reset_progress_done,PROGRESOA BERRIRO DA!,¡PROGRESO REINICIADO!,PROGRESS RESET!

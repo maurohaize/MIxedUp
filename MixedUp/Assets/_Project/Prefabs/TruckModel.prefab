@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 4337389271443124278}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 17.334072, y: -0.021655101, z: -10.268324}
+  m_LocalPosition: {x: 17.334072, y: -0.02165537, z: -10.268324}
   m_LocalScale: {x: 0.56, y: 0.56, z: 0.56}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -72,7 +72,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4388464859132663459}
-  m_Mesh: {fileID: -5495902117074765545, guid: 3f211df3acc041045bef955b112cb10d, type: 3}
+  m_Mesh: {fileID: 4300000, guid: 7780d4ac674e4e94aa91135b8787a215, type: 2}
 --- !u!23 &4631360494830298579
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -99,6 +99,7 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: cdec21bfe6ba01144ba8acf93b607e5b, type: 2}
+  - {fileID: 2100000, guid: a863ecf2b0cf34d4fa59eccff0ad615a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -206,5 +207,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2.890659, y: 2.9037104, z: 5.3207536}
-  m_Center: {x: 0.0000019073486, y: 1.6131724, z: -0.00000047683716}
+  m_Size: {x: 2.890659, y: 2.9037101, z: 5.320753}
+  m_Center: {x: 0.000002026558, y: 1.6131723, z: -0.00000023841858}

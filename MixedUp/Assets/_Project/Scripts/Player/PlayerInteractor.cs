@@ -21,6 +21,8 @@ namespace MixedUp
         public PlayerInventory Inventory => inventory != null ? inventory : inventory = GetComponent<PlayerInventory>();
         public PlayerStatus Status => status != null ? status : status = GetComponent<PlayerStatus>();
         public IInteractable Current { get; private set; }
+        /// <summary>A teammate close by whose boxes can all be taken with the Take key.</summary>
+        public PlayerPassTarget TakeTarget { get; private set; }
         public InteractionPrompt CurrentPrompt { get; private set; }
 
         public bool PassReady => Time.time >= nextPassTime;
@@ -31,6 +33,7 @@ namespace MixedUp
             if (Status.IsDead || GameManager.InputBlocked)
             {
                 Current = null;
+                TakeTarget = null;
                 return;
             }
 
@@ -48,6 +51,21 @@ namespace MixedUp
                 Scan();
                 TryInteract();
             }
+
+            if (GameInput.Take.WasPressedThisFrame())
+            {
+                Scan();
+                TryTake();
+            }
+        }
+
+        /// <summary>Grabs every box (that fits) from the nearby teammate that allows it.</summary>
+        public bool TryTake()
+        {
+            if (TakeTarget == null) return false;
+            int moved = TakeTarget.TakeAll(this);
+            Scan();
+            return moved > 0;
         }
 
         void HandleSlotSelection()
@@ -71,10 +89,23 @@ namespace MixedUp
             IInteractable best = null;
             InteractionPrompt bestPrompt = default;
             float bestScore = float.MaxValue;
+            PlayerPassTarget bestTake = null;
+            float bestTakeDistance = float.MaxValue;
 
             int count = Physics.OverlapSphereNonAlloc(transform.position, radius, buffer, ~0, QueryTriggerInteraction.Collide);
             for (int i = 0; i < count; i++)
             {
+                var takeCandidate = buffer[i].GetComponentInParent<PlayerPassTarget>();
+                if (takeCandidate != null && !takeCandidate.transform.IsChildOf(transform) && takeCandidate.CanTakeFrom(this))
+                {
+                    float d = Vector3.Distance(transform.position, takeCandidate.transform.position);
+                    if (d < bestTakeDistance)
+                    {
+                        bestTake = takeCandidate;
+                        bestTakeDistance = d;
+                    }
+                }
+
                 var candidate = buffer[i].GetComponentInParent<IInteractable>();
                 if (candidate == null) continue;
 
@@ -93,6 +124,7 @@ namespace MixedUp
 
             Current = best;
             CurrentPrompt = bestPrompt;
+            TakeTarget = bestTake;
         }
     }
 }

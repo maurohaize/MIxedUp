@@ -28,7 +28,11 @@ namespace MixedUp
                 else if (zone.type == HazardType.Slippery) state.OnSlippery = true;
                 else if (zone.type == HazardType.Mud) state.InMud = true;
                 else if (zone.type == HazardType.Fire) state.OnFire = true;
+                else if (zone.type == HazardType.IceSheet) state.OnIceSheet = true;
             }
+
+            // Ice laid over the river is dry land: it beats the water underneath.
+            if (state.OnIceSheet) state.InWater = false;
             return state;
         }
     }

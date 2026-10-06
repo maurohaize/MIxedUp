@@ -26,6 +26,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _DistanceScale: 0.4
+    - _SmoothNormals: 0
     - _Width: 0.03
     m_Colors:
     - _Color: {r: 0.05, g: 0.04, b: 0.04, a: 1}

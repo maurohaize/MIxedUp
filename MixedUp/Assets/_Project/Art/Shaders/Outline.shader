@@ -7,6 +7,8 @@ Shader "MixedUp/Outline"
         _Color ("Ink", Color) = (0.05, 0.04, 0.04, 1)
         _Width ("Width (metres)", Float) = 0.028
         _DistanceScale ("Thicker when far", Range(0, 1)) = 0.4
+        // 1 = push the hull along the smoothed normal baked into the mesh tangent (flat-shaded props: no cracks at their edges).
+        _SmoothNormals ("Use baked smooth normals", Range(0, 1)) = 0
     }
 
     SubShader
@@ -30,12 +32,14 @@ Shader "MixedUp/Outline"
                 half4 _Color;
                 float _Width;
                 float _DistanceScale;
+                float _SmoothNormals;
             CBUFFER_END
 
             struct Attributes
             {
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
+                float4 tangentOS : TANGENT;
             };
 
             struct Varyings
@@ -47,7 +51,8 @@ Shader "MixedUp/Outline"
             {
                 Varyings output;
                 float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
-                float3 normalWS = normalize(TransformObjectToWorldNormal(input.normalOS));
+                float3 pushOS = lerp(input.normalOS, input.tangentOS.xyz, _SmoothNormals);
+                float3 normalWS = normalize(TransformObjectToWorldNormal(pushOS));
                 float distanceToCamera = distance(_WorldSpaceCameraPos, positionWS);
                 float width = _Width * lerp(1.0, clamp(distanceToCamera * 0.18, 0.7, 3.0), _DistanceScale);
                 output.positionCS = TransformWorldToHClip(positionWS + normalWS * width);

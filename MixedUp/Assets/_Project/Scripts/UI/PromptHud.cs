@@ -18,6 +18,7 @@ namespace MixedUp
         bool lastEnabled;
         Language lastLanguage;
         string lastBinding;
+        bool lastCanTake;
 
         public void Bind(PlayerInteractor playerInteractor) => interactor = playerInteractor;
 
@@ -25,19 +26,20 @@ namespace MixedUp
         {
             var target = container != null ? container : label.gameObject;
 
-            if (interactor == null || interactor.Current == null)
+            if (interactor == null || (interactor.Current == null && interactor.TakeTarget == null))
             {
                 if (target.activeSelf) target.SetActive(false);
                 lastKey = null;
                 return;
             }
 
-            var prompt = interactor.CurrentPrompt;
+            var prompt = interactor.Current != null ? interactor.CurrentPrompt : default;
+            bool canTake = interactor.TakeTarget != null;
             string arg = prompt.Args != null && prompt.Args.Length > 0 ? prompt.Args[0] as string : null;
             string binding = GameInput.Label(GameInput.Interact);
 
             bool unchanged = prompt.Key == lastKey && arg == lastArg && prompt.Enabled == lastEnabled
-                             && Localization.Current == lastLanguage && binding == lastBinding;
+                             && Localization.Current == lastLanguage && binding == lastBinding && canTake == lastCanTake;
             if (!unchanged)
             {
                 lastKey = prompt.Key;
@@ -45,10 +47,17 @@ namespace MixedUp
                 lastEnabled = prompt.Enabled;
                 lastLanguage = Localization.Current;
                 lastBinding = binding;
+                lastCanTake = canTake;
 
-                string text = Localization.Get(prompt.Key, prompt.Args);
-                label.text = prompt.Enabled ? binding + " - " + text : text;
-                label.color = prompt.Enabled ? enabledColor : blockedColor;
+                string text = prompt.Key != null ? Localization.Get(prompt.Key, prompt.Args) : string.Empty;
+                text = prompt.Enabled ? binding + " - " + text : text;
+                if (canTake)
+                {
+                    string take = GameInput.Label(GameInput.Take) + " - " + Localization.Get("prompt.take_all");
+                    text = text.Length > 0 ? text + "     " + take : take;
+                }
+                label.text = text;
+                label.color = prompt.Enabled || prompt.Key == null ? enabledColor : blockedColor;
             }
 
             if (!target.activeSelf) target.SetActive(true);

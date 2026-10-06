@@ -47,6 +47,25 @@ namespace MixedUp
             return false;
         }
 
+        /// <summary>True when `who` could grab the boxes this player carries (only players that allow it, with room for them).</summary>
+        public bool CanTakeFrom(PlayerInteractor who) =>
+            allowTakeBack && !status.IsDead && !who.Status.IsDead && inventory.Count > 0 && who.Inventory.HasSpace;
+
+        /// <summary>Takes every box that fits in the taker's hands. Returns how many moved.</summary>
+        public int TakeAll(PlayerInteractor who)
+        {
+            if (!CanTakeFrom(who)) return 0;
+
+            int moved = 0;
+            while (who.Inventory.HasSpace && inventory.Count > 0)
+            {
+                if (!inventory.TryTransfer(inventory.FirstOccupiedIndex(), who.Inventory)) break;
+                moved++;
+            }
+            if (moved > 0) who.MarkPassed();
+            return moved;
+        }
+
         public void Interact(PlayerInteractor who)
         {
             if (status.IsDead) return;

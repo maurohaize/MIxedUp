@@ -178,54 +178,93 @@ namespace MixedUp.EditorTools
         static float Noise(float x, float z, float scale, float offset) =>
             Mathf.PerlinNoise(x * scale + offset, z * scale + offset * 0.7f);
 
-        /// <summary>Faceted mountains around a flat rectangular hole (the play area). Heights start at 0 at the hole's edge.</summary>
-        public static Mesh Hills(string name, Rect hole, float cell, float halfExtent, int seed)
+        /// <summary>
+        /// The mountains around the play area: a smooth height function plus the faceted surface that is actually drawn,
+        /// so things can be stood on the visible triangles. `flatten` (0 = flat, 1 = untouched) calms the ground along the road.
+        /// </summary>
+        public sealed class HillField
         {
-            int n = Mathf.RoundToInt(halfExtent * 2f / cell);
-            var heights = new float[n + 1, n + 1];
-            var xs = new float[n + 1];
-            float cx = hole.center.x, cz = hole.center.y;
+            public readonly Rect hole;
+            public readonly float cell, halfExtent;
+            public readonly int seed, n;
+            readonly float[,] heights;
+            readonly float cx, cz;
+            readonly System.Func<float, float, float> flatten;
 
-            for (int i = 0; i <= n; i++) xs[i] = cx - halfExtent + i * cell;
+            public HillField(Rect hole, float cell, float halfExtent, int seed, System.Func<float, float, float> flatten = null)
+            {
+                this.hole = hole;
+                this.cell = cell;
+                this.halfExtent = halfExtent;
+                this.seed = seed;
+                this.flatten = flatten;
+                n = Mathf.RoundToInt(halfExtent * 2f / cell);
+                cx = hole.center.x;
+                cz = hole.center.y;
+                heights = new float[n + 1, n + 1];
+                for (int i = 0; i <= n; i++)
+                    for (int j = 0; j <= n; j++)
+                        heights[i, j] = Height(X(i), Z(j));
+            }
 
-            float Height(float px, float pz)
+            public float X(int i) => cx - halfExtent + i * cell;
+            public float Z(int j) => cx - halfExtent + j * cell - cx + cz;
+            public float Heights(int i, int j) => heights[i, j];
+
+            public float Height(float px, float pz)
             {
                 float dx = Mathf.Max(hole.xMin - px, 0f, px - hole.xMax);
                 float dz = Mathf.Max(hole.yMin - pz, 0f, pz - hole.yMax);
                 float d = Mathf.Sqrt(dx * dx + dz * dz);
                 if (d <= 0f) return 0f;
 
+                float calm = flatten != null ? flatten(px, pz) : 1f;
                 float t = Mathf.SmoothStep(0f, 1f, d / 150f);
                 float ridge = 1f - Mathf.Abs(Noise(px, pz, 0.009f, seed) * 2f - 1f);
                 float broad = Noise(px, pz, 0.02f, seed * 3.1f);
                 float bumps = Noise(px, pz, 0.08f, seed * 1.7f);
                 float h = t * (3f + 52f * Mathf.Pow(ridge, 1.5f) * (0.5f + broad * 0.6f)) + bumps * 1.6f * t;
-                return h + Mathf.Min(d, 45f) * 0.05f;
+                return h * calm + Mathf.Min(d, 45f) * 0.05f;
             }
 
-            for (int i = 0; i <= n; i++)
-                for (int j = 0; j <= n; j++)
-                    heights[i, j] = Height(xs[i], xs[j] - cx + cz);
-
-            var b = new MeshBuilder();
-            bool Inside(int i, int j)
+            /// <summary>Height of the drawn (triangulated) surface at a point; falls back to the smooth height outside the grid.</summary>
+            public float Surface(float px, float pz)
             {
-                float px = xs[i], pz = xs[j] - cx + cz;
+                float fx = (px - X(0)) / cell, fz = (pz - Z(0)) / cell;
+                int i = Mathf.FloorToInt(fx), j = Mathf.FloorToInt(fz);
+                if (i < 0 || j < 0 || i >= n || j >= n) return Height(px, pz);
+
+                float u = fx - i, v = fz - j;
+                float h00 = heights[i, j], h01 = heights[i, j + 1], h11 = heights[i + 1, j + 1], h10 = heights[i + 1, j];
+                if ((i + j) % 2 == 0)
+                    return v >= u ? h00 + v * (h01 - h00) + u * (h11 - h01) : h00 + u * (h10 - h00) + v * (h11 - h10);
+                return u + v <= 1f ? h00 + u * (h10 - h00) + v * (h01 - h00) : h11 + (1f - u) * (h01 - h11) + (1f - v) * (h10 - h11);
+            }
+
+            public bool Inside(int i, int j)
+            {
+                float px = X(i), pz = Z(j);
                 return px >= hole.xMin - 0.01f && px <= hole.xMax + 0.01f && pz >= hole.yMin - 0.01f && pz <= hole.yMax + 0.01f;
             }
+        }
 
+        /// <summary>Faceted mountains around a flat rectangular hole (the play area). Heights start at 0 at the hole's edge.</summary>
+        public static Mesh Hills(string name, HillField field)
+        {
+            var b = new MeshBuilder();
+            int n = field.n;
             for (int i = 0; i < n; i++)
             {
                 for (int j = 0; j < n; j++)
                 {
-                    if (Inside(i, j) && Inside(i + 1, j) && Inside(i, j + 1) && Inside(i + 1, j + 1)) continue;
+                    if (field.Inside(i, j) && field.Inside(i + 1, j) && field.Inside(i, j + 1) && field.Inside(i + 1, j + 1)) continue;
 
-                    float x0 = xs[i], x1 = xs[i + 1];
-                    float z0 = xs[j] - cx + cz, z1 = xs[j + 1] - cx + cz;
-                    var p00 = new Vector3(x0, heights[i, j], z0);
-                    var p01 = new Vector3(x0, heights[i, j + 1], z1);
-                    var p11 = new Vector3(x1, heights[i + 1, j + 1], z1);
-                    var p10 = new Vector3(x1, heights[i + 1, j], z0);
+                    float x0 = field.X(i), x1 = field.X(i + 1);
+                    float z0 = field.Z(j), z1 = field.Z(j + 1);
+                    var p00 = new Vector3(x0, field.Heights(i, j), z0);
+                    var p01 = new Vector3(x0, field.Heights(i, j + 1), z1);
+                    var p11 = new Vector3(x1, field.Heights(i + 1, j + 1), z1);
+                    var p10 = new Vector3(x1, field.Heights(i + 1, j), z0);
 
                     if ((i + j) % 2 == 0)
                     {

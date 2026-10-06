@@ -5,7 +5,7 @@ namespace MixedUp
 {
     /// <summary>
     /// All gameplay actions, defined in code so bindings can be remapped and persisted later.
-    /// Defaults: WASD move, Shift run, Space jump, E interact, Q/scroll/1-4 inventory slot, Esc pause.
+    /// Defaults: WASD move, Shift run, Space jump, E interact, F take boxes from a teammate, Q/scroll/1-4 inventory slot, Esc pause.
     /// </summary>
     public static class GameInput
     {
@@ -19,6 +19,7 @@ namespace MixedUp
         public static InputAction Sprint { get; private set; }
         public static InputAction Jump { get; private set; }
         public static InputAction Interact { get; private set; }
+        public static InputAction Take { get; private set; }
         public static InputAction Pause { get; private set; }
         public static InputAction NextSlot { get; private set; }
         public static InputAction[] SelectSlot { get; private set; }
@@ -69,6 +70,10 @@ namespace MixedUp
             Interact = map.AddAction("Interact", InputActionType.Button);
             Interact.AddBinding("<Keyboard>/e");
             Interact.AddBinding("<Gamepad>/buttonWest");
+
+            Take = map.AddAction("Take", InputActionType.Button);
+            Take.AddBinding("<Keyboard>/f");
+            Take.AddBinding("<Gamepad>/buttonEast");
 
             Pause = map.AddAction("Pause", InputActionType.Button);
             Pause.AddBinding("<Keyboard>/escape");

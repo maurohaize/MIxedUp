@@ -48,6 +48,14 @@ namespace MixedUp.EditorTools
                 material.SetFloat("_DistanceScale", 0.4f);
             });
 
+            propInk = CharacterMaterial("OutlineProps", "MixedUp/Outline", material =>
+            {
+                material.SetColor("_Color", new Color(0.05f, 0.04f, 0.04f));
+                material.SetFloat("_Width", 0.034f);
+                material.SetFloat("_DistanceScale", 0.5f);
+                material.SetFloat("_SmoothNormals", 1f);
+            });
+
             var face = AssetDatabase.LoadAssetAtPath<Texture2D>(CharactersDir + "/face.png");
             m.face = CharacterMaterial("Face", "Sprites/Default", material =>
             {
@@ -189,6 +197,10 @@ namespace MixedUp.EditorTools
             var pass = root.AddComponent<PlayerPassTarget>();
             pass.allowTakeBack = !local;
             root.AddComponent<HazardSensor>();
+
+            // Wading through the river with a frozen box leaves a trail of ice behind.
+            var iceTrail = root.AddComponent<IceTrailEmitter>();
+            iceTrail.slabPrefab = iceSlabPrefab != null ? iceSlabPrefab.GetComponent<IceSlab>() : null;
 
             AddAppearance(root, parts, palette, local);
 

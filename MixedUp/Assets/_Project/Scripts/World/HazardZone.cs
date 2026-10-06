@@ -9,7 +9,9 @@ namespace MixedUp
         /// <summary>Thick mud: slows walking and jumping.</summary>
         Mud,
         /// <summary>Open flames: hurts anyone standing in them.</summary>
-        Fire
+        Fire,
+        /// <summary>Solid ice floating on the water: standing on it keeps your feet out of the river.</summary>
+        IceSheet
     }
 
     /// <summary>A trigger volume that marks the ground inside it as dangerous (water, ice, mud, fire).</summary>

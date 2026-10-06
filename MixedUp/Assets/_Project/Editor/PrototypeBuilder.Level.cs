@@ -37,6 +37,9 @@ namespace MixedUp.EditorTools
             var truck = BuildTruck(env, m, a, art);
             BuildScenery(env, m, art);
             BuildWorld(env, m, art);
+            BuildOutside(env, m, art);
+            BuildEdgeMist(env);
+            BuildWaterLife(env, art);
             BuildSkyDecor(env, art);
 
             var boxesRoot = new GameObject("Boxes").transform;
@@ -127,7 +130,8 @@ namespace MixedUp.EditorTools
             go.transform.SetParent(parent, false);
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
             var renderer = go.AddComponent<MeshRenderer>();
-            renderer.sharedMaterial = material;
+            // A mesh baked for the outline gets its ink as a second material.
+            renderer.sharedMaterials = propInk != null && OutlineBake.IsBaked(mesh) ? new[] { material, propInk } : new[] { material };
             if (!shadows) renderer.shadowCastingMode = ShadowCastingMode.Off;
             go.isStatic = true;
             return go;
@@ -155,7 +159,7 @@ namespace MixedUp.EditorTools
             MeshObject("GroundSouthVisual", env, art.groundSouth, art.palette);
             MeshObject("GroundNorthVisual", env, art.groundNorth, art.palette);
             MeshObject("RiverVisual", env, art.riverBed, art.palette);
-            MeshObject("Water", env, art.water, art.paletteWater, false);
+            MeshObject("Water", env, art.water, fxWater != null ? fxWater : art.paletteWater, false);
             MeshObject("Hills", env, art.hills, art.palette);
 
             HazardVolume("WaterVolume", env, new Vector3(0f, -0.3f, 9f), new Vector3(90f, 0.5f, 8f), Quaternion.identity, HazardType.Water);
@@ -163,55 +167,14 @@ namespace MixedUp.EditorTools
 
         static void BuildBridge(Transform env, Mats m)
         {
-            Prim(PrimitiveType.Cube, "BridgeDeck", env, new Vector3(-27f, 0.1f, 9f), new Vector3(5f, 0.2f, 9f), m.wood);
-            Prim(PrimitiveType.Cube, "BridgeRailLeft", env, new Vector3(-29.4f, 0.55f, 9f), new Vector3(0.2f, 0.7f, 9f), m.woodDark);
-            Prim(PrimitiveType.Cube, "BridgeRailRight", env, new Vector3(-24.6f, 0.55f, 9f), new Vector3(0.2f, 0.7f, 9f), m.woodDark);
+            Prim(PrimitiveType.Cube, "BridgeDeck", env, new Vector3(-27f, 0.1f, 9f), new Vector3(5f, 0.2f, 9f), m.wood, true, null, true);
+            Prim(PrimitiveType.Cube, "BridgeRailLeft", env, new Vector3(-29.4f, 0.55f, 9f), new Vector3(0.2f, 0.7f, 9f), m.woodDark, true, null, true);
+            Prim(PrimitiveType.Cube, "BridgeRailRight", env, new Vector3(-24.6f, 0.55f, 9f), new Vector3(0.2f, 0.7f, 9f), m.woodDark, true, null, true);
             for (int i = 0; i < 4; i++)
             {
                 float z = 5f + i * 2.67f;
-                Prim(PrimitiveType.Cube, "PostL" + i, env, new Vector3(-29.4f, 0.55f, z), new Vector3(0.3f, 1.1f, 0.3f), m.woodDark);
-                Prim(PrimitiveType.Cube, "PostR" + i, env, new Vector3(-24.6f, 0.55f, z), new Vector3(0.3f, 1.1f, 0.3f), m.woodDark);
-            }
-        }
-
-        /// <summary>A 5 m plateau reached by an icy ramp (slippery) or by a safe staircase on its east side.</summary>
-        static void BuildIceHill(Transform env, Mats m, ArtAssets art)
-        {
-            const float plateauTop = 5f;
-            const float width = 8f;
-
-            Prim(PrimitiveType.Cube, "Plateau", env, new Vector3(-32f, plateauTop * 0.5f, -6f), new Vector3(10f, plateauTop, 10f), m.stone);
-
-            var start = new Vector3(-32f, 0f, -25f);
-            var end = new Vector3(-32f, plateauTop, -11f);
-            var rotation = Quaternion.LookRotation((end - start).normalized, Vector3.up);
-            float length = (end - start).magnitude;
-            const float thickness = 0.5f;
-
-            var center = (start + end) * 0.5f - rotation * Vector3.up * (thickness * 0.5f);
-            Prim(PrimitiveType.Cube, "IceRamp", env, center, new Vector3(width, thickness, length), m.ice, true, rotation);
-
-            var iceCenter = (start + end) * 0.5f + rotation * Vector3.up * 0.3f;
-            HazardVolume("IceVolume", env, iceCenter, new Vector3(width, 1f, length), rotation, HazardType.Slippery);
-
-            const int steps = 12;
-            float rise = plateauTop / steps;
-            for (int i = 0; i < steps; i++)
-            {
-                float top = rise * (i + 1);
-                float x = -27f + 1.2f * (steps - i) - 0.6f;
-                Prim(PrimitiveType.Cube, "Step" + (i + 1), env, new Vector3(x, top * 0.5f, -6f), new Vector3(1.2f, top, 4f), m.wood);
-            }
-
-            // Boulders around the foot of the plateau make it look like a natural outcrop.
-            var rng = new System.Random(77);
-            for (int i = 0; i < 9; i++)
-            {
-                float angle = (float)rng.NextDouble() * 360f;
-                var spot = new Vector3(-32f, 0f, -6f) + Quaternion.Euler(0f, angle, 0f) * Vector3.forward * (6.8f + (float)rng.NextDouble() * 1.5f);
-                if (spot.x > -29f && spot.z > -9f && spot.z < -3f) continue;
-                if (spot.x > -37f && spot.x < -27f && spot.z < -11f && spot.z > -26f) continue;
-                PlaceProp(env, art.rocks[rng.Next(art.rocks.Length)], spot, angle, 0.7f + (float)rng.NextDouble() * 0.6f);
+                Prim(PrimitiveType.Cube, "PostL" + i, env, new Vector3(-29.4f, 0.55f, z), new Vector3(0.3f, 1.1f, 0.3f), m.woodDark, true, null, true);
+                Prim(PrimitiveType.Cube, "PostR" + i, env, new Vector3(-24.6f, 0.55f, z), new Vector3(0.3f, 1.1f, 0.3f), m.woodDark, true, null, true);
             }
         }
 
@@ -265,7 +228,14 @@ namespace MixedUp.EditorTools
             instance.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
             instance.transform.localScale = Vector3.one * scale;
             if (tint != null)
-                foreach (var r in instance.GetComponentsInChildren<Renderer>()) r.sharedMaterial = tint;
+            {
+                foreach (var r in instance.GetComponentsInChildren<Renderer>())
+                {
+                    var current = r.sharedMaterials;
+                    current[0] = tint;
+                    r.sharedMaterials = current;
+                }
+            }
             SetStaticRecursively(instance);
         }
 
@@ -319,8 +289,8 @@ namespace MixedUp.EditorTools
             }
 
             // Stone walls near the electric box.
-            Prim(PrimitiveType.Cube, "StoneWall1", scenery, new Vector3(24f, 0.7f, 33f), new Vector3(8f, 1.4f, 0.8f), m.stone);
-            Prim(PrimitiveType.Cube, "StoneWall2", scenery, new Vector3(36f, 0.7f, 30f), new Vector3(0.8f, 1.4f, 7f), m.stone);
+            Prim(PrimitiveType.Cube, "StoneWall1", scenery, new Vector3(24f, 0.7f, 33f), new Vector3(8f, 1.4f, 0.8f), m.stone, true, null, true);
+            Prim(PrimitiveType.Cube, "StoneWall2", scenery, new Vector3(36f, 0.7f, 30f), new Vector3(0.8f, 1.4f, 7f), m.stone, true, null, true);
 
             // Warehouse landmark east of the start area.
             PlaceProp(scenery, art.warehouse, new Vector3(33f, 0f, -27f), 90f, 1f);
@@ -367,7 +337,7 @@ namespace MixedUp.EditorTools
             for (float x = -43f; x <= 43f; x += 4f)
             {
                 if (Mathf.Abs(x) < 5f) continue;
-                Prim(PrimitiveType.Cube, "FencePost", parent, new Vector3(x, 0.6f, -34.4f), new Vector3(0.22f, 1.2f, 0.22f), m.woodDark);
+                Prim(PrimitiveType.Cube, "FencePost", parent, new Vector3(x, 0.6f, -34.4f), new Vector3(0.22f, 1.2f, 0.22f), m.woodDark, true, null, true);
                 if (x + 4f <= 43f && !(x + 4f > -5f && x < 5f))
                 {
                     Prim(PrimitiveType.Cube, "FenceRailHigh", parent, new Vector3(x + 2f, 0.95f, -34.4f), new Vector3(3.8f, 0.12f, 0.1f), m.wood, false);
@@ -404,7 +374,7 @@ namespace MixedUp.EditorTools
             model.name = "Model";
 
             // Loading dock behind the truck: delivered boxes are stacked here.
-            Prim(PrimitiveType.Cube, "Dock", t, new Vector3(0f, 0.125f, -5.2f), new Vector3(5.2f, 0.25f, 4.2f), m.wood);
+            Prim(PrimitiveType.Cube, "Dock", t, new Vector3(0f, 0.125f, -5.2f), new Vector3(5.2f, 0.25f, 4.2f), m.wood, true, null, true);
             Prim(PrimitiveType.Cube, "DockEdgeBack", t, new Vector3(0f, 0.2f, -7.3f), new Vector3(5.2f, 0.12f, 0.2f), m.woodDark, false);
             Prim(PrimitiveType.Cube, "DockEdgeLeft", t, new Vector3(-2.6f, 0.2f, -5.2f), new Vector3(0.2f, 0.12f, 4.2f), m.woodDark, false);
             Prim(PrimitiveType.Cube, "DockEdgeRight", t, new Vector3(2.6f, 0.2f, -5.2f), new Vector3(0.2f, 0.12f, 4.2f), m.woodDark, false);

@@ -129,13 +129,16 @@ namespace MixedUp.EditorTools
             return b.ToMesh("Prop_Crate");
         }
 
+        /// <summary>A lamp post whose lantern is an open cage: the glowing bulb (LampBulb) is added in the scene and shows through.</summary>
         public static Mesh LampPost()
         {
             var b = new LowPoly.MeshBuilder();
             Frustum(b, At(0f, 0f, 0f), 0.14f, 0.1f, 0.2f, 8, Grey);
             Frustum(b, At(0f, 0.2f, 0f), 0.065f, 0.055f, 2.4f, 8, Espresso);
-            Box(b, At(0f, 2.78f, 0f), new Vector3(0.42f, 0.42f, 0.42f), LightSand);
-            Frustum(b, At(0f, 2.99f, 0f), 0.42f, 0.02f, 0.3f, 4, DarkRust, -1, false, Mathf.PI * 0.25f);
+            Box(b, At(0f, 2.62f, 0f), new Vector3(0.36f, 0.06f, 0.36f), Espresso);            // lantern floor
+            foreach (var (x, z) in new[] { (-0.17f, -0.17f), (0.17f, -0.17f), (-0.17f, 0.17f), (0.17f, 0.17f) })
+                Box(b, At(x, 2.8f, z), new Vector3(0.04f, 0.34f, 0.04f), Espresso);            // cage posts
+            Frustum(b, At(0f, 2.97f, 0f), 0.42f, 0.02f, 0.32f, 4, DarkRust, -1, false, Mathf.PI * 0.25f);
             return b.ToMesh("Prop_LampPost");
         }
 
@@ -344,7 +347,185 @@ namespace MixedUp.EditorTools
         {
             var b = new LowPoly.MeshBuilder();
             Frustum(b, At(0f, 0f, 0f), 0.5f, 0.46f, 0.04f, 8, Moss, Olive, false, seed);
+            // a little notch and a flower on some pads
+            if (seed % 2 == 0) Blob(b, new Vector3(0.1f, 0.09f, 0.05f), new Vector3(0.1f, 0.07f, 0.1f), 0, 0.1f, Salmon, seed);
             return b.ToMesh("Prop_Lily" + seed);
         }
+
+        /// <summary>A traffic cone: an orange pyramid with a cream stripe on a square base.</summary>
+        public static Mesh Cone()
+        {
+            var b = new LowPoly.MeshBuilder();
+            Box(b, At(0f, 0.025f, 0f), new Vector3(0.5f, 0.05f, 0.5f), Rust);
+            Frustum(b, At(0f, 0.05f, 0f), 0.2f, 0.05f, 0.62f, 8, Brick, Rust);
+            Frustum(b, At(0f, 0.3f, 0f), 0.133f, 0.108f, 0.1f, 8, Cream);
+            return b.ToMesh("Prop_Cone");
+        }
+
+        /// <summary>A drifting leaf for the river: small, flat and pointed.</summary>
+        public static Mesh Leaf(int seed)
+        {
+            var b = new LowPoly.MeshBuilder();
+            int[] colours = { Gold, Rust, Olive, Clay };
+            int colour = colours[seed % colours.Length];
+            Vector3 tip = new Vector3(0f, 0.01f, 0.2f), tail = new Vector3(0f, 0.01f, -0.18f);
+            Vector3 left = new Vector3(-0.1f, 0.02f, 0f), right = new Vector3(0.1f, 0.02f, 0f);
+            b.Triangle(tail, left, tip, colour);
+            b.Triangle(tail, tip, right, colour);
+            b.Triangle(tail, tip, left, colour);
+            b.Triangle(tail, right, tip, colour);
+            return b.ToMesh("Prop_Leaf" + seed);
+        }
+
+        // ------------------------------------------------------------ the ice hill
+
+        const int Snow = 25, Ice = 29, Teal = 16;
+
+        /// <summary>
+        /// The rocky plateau of the ice hill: a 10 x 10 m stone block whose flat top sits at y = 5, wearing a thick cap of snow
+        /// with icicles hanging from its lip and a few frozen boulders at the corners.
+        /// </summary>
+        public static Mesh IcePlateau()
+        {
+            var b = new LowPoly.MeshBuilder();
+            Box(b, At(0f, 1.0f, 0f), new Vector3(10.6f, 2.0f, 10.6f), Stone);
+            Box(b, At(0f, 3.3f, 0f), new Vector3(9.8f, 2.6f, 9.8f), Grey);
+            // chunky rock facets on the corners and sides
+            var rng = new System.Random(5);
+            for (int i = 0; i < 14; i++)
+            {
+                float angle = i / 14f * Mathf.PI * 2f;
+                float r = 5.1f + (float)rng.NextDouble() * 0.3f;
+                Blob(b, new Vector3(Mathf.Cos(angle) * r * 0.97f, 1.4f + (float)rng.NextDouble() * 2.4f, Mathf.Sin(angle) * r * 0.97f),
+                    new Vector3(0.9f, 1.2f, 0.9f) * (0.8f + (float)rng.NextDouble() * 0.5f), 1, 0.16f, i % 2 == 0 ? Stone : Grey, 11 + i);
+            }
+
+            // the snow cap, with its top exactly at the walkable height
+            Box(b, At(0f, 4.8f, 0f), new Vector3(10.5f, 0.4f, 10.5f), Snow);
+            // a lip of snow lumps round the edge (kept below the walking surface)
+            for (int i = 0; i < 26; i++)
+            {
+                float t = i / 26f * 4f;
+                int side = Mathf.FloorToInt(t);
+                float along = (t - side) * 10.4f - 5.2f;
+                Vector3 p = side == 0 ? new Vector3(along, 4.78f, 5.25f) : side == 1 ? new Vector3(5.25f, 4.78f, -along)
+                          : side == 2 ? new Vector3(-along, 4.78f, -5.25f) : new Vector3(-5.25f, 4.78f, along);
+                Blob(b, p, new Vector3(0.55f, 0.28f, 0.55f) * (0.8f + (float)rng.NextDouble() * 0.5f), 0, 0.14f, Snow, 40 + i);
+            }
+
+            // icicles under the lip
+            for (int i = 0; i < 34; i++)
+            {
+                float t = (i + (float)rng.NextDouble() * 0.6f) / 34f * 4f;
+                int side = Mathf.FloorToInt(t) % 4;
+                float along = (t - Mathf.Floor(t)) * 9.8f - 4.9f;
+                Vector3 p = side == 0 ? new Vector3(along, 4.62f, 5.2f) : side == 1 ? new Vector3(5.2f, 4.62f, -along)
+                          : side == 2 ? new Vector3(-along, 4.62f, -5.2f) : new Vector3(-5.2f, 4.62f, along);
+                float length = 0.45f + (float)rng.NextDouble() * 0.9f;
+                Frustum(b, At(p, Quaternion.Euler(180f, 0f, 0f)), 0.09f + (float)rng.NextDouble() * 0.05f, 0.01f, length, 5, i % 3 == 0 ? Snow : Ice);
+            }
+            return b.ToMesh("Prop_IcePlateau");
+        }
+
+        /// <summary>A pine tree dusted with snow, about 5 m tall.</summary>
+        public static Mesh SnowPine(int seed)
+        {
+            var b = new LowPoly.MeshBuilder();
+            Frustum(b, At(0f, 0f, 0f), 0.24f, 0.17f, 1.3f, 6, DarkWood);
+            for (int tier = 0; tier < 4; tier++)
+            {
+                float r = 1.55f - tier * 0.34f, y = 0.9f + tier * 0.95f;
+                Frustum(b, At(0f, y, 0f), r, 0.06f, 1.5f, 7, tier % 2 == 0 ? DeepTeal : Moss, -1, false, tier * 0.5f + seed);
+                // the snow lying on this tier
+                Frustum(b, At(0f, y + 0.55f, 0f), r * 0.66f + 0.03f, 0.05f, 1.0f, 7, Snow, -1, false, tier * 0.5f + seed);
+            }
+            return b.ToMesh("Prop_SnowPine" + seed);
+        }
+
+        public static Mesh Snowman()
+        {
+            var b = new LowPoly.MeshBuilder();
+            Blob(b, new Vector3(0f, 0.5f, 0f), new Vector3(0.62f, 0.55f, 0.62f), 1, 0.05f, Snow, 3);
+            Blob(b, new Vector3(0f, 1.25f, 0f), new Vector3(0.46f, 0.42f, 0.46f), 1, 0.05f, Snow, 4);
+            Blob(b, new Vector3(0f, 1.85f, 0f), new Vector3(0.34f, 0.32f, 0.34f), 1, 0.05f, Snow, 5);
+            Frustum(b, At(0f, 1.5f, 0f), 0.4f, 0.4f, 0.1f, 8, Brick);                      // scarf
+            Box(b, At(0.22f, 1.35f, 0.05f), new Vector3(0.1f, 0.4f, 0.1f), Brick);          // its hanging end
+            Frustum(b, At(0f, 2.08f, 0f), 0.42f, 0.42f, 0.04f, 8, Navy);                    // hat brim
+            Frustum(b, At(0f, 2.1f, 0f), 0.25f, 0.21f, 0.36f, 8, Navy);
+            Frustum(b, At(0f, 1.86f, 0.3f) * Matrix4x4.Rotate(Quaternion.Euler(90f, 0f, 0f)), 0.05f, 0.01f, 0.32f, 4, Rust);   // carrot nose
+            Blob(b, new Vector3(-0.12f, 1.95f, 0.28f), new Vector3(0.04f, 0.04f, 0.04f), 0, 0.05f, 27, 7);
+            Blob(b, new Vector3(0.12f, 1.95f, 0.28f), new Vector3(0.04f, 0.04f, 0.04f), 0, 0.05f, 27, 8);
+            for (int i = 0; i < 3; i++) Blob(b, new Vector3(0f, 1.0f + i * 0.17f, 0.4f), new Vector3(0.05f, 0.05f, 0.05f), 0, 0.05f, 27, 9 + i);
+            Box(b, At(-0.68f, 1.45f, 0f) * Matrix4x4.Rotate(Quaternion.Euler(0f, 0f, 35f)), new Vector3(0.7f, 0.06f, 0.06f), DarkWood);
+            Box(b, At(0.68f, 1.45f, 0f) * Matrix4x4.Rotate(Quaternion.Euler(0f, 0f, -35f)), new Vector3(0.7f, 0.06f, 0.06f), DarkWood);
+            return b.ToMesh("Prop_Snowman");
+        }
+
+        /// <summary>A cluster of ice crystals growing out of the ground.</summary>
+        public static Mesh IceCrystals(int seed)
+        {
+            var b = new LowPoly.MeshBuilder();
+            var rng = new System.Random(seed);
+            int count = 4 + rng.Next(3);
+            for (int i = 0; i < count; i++)
+            {
+                float angle = (float)rng.NextDouble() * Mathf.PI * 2f, spread = i == 0 ? 0f : 0.15f + (float)rng.NextDouble() * 0.3f;
+                var lean = Quaternion.Euler((float)(rng.NextDouble() - 0.5) * 36f, (float)rng.NextDouble() * 360f, (float)(rng.NextDouble() - 0.5) * 36f);
+                float height = i == 0 ? 1.4f : 0.5f + (float)rng.NextDouble() * 0.8f;
+                float width = 0.13f + (float)rng.NextDouble() * 0.1f;
+                var at = At(new Vector3(Mathf.Cos(angle) * spread, 0f, Mathf.Sin(angle) * spread), lean);
+                Frustum(b, at, width, width * 0.6f, height * 0.75f, 6, i % 2 == 0 ? Ice : Teal, Snow);
+                Frustum(b, at * Matrix4x4.Translate(new Vector3(0f, height * 0.75f, 0f)), width * 0.6f, 0.01f, height * 0.25f, 6, Snow);
+            }
+            return b.ToMesh("Prop_IceCrystals" + seed);
+        }
+
+        /// <summary>A soft mound of snow.</summary>
+        public static Mesh SnowDrift(int seed)
+        {
+            var b = new LowPoly.MeshBuilder();
+            Blob(b, new Vector3(0f, 0.12f, 0f), new Vector3(1.3f, 0.5f, 1.0f), 1, 0.12f, Snow, seed);
+            Blob(b, new Vector3(0.8f, 0.1f, 0.3f), new Vector3(0.7f, 0.32f, 0.6f), 1, 0.12f, Snow, seed + 1);
+            return b.ToMesh("Prop_SnowDrift" + seed);
+        }
+
+        /// <summary>A pennant on a pole.</summary>
+        public static Mesh Flag(int pennantColour)
+        {
+            var b = new LowPoly.MeshBuilder();
+            Box(b, At(0f, 1.3f, 0f), new Vector3(0.09f, 2.6f, 0.09f), DarkWood);
+            Vector3 top = new Vector3(0f, 2.5f, 0f), low = new Vector3(0f, 1.95f, 0f), tip = new Vector3(0.8f, 2.28f, 0.06f);
+            b.Triangle(top, low, tip, pennantColour);
+            b.Triangle(top, tip, low, pennantColour);
+            Blob(b, new Vector3(0f, 2.62f, 0f), new Vector3(0.08f, 0.08f, 0.08f), 0, 0.05f, Gold, 2);
+            return b.ToMesh("Prop_Flag" + pennantColour);
+        }
+
+        /// <summary>One slab of the ice a frozen box leaves in the river: 1.8 m square, its top at y = 0.02.</summary>
+        public static Mesh IceSlabMesh()
+        {
+            var b = new LowPoly.MeshBuilder();
+            Box(b, At(0f, -0.16f, 0f), new Vector3(1.8f, 0.36f, 1.8f), Ice, Snow);
+            // frosty bumps on top and a ragged edge
+            var rng = new System.Random(3);
+            for (int i = 0; i < 7; i++)
+                Blob(b, new Vector3((float)(rng.NextDouble() - 0.5) * 1.5f, 0.0f, (float)(rng.NextDouble() - 0.5) * 1.5f), new Vector3(0.25f, 0.05f, 0.25f), 0, 0.1f, i % 2 == 0 ? Snow : Ice, 20 + i);
+            for (int i = 0; i < 4; i++)
+            {
+                float angle = i * 90f + 20f;
+                var at = At(Quaternion.Euler(0f, angle, 0f) * new Vector3(0f, 0.01f, 0.95f), Quaternion.Euler(0f, angle, 0f));
+                Frustum(b, at, 0.1f, 0.01f, 0.28f + i * 0.04f, 5, Ice);
+            }
+            return b.ToMesh("Prop_IceSlab");
+        }
+
+        /// <summary>The glowing part of a lamp: a small lantern bulb to be drawn with an emissive material.</summary>
+        public static Mesh LampBulb()
+        {
+            var b = new LowPoly.MeshBuilder();
+            Blob(b, Vector3.zero, new Vector3(0.17f, 0.2f, 0.17f), 1, 0.03f, Gold, 1);
+            return b.ToMesh("Prop_LampBulb");
+        }
+
     }
 }

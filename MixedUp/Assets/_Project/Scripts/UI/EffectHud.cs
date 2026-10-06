@@ -27,6 +27,8 @@ namespace MixedUp
         const float OverlayBottomCrop = 0.3f;
 
         readonly Dictionary<BoxEffect, Graphic> overlays = new Dictionary<BoxEffect, Graphic>();
+        /// <summary>Hand-drawn frames of effects that also have a generated overlay (the toxic fog).</summary>
+        readonly Dictionary<BoxEffect, Graphic> frames = new Dictionary<BoxEffect, Graphic>();
         readonly Dictionary<BoxEffect, float> active = new Dictionary<BoxEffect, float>();
         readonly List<BoxEffect> order = new List<BoxEffect>();
         readonly List<BoxEffect> stale = new List<BoxEffect>();
@@ -119,6 +121,12 @@ namespace MixedUp
                     ? status.VisionObstruction
                     : Mathf.Lerp(0.3f, 1f, active[effect]) * Mathf.Min(1f, pulse);
                 SetOverlay(image, OverlayColor(effect), alpha);
+
+                if (HasSeparateFrame(effect))
+                {
+                    var frame = GetFrame(effect);
+                    SetOverlay(frame, Color.white, Mathf.Lerp(0.35f, 1f, active[effect]) * Mathf.Min(1f, pulse));
+                }
             }
 
             stale.Clear();
@@ -133,6 +141,37 @@ namespace MixedUp
                 if (alpha <= 0.001f) stale.Add(pair.Key);
             }
             foreach (var effect in stale) overlays[effect].gameObject.SetActive(false);
+
+            foreach (var pair in frames)
+            {
+                if (active.ContainsKey(pair.Key) || !pair.Value.gameObject.activeSelf) continue;
+                float alpha = Mathf.MoveTowards(pair.Value.color.a, 0f, Time.unscaledDeltaTime * 2f);
+                SetOverlay(pair.Value, Color.white, alpha);
+                if (alpha <= 0.001f) pair.Value.gameObject.SetActive(false);
+            }
+        }
+
+        static bool HasSeparateFrame(BoxEffect effect) => effect.screenOverlay != null && effect.overlay == EffectOverlay.Fog;
+
+        Graphic GetFrame(BoxEffect effect)
+        {
+            if (!frames.TryGetValue(effect, out var graphic))
+            {
+                var go = new GameObject("Frame_" + effect.name, typeof(RectTransform), typeof(RawImage));
+                go.transform.SetParent(overlayContainer, false);
+                var rect = (RectTransform)go.transform;
+                rect.anchorMin = Vector2.zero;
+                rect.anchorMax = Vector2.one;
+                rect.offsetMin = rect.offsetMax = Vector2.zero;
+                var raw = go.GetComponent<RawImage>();
+                raw.texture = effect.screenOverlay;
+                raw.uvRect = new Rect(0f, OverlayBottomCrop, 1f, 1f - OverlayBottomCrop);
+                raw.raycastTarget = false;
+                graphic = raw;
+                frames[effect] = graphic;
+            }
+            if (!graphic.gameObject.activeSelf) graphic.gameObject.SetActive(true);
+            return graphic;
         }
 
         Graphic GetOverlay(BoxEffect effect)

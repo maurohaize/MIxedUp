@@ -43,11 +43,18 @@ namespace MixedUp
         [Header("Buttons")]
         public Button backButton;
         public Button resetButton;
+        [Tooltip("Wipes money and learned combinations; needs a second press to confirm.")]
+        public Button resetProgressButton;
 
         public event Action Closed;
 
+        const float ConfirmSeconds = 3f;
+
         bool wired;
         bool syncing;
+        float confirmUntil;
+        float doneUntil;
+        LocalizedText progressLabel;
 
         public bool IsOpen => gameObject.activeSelf;
 
@@ -118,11 +125,51 @@ namespace MixedUp
                 GameSettings.ResetToDefaults();
                 Sync();
             });
+
+            if (resetProgressButton != null)
+            {
+                progressLabel = resetProgressButton.GetComponentInChildren<LocalizedText>(true);
+                resetProgressButton.onClick.AddListener(OnResetProgress);
+            }
+        }
+
+        /// <summary>First press asks for confirmation, a second press within a few seconds wipes the progress.</summary>
+        void OnResetProgress()
+        {
+            if (Time.unscaledTime < confirmUntil)
+            {
+                GameProgress.ResetAll();
+                confirmUntil = 0f;
+                doneUntil = Time.unscaledTime + 2.5f;
+                ShowProgressLabel("ui.reset_progress_done");
+                return;
+            }
+            confirmUntil = Time.unscaledTime + ConfirmSeconds;
+            ShowProgressLabel("ui.reset_progress_confirm");
+        }
+
+        void ShowProgressLabel(string key)
+        {
+            if (progressLabel != null) progressLabel.SetKey(key);
+        }
+
+        void Update()
+        {
+            if (progressLabel == null) return;
+            bool waiting = confirmUntil > 0f && Time.unscaledTime >= confirmUntil;
+            bool finished = doneUntil > 0f && Time.unscaledTime >= doneUntil;
+            if (waiting || finished)
+            {
+                confirmUntil = doneUntil = 0f;
+                ShowProgressLabel("ui.reset_progress");
+            }
         }
 
         /// <summary>Shows the saved values without writing them back.</summary>
         void Sync()
         {
+            confirmUntil = doneUntil = 0f;
+            ShowProgressLabel("ui.reset_progress");
             syncing = true;
             masterSlider.value = GameSettings.MasterVolume;
             musicSlider.value = GameSettings.MusicVolume;

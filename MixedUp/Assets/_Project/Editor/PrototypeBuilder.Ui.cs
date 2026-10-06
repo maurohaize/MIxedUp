@@ -164,8 +164,9 @@ namespace MixedUp.EditorTools
             var panel = dim.gameObject.AddComponent<SettingsPanel>();
             panel.palette = a.palette;
 
-            var card = UiFactory.Panel("Card", dim, new Vector2(1640f, 1000f), out var cardRoot, tilt: false, tape: true);
-            UiFactory.Place(cardRoot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1640f, 1000f));
+            const float cardWidth = 1760f;
+            var card = UiFactory.Panel("Card", dim, new Vector2(cardWidth, 1000f), out var cardRoot, tilt: false, tape: true);
+            UiFactory.Place(cardRoot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(cardWidth, 1000f));
 
             var title = UiFactory.NewText("Title", card, "", 90f, UiFactory.Ink, TextAlignmentOptions.Center, "ui.settings");
             UiFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -30f), new Vector2(900f, 110f));
@@ -191,13 +192,14 @@ namespace MixedUp.EditorTools
             panel.spanishButton = LanguageButton(card, "ESPAÑOL", 360f, 766f, out panel.spanishMark);
             panel.englishButton = LanguageButton(card, "ENGLISH", 630f, 766f, out panel.englishMark);
 
-            // --- right column: the character
-            var header = Header(card, "ui.character", 940f, 150f, 600f);
+            // --- right column: the character (a big preview, then the two colour rows)
+            const float rx = 990f;
+            var header = Header(card, "ui.character", rx, 150f, 700f);
             header.alignment = TextAlignmentOptions.Center;
 
             var frame = UiFactory.NewSprite("PreviewFrame", card, "paper", sliced: true, slicedScale: 4f);
-            At(frame.rectTransform, 1060f, 212f, 360f, 430f);
-            frame.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -1.4f);
+            At(frame.rectTransform, rx + 90f, 196f, 520f, 540f);
+            frame.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -1.2f);
             var halftone = UiFactory.NewSprite("Halftone", frame.transform, "halftone");
             halftone.preserveAspect = false;
             UiFactory.Stretch(halftone.rectTransform, 22f);
@@ -205,43 +207,47 @@ namespace MixedUp.EditorTools
             var raw = viewRect.gameObject.AddComponent<RawImage>();
             raw.color = Color.white;
             raw.raycastTarget = true;
-            UiFactory.Stretch(raw.rectTransform, 22f);
+            UiFactory.Stretch(raw.rectTransform, 14f);
 
             var preview = raw.gameObject.AddComponent<CharacterPreview>();
             preview.characterPrefab = previewPrefab;
             preview.target = raw;
-            preview.width = 640;
-            preview.height = 760;
+            preview.width = 760;
+            preview.height = 800;
+            preview.cameraDistance = 3.7f;
 
             var hint = UiFactory.NewText("DragHint", card, "", 28f, new Color(UiFactory.Ink.r, UiFactory.Ink.g, UiFactory.Ink.b, 0.6f), TextAlignmentOptions.Center, "ui.drag_to_turn");
-            At(hint.rectTransform, 940f, 656f, 600f, 40f);
+            At(hint.rectTransform, rx + 90f, 738f, 520f, 38f);
 
+            const float swatch = 54f;
             var skinLabel = UiFactory.NewText("SkinLabel", card, "", 38f, Brick, TextAlignmentOptions.MidlineLeft, "ui.skin");
-            At(skinLabel.rectTransform, 930f, 722f, 150f, 62f);
+            At(skinLabel.rectTransform, rx, 782f, 150f, swatch);
             panel.skinSwatches = new Button[a.palette.skinTones.Length];
             panel.skinRings = new Image[a.palette.skinTones.Length];
             for (int i = 0; i < a.palette.skinTones.Length; i++)
             {
-                panel.skinSwatches[i] = UiFactory.NewSwatch("Skin" + (i + 1), card, a.palette.skinTones[i], 62f, out panel.skinRings[i]);
-                At((RectTransform)panel.skinSwatches[i].transform, 1100f + i * 86f, 722f, 62f, 62f);
+                panel.skinSwatches[i] = UiFactory.NewSwatch("Skin" + (i + 1), card, a.palette.skinTones[i], swatch, out panel.skinRings[i]);
+                At((RectTransform)panel.skinSwatches[i].transform, rx + 170f + i * 82f, 782f, swatch, swatch);
             }
 
             var clothesLabel = UiFactory.NewText("ClothesLabel", card, "", 38f, Brick, TextAlignmentOptions.MidlineLeft, "ui.clothes");
-            At(clothesLabel.rectTransform, 930f, 826f, 150f, 62f);
+            At(clothesLabel.rectTransform, rx, 848f, 150f, swatch);
             int count = a.palette.clothesColors.Length;
             panel.clothesSwatches = new Button[count];
             panel.clothesRings = new Image[count];
             for (int i = 0; i < count; i++)
             {
-                panel.clothesSwatches[i] = UiFactory.NewSwatch("Clothes" + (i + 1), card, a.palette.clothesColors[i], 62f, out panel.clothesRings[i]);
-                At((RectTransform)panel.clothesSwatches[i].transform, 1100f + (i % 5) * 86f, 810f + (i / 5) * 84f, 62f, 62f);
+                panel.clothesSwatches[i] = UiFactory.NewSwatch("Clothes" + (i + 1), card, a.palette.clothesColors[i], swatch, out panel.clothesRings[i]);
+                At((RectTransform)panel.clothesSwatches[i].transform, rx + 170f + (i % 5) * 82f, 848f + (i / 5) * 66f, swatch, swatch);
             }
 
-            // --- bottom: back / reset
+            // --- bottom: back / reset settings / reset progress
             panel.backButton = UiFactory.NewButton("Back", card, "", "ui.back", new Vector2(340f, 92f), UiFactory.ButtonStyle.SignLeft);
             At((RectTransform)panel.backButton.transform, 70f, 872f, 340f, 92f);
-            panel.resetButton = UiFactory.NewButton("Reset", card, "", "ui.reset", new Vector2(300f, 74f), UiFactory.ButtonStyle.Plank);
-            At((RectTransform)panel.resetButton.transform, 520f, 882f, 300f, 74f);
+            panel.resetButton = UiFactory.NewButton("Reset", card, "", "ui.reset", new Vector2(250f, 74f), UiFactory.ButtonStyle.Plank);
+            At((RectTransform)panel.resetButton.transform, 450f, 882f, 250f, 74f);
+            panel.resetProgressButton = UiFactory.NewButton("ResetProgress", card, "", "ui.reset_progress", new Vector2(360f, 74f), UiFactory.ButtonStyle.Plank);
+            At((RectTransform)panel.resetProgressButton.transform, 730f, 882f, 360f, 74f);
 
             dim.gameObject.SetActive(false);
             return panel;

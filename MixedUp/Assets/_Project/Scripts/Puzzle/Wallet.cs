@@ -22,6 +22,13 @@ namespace MixedUp
             Changed?.Invoke();
         }
 
+        /// <summary>Back to an empty purse (a fresh start for a new player).</summary>
+        public static void Reset()
+        {
+            PlayerPrefs.DeleteKey(PrefKey);
+            Changed?.Invoke();
+        }
+
         public static bool TrySpend(int amount)
         {
             if (amount < 0 || Coins < amount) return false;
