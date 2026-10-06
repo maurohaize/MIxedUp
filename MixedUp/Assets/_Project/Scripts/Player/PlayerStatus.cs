@@ -18,6 +18,8 @@ namespace MixedUp
         public float regenPerSecond = 6f;
         public float visionRiseSpeed = 1f;
         public float visionFallSpeed = 1.2f;
+        [Tooltip("Damage per second while standing in flames.")]
+        public float fireDamagePerSecond = 14f;
 
         PlayerInventory inventory;
         bool initialized;
@@ -61,6 +63,10 @@ namespace MixedUp
 
             SimTime += deltaTime;
             inventory.Tick(deltaTime);
+
+            // Flames hurt in small, regular bites instead of every frame.
+            if (Hazards.OnFire && TryUseCooldown("fire", 0.25f)) Damage(fireDamagePerSecond * 0.25f, DeathCause.Burn);
+            if (IsDead) return;
 
             var modifiers = MovementModifiers.Default;
             float visionTarget = 0f;

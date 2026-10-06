@@ -198,7 +198,7 @@ def fill_with(layer_mask, base, w, h, seed, grain=10, edge_shade=0.12):
 
 # ------------------------------------------------------------------ sprites
 
-def paper(name="paper.png", size=512, margin=20, seed=3):
+def paper(name="paper.png", size=512, margin=12, seed=3):
     w = h = size
     # uneven corners and a few corners nudged out of square: it should look cut by hand
     path = rounded_polygon([(margin + 3, margin + 6), (w - margin - 5, margin), (w - margin + 1, h - margin - 8), (margin - 2, h - margin + 1)],
@@ -208,8 +208,8 @@ def paper(name="paper.png", size=512, margin=20, seed=3):
 
     # soft drop shadow so the card floats above whatever is behind it
     shadow = Image.new("L", (w * SS, h * SS), 0)
-    ImageDraw.Draw(shadow).polygon([(x + 7 * SS, y + 10 * SS) for x, y in outline_pts], fill=110)
-    shadow = shadow.filter(ImageFilter.GaussianBlur(7 * SS))
+    ImageDraw.Draw(shadow).polygon([(x + 4 * SS, y + 6 * SS) for x, y in outline_pts], fill=110)
+    shadow = shadow.filter(ImageFilter.GaussianBlur(4 * SS))
 
     mask = Image.new("L", (w * SS, h * SS), 0)
     ImageDraw.Draw(mask).polygon([tuple(p) for p in outline_pts], fill=255)

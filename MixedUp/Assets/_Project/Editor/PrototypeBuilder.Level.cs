@@ -12,8 +12,8 @@ namespace MixedUp.EditorTools
         static readonly Vector2[] Reserved =
         {
             new Vector2(-10f, -24f), new Vector2(10f, -20f), new Vector2(6f, 30f), new Vector2(30f, 38f),
-            new Vector2(-32f, -6f), new Vector2(-18f, 42f), new Vector2(-5.5f, -30.5f), new Vector2(-27f, 2.5f),
-            new Vector2(-16f, 40f), new Vector2(4f, -31f), new Vector2(-4f, -31f), new Vector2(-5f, -12f)
+            new Vector2(-32f, -6f), new Vector2(-18f, 43f), new Vector2(-5.5f, -30.5f), new Vector2(-27f, 2.5f),
+            new Vector2(-12f, 38f), new Vector2(4f, -31f), new Vector2(-4f, -31f), new Vector2(-5f, -12f)
         };
 
         static bool TuftOk(float x, float z) =>
@@ -21,7 +21,8 @@ namespace MixedUp.EditorTools
             && !(z > 3f && z < 15f)
             && !(x > -41f && x < -11f && z > -28f && z < 0f)
             && !(x > -4.5f && x < 4.5f && z > -37f && z < -22f)
-            && !(x > 22f && x < 43f && z > -37f && z < -17f);
+            && !(x > 22f && x < 43f && z > -37f && z < -17f)
+            && !InWorldSpot(x, z, 0f) && DistanceToTrail(x, z) > 1.8f;
 
         static void BuildScene(GameAssets a, Mats m, ArtAssets art, Prefabs p)
         {
@@ -35,6 +36,7 @@ namespace MixedUp.EditorTools
             BuildBoundaries(env);
             var truck = BuildTruck(env, m, a, art);
             BuildScenery(env, m, art);
+            BuildWorld(env, m, art);
             BuildSkyDecor(env, art);
 
             var boxesRoot = new GameObject("Boxes").transform;
@@ -43,7 +45,7 @@ namespace MixedUp.EditorTools
             PlaceBox(boxesRoot, p, a.hot, new Vector3(6f, 0f, 30f));
             PlaceBox(boxesRoot, p, a.electric, new Vector3(30f, 0f, 38f));
             PlaceBox(boxesRoot, p, a.frozen, new Vector3(-32f, 5f, -6f));
-            PlaceBox(boxesRoot, p, a.toxic, new Vector3(-18f, 0f, 42f));
+            PlaceBox(boxesRoot, p, a.toxic, new Vector3(-18f, 2.4f, 43f));
 
             var players = new GameObject("Players").transform;
             SpawnCharacter(players, p.player, new Vector3(4f, 0.05f, -31f), a.palette, CharacterCustomization.DefaultSkin, CharacterCustomization.DefaultClothes);
@@ -52,7 +54,7 @@ namespace MixedUp.EditorTools
             var notes = new GameObject("Notes").transform;
             PlaceNote(notes, p.loreNote, a.rules, a.hot, a.frozen, new Vector3(-5.5f, 0f, -30.5f), "Note_HotFrozen");
             PlaceNote(notes, p.loreNote, a.rules, a.hot, a.electric, new Vector3(-27f, 0f, 2.5f), "Note_HotElectric");
-            PlaceNote(notes, p.loreNote, a.rules, a.toxic, a.electric, new Vector3(-16f, 0f, 40f), "Note_ToxicElectric");
+            PlaceNote(notes, p.loreNote, a.rules, a.toxic, a.electric, new Vector3(-12f, 0f, 38f), "Note_ToxicElectric");
 
             var managers = new GameObject("Managers");
             var game = managers.AddComponent<GameManager>();
@@ -143,7 +145,11 @@ namespace MixedUp.EditorTools
         static void BuildTerrain(Transform env, ArtAssets art)
         {
             ColliderBox("GroundSouth", env, new Vector3(0f, -0.5f, -15f), new Vector3(90f, 1f, 40f));
-            ColliderBox("GroundNorth", env, new Vector3(0f, -0.5f, 34f), new Vector3(90f, 1f, 42f));
+            // The north meadow rolls, so its collider is the very mesh that is drawn.
+            var northGround = new GameObject("GroundNorth");
+            northGround.transform.SetParent(env, false);
+            northGround.AddComponent<MeshCollider>().sharedMesh = art.groundNorth;
+            northGround.isStatic = true;
             ColliderBox("RiverBed", env, new Vector3(0f, -0.9f, 9f), new Vector3(90f, 1f, 8f));
 
             MeshObject("GroundSouthVisual", env, art.groundSouth, art.palette);
@@ -245,6 +251,7 @@ namespace MixedUp.EditorTools
             if (x > -32f && x < -22f && z > -2f && z < 17f) return false;          // bridge approaches
             if (x > -41f && x < -8f && z > -28f && z < 0f) return false;           // ice hill and stairs
             if (x > -10f && x < 10f && z > -37f && z < -18f) return false;         // start and truck
+            if (WorldBlocked(x, z, margin)) return false;                          // trails and landmarks
             if (x > 22f && x < 43f && z > -37f && z < -17f) return false;          // warehouse
             foreach (var r in Reserved)
                 if (Vector2.Distance(new Vector2(x, z), r) < 3.5f + margin) return false;
@@ -254,7 +261,7 @@ namespace MixedUp.EditorTools
         static void PlaceProp(Transform parent, GameObject prefab, Vector3 position, float yaw, float scale, Material tint = null)
         {
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
-            instance.transform.position = position;
+            instance.transform.position = position + Vector3.up * GroundHeight(position.x, position.z);
             instance.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
             instance.transform.localScale = Vector3.one * scale;
             if (tint != null)
@@ -327,7 +334,7 @@ namespace MixedUp.EditorTools
                 float z = Mathf.Lerp(-32f, 52f, (float)rng.NextDouble());
                 if (!Free(x, z, 0.5f)) continue;
                 var bush = MeshObject("Bush", scenery, art.bushes[rng.Next(art.bushes.Length)], art.palette);
-                bush.transform.position = new Vector3(x, 0f, z);
+                bush.transform.position = new Vector3(x, GroundHeight(x, z), z);
                 bush.transform.rotation = Quaternion.Euler(0f, (float)rng.NextDouble() * 360f, 0f);
                 bush.transform.localScale = Vector3.one * Mathf.Lerp(0.8f, 1.5f, (float)rng.NextDouble());
             }
@@ -338,7 +345,7 @@ namespace MixedUp.EditorTools
                 float z = Mathf.Lerp(-34f, 54f, (float)rng.NextDouble());
                 if (!TuftOk(x, z)) continue;
                 var tuft = MeshObject("Tuft", scenery, art.tufts[rng.Next(art.tufts.Length)], art.palette, false);
-                tuft.transform.position = new Vector3(x, 0f, z);
+                tuft.transform.position = new Vector3(x, GroundHeight(x, z), z);
                 tuft.transform.rotation = Quaternion.Euler(0f, (float)rng.NextDouble() * 360f, 0f);
                 tuft.transform.localScale = Vector3.one * Mathf.Lerp(0.9f, 1.8f, (float)rng.NextDouble());
             }
@@ -349,7 +356,7 @@ namespace MixedUp.EditorTools
                 float z = Mathf.Lerp(-34f, 54f, (float)rng.NextDouble());
                 if (!TuftOk(x, z)) continue;
                 var flower = MeshObject("Flower", scenery, art.flowers[rng.Next(art.flowers.Length)], art.palette, false);
-                flower.transform.position = new Vector3(x, 0f, z);
+                flower.transform.position = new Vector3(x, GroundHeight(x, z), z);
                 flower.transform.localScale = Vector3.one * Mathf.Lerp(1f, 1.6f, (float)rng.NextDouble());
             }
         }
@@ -426,7 +433,7 @@ namespace MixedUp.EditorTools
         {
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(p.box, parent);
             instance.name = "Box_" + data.id;
-            instance.transform.position = position;
+            instance.transform.position = position + Vector3.up * GroundHeight(position.x, position.z);
 
             var pickup = instance.GetComponent<BoxPickup>();
             SetRef(pickup, "data", data);

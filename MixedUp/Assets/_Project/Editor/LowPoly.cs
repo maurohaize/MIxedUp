@@ -89,6 +89,47 @@ namespace MixedUp.EditorTools
             return b.ToMesh(name);
         }
 
+        /// <summary>
+        /// Faceted ground over a rectangle with rolling heights. Colour is picked per 4 m block from `palette`, except where
+        /// `pathColor` returns a palette index (>= 0), which colours single tiles (trails, patches).
+        /// </summary>
+        public static Mesh Terrain(string name, float x0, float z0, float x1, float z1, float tile, int[] palette, int seed,
+            System.Func<float, float, float> height, System.Func<float, float, int> pathColor)
+        {
+            var b = new MeshBuilder();
+            int nx = Mathf.CeilToInt((x1 - x0) / tile), nz = Mathf.CeilToInt((z1 - z0) / tile);
+            int block = Mathf.Max(1, Mathf.RoundToInt(4f / tile));
+
+            for (int i = 0; i < nx; i++)
+            {
+                for (int j = 0; j < nz; j++)
+                {
+                    float ax = x0 + i * tile, bx = Mathf.Min(x1, ax + tile);
+                    float az = z0 + j * tile, bz = Mathf.Min(z1, az + tile);
+                    var a = new Vector3(ax, height(ax, az), az);
+                    var c = new Vector3(ax, height(ax, bz), bz);
+                    var d = new Vector3(bx, height(bx, bz), bz);
+                    var e = new Vector3(bx, height(bx, az), az);
+
+                    int color = pathColor != null ? pathColor((ax + bx) * 0.5f, (az + bz) * 0.5f) : -1;
+                    if (color < 0) color = Pick(palette, i / block, j / block, seed);
+
+                    // Alternate the diagonal so the facets do not all lean the same way.
+                    if ((i + j) % 2 == 0)
+                    {
+                        b.Triangle(a, c, d, color);
+                        b.Triangle(a, d, e, color);
+                    }
+                    else
+                    {
+                        b.Triangle(a, c, e, color);
+                        b.Triangle(c, d, e, color);
+                    }
+                }
+            }
+            return b.ToMesh(name);
+        }
+
         /// <summary>The river: bed, both vertical banks and a faceted water surface with a gentle chop.</summary>
         public static Mesh River(string name, float x0, float x1, float z0, float z1, float bedY, float waterY)
         {

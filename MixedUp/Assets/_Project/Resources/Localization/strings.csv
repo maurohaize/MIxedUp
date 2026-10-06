@@ -63,6 +63,8 @@ death.heat,Kutxa beroegia eramanda errea zen.,Se achicharró por llevar una caja
 death.electric_water,Kutxa elektrikoak ura ukitu zuen.,La caja eléctrica entró en contacto con el agua.,The electric box touched the water.
 death.fall,Altuegitik erori zen.,Se cayó desde demasiado alto.,Fell from way too high.
 death.void,Hutsera erori zen.,Cayó al vacío.,Fell into the void.
+death.burn,Sutan erre zen.,Se quemó en la hoguera.,Burned in the campfire.
+death.sweeper,Enbor biraka batek jota hil zen.,Lo derribó el tronco giratorio.,Knocked out by the spinning log.
 # --- Toasts ---
 toast.delivered,{0} entregatuta,{0} entregada,{0} delivered
 toast.passed,{0} pasatuta,{0} pasada,{0} passed

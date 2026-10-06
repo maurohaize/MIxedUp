@@ -254,8 +254,8 @@ namespace MixedUp.EditorTools
 
         static void CreateMeshes(ArtAssets art)
         {
-            art.groundSouth = SaveMesh(LowPoly.Patchwork("Ground_South", -45f, -35f, 45f, 5f, 0f, 4f, LowPoly.Grass, 1));
-            art.groundNorth = SaveMesh(LowPoly.Patchwork("Ground_North", -45f, 13f, 45f, 55f, 0f, 4f, LowPoly.Grass, 2));
+            art.groundSouth = SaveMesh(LowPoly.Terrain("Ground_South", -45f, -35f, 45f, 5f, 1f, LowPoly.Grass, 1, GroundHeight, TrailColor));
+            art.groundNorth = SaveMesh(LowPoly.Terrain("Ground_North", -45f, 13f, 45f, 55f, 1f, LowPoly.Grass, 2, GroundHeight, TrailColor));
             art.riverBed = SaveMesh(LowPoly.River("River_Bed", -45f, 45f, 5f, 13f, -0.4f, -0.12f));
             art.water = SaveMesh(LowPoly.Water("River_Water", -45f, 45f, 5f, 13f, -0.12f));
             art.hills = SaveMesh(LowPoly.Hills("Hills", new Rect(-45f, -35f, 90f, 90f), 5f, 300f, 7));

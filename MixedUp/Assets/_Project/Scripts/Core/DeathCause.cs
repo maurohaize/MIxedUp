@@ -18,5 +18,7 @@ namespace MixedUp
         public static DeathCause ElectricWater => new DeathCause("death.electric_water");
         public static DeathCause Fall => new DeathCause("death.fall");
         public static DeathCause Void => new DeathCause("death.void");
+        public static DeathCause Burn => new DeathCause("death.burn");
+        public static DeathCause Sweeper => new DeathCause("death.sweeper");
     }
 }

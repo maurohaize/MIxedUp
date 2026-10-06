@@ -17,6 +17,10 @@ namespace MixedUp
         public float walkSpeed = 4.5f;
         public float runSpeed = 7.5f;
         [Range(0.2f, 1f)] public float waterSpeedMultiplier = 0.6f;
+        [Tooltip("Walking speed while wading through mud.")]
+        [Range(0.2f, 1f)] public float mudSpeedMultiplier = 0.45f;
+        [Tooltip("Jump height while stuck in mud.")]
+        [Range(0.1f, 1f)] public float mudJumpMultiplier = 0.45f;
 
         [Header("Acceleration")]
         public float groundAcceleration = 50f;
@@ -79,6 +83,22 @@ namespace MixedUp
         void OnEnable() => PlayerRegistry.Register(this);
         void OnDisable() => PlayerRegistry.Unregister(this);
 
+        /// <summary>
+        /// A sudden push: a bounce pad, or being knocked back by an obstacle. `horizontal` is added to the current
+        /// velocity; `upSpeed` (if positive) launches the player at least that fast upwards.
+        /// </summary>
+        public void AddImpulse(Vector3 horizontal, float upSpeed = 0f)
+        {
+            horizontal.y = 0f;
+            horizontalVelocity += horizontal;
+            if (upSpeed > 0f)
+            {
+                verticalVelocity = Mathf.Max(verticalVelocity, upSpeed);
+                lastGroundedTime = -999f;
+                grounded = false;
+            }
+        }
+
         public void Teleport(Vector3 position)
         {
             controller.enabled = false;
@@ -123,6 +143,7 @@ namespace MixedUp
 
             float speed = (sprint ? runSpeed : walkSpeed) * mods.SpeedMul;
             if (hazards.InWater) speed *= waterSpeedMultiplier;
+            if (hazards.InMud) speed *= mudSpeedMultiplier;
             Vector3 target = moveDir * speed;
 
             float accel;
@@ -143,7 +164,7 @@ namespace MixedUp
             bool wantsJump = jumpBufferTimer > 0f && (grounded || Time.time - lastGroundedTime <= coyoteTime);
             if (wantsJump && verticalVelocity <= 0.01f)
             {
-                verticalVelocity = Mathf.Sqrt(2f * gravity * jumpHeight);
+                verticalVelocity = Mathf.Sqrt(2f * gravity * jumpHeight * (hazards.InMud ? mudJumpMultiplier : 1f));
                 jumpBufferTimer = 0f;
                 lastGroundedTime = -999f;
                 grounded = false;

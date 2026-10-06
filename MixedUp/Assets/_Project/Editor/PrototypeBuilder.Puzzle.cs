@@ -77,7 +77,7 @@ namespace MixedUp.EditorTools
         {
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
             instance.name = name;
-            instance.transform.position = position;
+            instance.transform.position = position + Vector3.up * GroundHeight(position.x, position.z);
             var note = instance.GetComponent<LoreNote>();
             note.rules = rules;
             note.a = a;

@@ -26,6 +26,8 @@ namespace MixedUp
                 if (!buffer[i].TryGetComponent(out HazardZone zone)) continue;
                 if (zone.type == HazardType.Water) state.InWater = true;
                 else if (zone.type == HazardType.Slippery) state.OnSlippery = true;
+                else if (zone.type == HazardType.Mud) state.InMud = true;
+                else if (zone.type == HazardType.Fire) state.OnFire = true;
             }
             return state;
         }

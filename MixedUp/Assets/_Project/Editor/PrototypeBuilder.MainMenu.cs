@@ -43,7 +43,7 @@ namespace MixedUp.EditorTools
             var hero = (GameObject)PrefabUtility.InstantiatePrefab(p.preview, stage);
             hero.name = "Character";
             hero.transform.position = new Vector3(6.2f, 0f, -26.4f);
-            hero.transform.rotation = Quaternion.Euler(0f, 115f, 0f);
+            hero.transform.rotation = Quaternion.Euler(0f, 75f, 0f);
 
             BuildMenuScenery(env, art);
 
@@ -60,7 +60,7 @@ namespace MixedUp.EditorTools
 
             var orbit = camera.gameObject.AddComponent<MenuCameraOrbit>();
             orbit.focus = hero.transform;
-            orbit.yaw = 270f;
+            orbit.yaw = 250f;
             orbit.distance = 6.4f;
             orbit.height = 1.6f;
             orbit.swayDegrees = 8f;

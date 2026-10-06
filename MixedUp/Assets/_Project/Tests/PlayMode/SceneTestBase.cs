@@ -200,7 +200,7 @@ namespace MixedUp.Tests
         /// Disables scenery colliders along a straight lane, so movement-physics tests measure the physics and not
         /// whatever tree or rock the level happens to have there. The scene is reloaded for every test.
         /// </summary>
-        protected void ClearLane(Vector3 start, Vector3 direction, float length, float halfWidth = 1.6f)
+        protected void ClearLane(Vector3 start, Vector3 direction, float length, float halfWidth = 1.6f, params string[] keepNames)
         {
             direction.y = 0f;
             direction.Normalize();
@@ -212,6 +212,7 @@ namespace MixedUp.Tests
             {
                 if (mine.Contains(hit)) continue;
                 if (hit.name.StartsWith("Ground") || hit.name == "RiverBed") continue;
+                if (keepNames.Contains(hit.name)) continue;
                 hit.enabled = false;
             }
         }

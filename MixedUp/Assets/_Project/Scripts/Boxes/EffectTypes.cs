@@ -7,6 +7,8 @@ namespace MixedUp
     {
         public bool InWater;
         public bool OnSlippery;
+        public bool InMud;
+        public bool OnFire;
     }
 
     /// <summary>Movement tweaks accumulated from every effect a player is suffering.</summary>

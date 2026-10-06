@@ -99,13 +99,13 @@ namespace MixedUp.EditorTools
             UiFactory.Place(root, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(30f, -30f), new Vector2(440f, 100f));
 
             var title = UiFactory.NewText("Title", inner, "", 30f, Ink, TextAlignmentOptions.TopLeft, "ui.hp");
-            UiFactory.Place(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(18f, -8f), new Vector2(200f, 36f));
+            UiFactory.Place(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(30f, -14f), new Vector2(200f, 36f));
             var value = UiFactory.NewText("Value", inner, "100", 30f, Ink, TextAlignmentOptions.TopRight);
-            UiFactory.Place(value.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-18f, -8f), new Vector2(120f, 36f));
+            UiFactory.Place(value.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -14f), new Vector2(120f, 36f));
 
             var barBg = UiFactory.NewSprite("BarBackground", inner, "slider_track", sliced: true, slicedScale: 1.5f);
             barBg.color = new Color(1f, 1f, 1f, 0.55f);
-            UiFactory.Place(barBg.rectTransform, Vector2.zero, Vector2.zero, new Vector2(18f, 12f), new Vector2(394f, 30f));
+            UiFactory.Place(barBg.rectTransform, Vector2.zero, Vector2.zero, new Vector2(30f, 14f), new Vector2(380f, 30f));
             var fill = UiFactory.NewSprite("Fill", barBg.transform, "bar_brick", sliced: true, slicedScale: 1.6f);
             UiFactory.Stretch(fill.rectTransform);
 
@@ -169,15 +169,15 @@ namespace MixedUp.EditorTools
         static void BuildOrder(RectTransform parent, GameAssets a, Truck truck)
         {
             int lines = a.order.lines.Length;
-            float height = 70f + lines * 60f;
+            float height = 90f + lines * 60f;
             var inner = UiFactory.Panel("OrderPanel", parent, new Vector2(400f, height), out var root);
             UiFactory.Place(root, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -30f), new Vector2(400f, height));
 
             var title = UiFactory.NewText("Title", inner, "", 34f, Ink, TextAlignmentOptions.Top, "ui.order");
-            UiFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -8f), new Vector2(360f, 44f));
+            UiFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -20f), new Vector2(330f, 44f));
 
             var rows = UiFactory.NewRect("Rows", inner);
-            UiFactory.Place(rows, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -58f), new Vector2(380f, lines * 60f));
+            UiFactory.Place(rows, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -76f), new Vector2(330f, lines * 60f));
             var layout = rows.gameObject.AddComponent<VerticalLayoutGroup>();
             layout.spacing = 6f;
             layout.childControlWidth = true;
@@ -188,12 +188,12 @@ namespace MixedUp.EditorTools
             var template = UiFactory.NewRect("RowTemplate", rows);
             template.sizeDelta = new Vector2(0f, 54f);
             var icon = UiFactory.NewImage("Icon", template, Color.white);
-            UiFactory.Place(icon.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(8f, 0f), new Vector2(50f, 50f));
+            UiFactory.Place(icon.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(4f, 0f), new Vector2(46f, 46f));
             icon.preserveAspect = true;
             var nameLabel = UiFactory.NewText("Name", template, "", 28f, Ink, TextAlignmentOptions.MidlineLeft);
-            UiFactory.Place(nameLabel.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(66f, 0f), new Vector2(190f, 40f));
+            UiFactory.Place(nameLabel.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(58f, 0f), new Vector2(180f, 40f));
             var countLabel = UiFactory.NewText("Count", template, "", 30f, Ink, TextAlignmentOptions.MidlineRight);
-            UiFactory.Place(countLabel.rectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-10f, 0f), new Vector2(90f, 40f));
+            UiFactory.Place(countLabel.rectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-2f, 0f), new Vector2(80f, 40f));
             var strike = UiFactory.NewImage("Strike", template, Ink);
             strike.rectTransform.anchorMin = new Vector2(0f, 0.5f);
             strike.rectTransform.anchorMax = new Vector2(1f, 0.5f);
@@ -239,11 +239,11 @@ namespace MixedUp.EditorTools
                 selection.transform.SetAsFirstSibling();
 
                 var icon = UiFactory.NewImage("Icon", inner, Color.white);
-                UiFactory.Place(icon.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -12f), new Vector2(150f, 120f));
+                UiFactory.Place(icon.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -18f), new Vector2(150f, 116f));
                 icon.preserveAspect = true;
 
                 var hint = UiFactory.NewText("KeyHint", inner, (i + 1).ToString(), 24f, new Color(Ink.r, Ink.g, Ink.b, 0.6f), TextAlignmentOptions.TopLeft);
-                UiFactory.Place(hint.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(10f, -6f), new Vector2(30f, 30f));
+                UiFactory.Place(hint.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(20f, -14f), new Vector2(30f, 30f));
 
                 var label = UiFactory.NewText("Name", inner, "", 28f, Ink);
                 UiFactory.Place(label.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 38f), new Vector2(180f, 40f));
@@ -275,7 +275,7 @@ namespace MixedUp.EditorTools
             var inner = UiFactory.Panel("PromptPanel", parent, new Vector2(1000f, 70f), out var root, false);
             UiFactory.Place(root, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 270f), new Vector2(1000f, 70f));
             var label = UiFactory.NewText("Prompt", inner, "", 38f, Ink);
-            UiFactory.Stretch(label.rectTransform, 6f);
+            UiFactory.Stretch(label.rectTransform, 14f);
 
             var hud = parent.gameObject.AddComponent<PromptHud>();
             hud.label = label;
@@ -293,7 +293,7 @@ namespace MixedUp.EditorTools
             group.blocksRaycasts = false;
             group.interactable = false;
             var label = UiFactory.NewText("Label", inner, "", 38f, Ink);
-            UiFactory.Stretch(label.rectTransform, 6f);
+            UiFactory.Stretch(label.rectTransform, 14f);
 
             var toast = root.gameObject.AddComponent<ToastHud>();
             toast.label = label;
