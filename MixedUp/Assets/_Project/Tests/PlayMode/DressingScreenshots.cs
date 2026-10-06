@@ -76,6 +76,65 @@ namespace MixedUp.Tests
         }
 
         [UnityTest, Explicit("Needs a GPU; writes PNGs")]
+        public IEnumerator TreeCloseups()
+        {
+            var outside = GameObject.Find("Outside").transform;
+            foreach (var name in new[] { "Tree1", "Tree2", "Tree3", "Tree4" })
+            {
+                Transform best = null;
+                float bestDistance = float.MaxValue;
+                foreach (Transform t in outside)
+                {
+                    if (t.name != name) continue;
+                    float d = Vector3.Distance(t.position, new Vector3(0f, 0f, -60f));
+                    if (d < bestDistance) { best = t; bestDistance = d; }
+                }
+                if (best == null) continue;
+                var p = best.position;
+                yield return Shot("95_" + name, p + new Vector3(7f, 3.5f, -9f), p + Vector3.up * 3f);
+            }
+        }
+
+        [UnityTest, Explicit("Needs a GPU; writes PNGs")]
+        public IEnumerator TreeWithoutInk()
+        {
+            var outside = GameObject.Find("Outside").transform;
+            foreach (var kind in new[] { "Tree1", "Tree2", "Tree3", "Tree4" })
+            {
+                Transform best = null;
+                float bestDistance = float.MaxValue;
+                foreach (Transform t in outside)
+                {
+                    if (t.name != kind) continue;
+                    float d = Vector3.Distance(t.position, new Vector3(0f, 0f, -60f));
+                    if (d < bestDistance) { best = t; bestDistance = d; }
+                }
+                foreach (Transform t in outside) t.gameObject.SetActive(t == best);
+                var p = best.position;
+                // From the side at a distance, looking at the crown; nothing else around.
+                yield return Shot("96_" + kind + "_alone", p + new Vector3(9f, 4f, -9f), p + Vector3.up * 4f);
+            }
+        }
+
+        [UnityTest, Explicit("Needs a GPU; writes PNGs")]
+        public IEnumerator SecretsGallery()
+        {
+            JumpScoreboard.ClearSaved();
+            var sweeper = Object.FindAnyObjectByType<Sweeper>();
+            for (int i = 0; i < 4; i++) sweeper.RegisterCleanJump(player);
+            yield return Shot("98_sweeper_sign", new Vector3(21.5f, 2.2f, 26.5f), new Vector3(18.6f, 1.75f, 28.8f), 0.3f);
+            yield return Shot("99_raft", new Vector3(-3f, 3f, 2f), new Vector3(-8f, 0f, 8f));
+            yield return Shot("100_duck", new Vector3(7f, 1.6f, 3.5f), new Vector3(4.5f, 0.2f, 6.4f));
+            yield return Shot("101_tower", new Vector3(30f, 6f, -14f), new Vector3(38f, 4f, -7f));
+            yield return Shot("102_tunnel", new Vector3(-31f, 2.5f, 26f), new Vector3(-37f, 1f, 33f));
+            yield return Shot("103_cliff", new Vector3(24f, 5f, 42f), new Vector3(32f, 4f, 50f));
+            yield return Shot("104_island", new Vector3(9f, 2.2f, 3.2f), new Vector3(3f, 0f, 9f));
+            yield return Shot("105_lake_and_pier", new Vector3(60f, 9f, 24f), new Vector3(92f, 0f, 8f));
+            yield return Shot("106_cave", new Vector3(-92f, 4f, 20f), new Vector3(-114f, 2f, 8f));
+            JumpScoreboard.ClearSaved();
+        }
+
+        [UnityTest, Explicit("Needs a GPU; writes PNGs")]
         public IEnumerator LightsGallery()
         {
             yield return Shot("92_camp_fire", new Vector3(16f, 3f, -34f), new Vector3(12.2f, 0.8f, -29.6f));

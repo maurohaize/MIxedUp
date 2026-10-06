@@ -48,8 +48,11 @@ namespace MixedUp
             titleLabel.text = Localization.Get(titleKey);
             titleLabel.color = titleColor;
 
-            boxesLabel.text = Localization.Get("result.boxes", shown.Delivered, shown.Total);
-            timeLabel.text = Localization.Get("result.time", FormatTime(shown.Seconds));
+            var mode = GameModes.Find(shown.ModeId);
+            string modeName = mode != null && mode != GameModes.Classic ? "   (" + mode.DisplayName + ")" : string.Empty;
+            boxesLabel.text = Localization.Get("result.boxes", shown.Delivered, shown.Total) + modeName;
+            timeLabel.text = Localization.Get("result.time", FormatTime(shown.Seconds))
+                             + (shown.TimeBonus > 0 ? "   " + Localization.Get("result.time_bonus", shown.TimeBonus) : string.Empty);
 
             bool showPenalty = shown.Outcome == CombinationOutcome.Danger && shown.DangerCount > 0;
             penaltyLabel.gameObject.SetActive(showPenalty || shown.Outcome >= CombinationOutcome.Explosion);

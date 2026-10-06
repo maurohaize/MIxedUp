@@ -32,6 +32,9 @@ namespace MixedUp
         [Tooltip("Seconds between dying / completing the order and the screen appearing.")]
         public float transitionDelay = 1.4f;
 
+        [Tooltip("Seconds of play before time runs out (0 = no limit). Set by the LevelDirector from the game mode.")]
+        public float timeLimitSeconds;
+
         PlayerStatus watched;
         bool transitioning;
 
@@ -41,6 +44,9 @@ namespace MixedUp
         /// <summary>Seconds of actual play (excludes pauses and screens) since the level started.</summary>
         public float ElapsedPlaySeconds { get; private set; }
         public event Action<GameState> StateChanged;
+        public bool HasTimeLimit => timeLimitSeconds > 0f;
+        public float TimeLeft => HasTimeLimit ? Mathf.Max(0f, timeLimitSeconds - ElapsedPlaySeconds) : float.PositiveInfinity;
+        public bool TimeIsUp { get; private set; }
 
         void Awake()
         {
@@ -70,7 +76,17 @@ namespace MixedUp
 
         void Update()
         {
-            if (State == GameState.Playing) ElapsedPlaySeconds += Time.deltaTime;
+            if (State == GameState.Playing)
+            {
+                ElapsedPlaySeconds += Time.deltaTime;
+                if (HasTimeLimit && ElapsedPlaySeconds >= timeLimitSeconds && !TimeIsUp)
+                {
+                    // Out of time: the delivery failed.
+                    TimeIsUp = true;
+                    LastDeathCause = DeathCause.Timeout;
+                    SetState(GameState.GameOver);
+                }
+            }
             if (GameInput.Pause.WasPressedThisFrame() && !(EscapeInterceptor?.Invoke() ?? false)) TogglePause();
         }
 
@@ -148,6 +164,9 @@ namespace MixedUp
         public void GoToMainMenu()
         {
             Time.timeScale = 1f;
+            // Going back to the menu also leaves the room.
+            RoomSession.End();
+            RoomServices.Current.Leave();
             if (Application.CanStreamedLevelBeLoaded(MainMenuScene)) SceneManager.LoadScene(MainMenuScene);
             else Quit();
         }

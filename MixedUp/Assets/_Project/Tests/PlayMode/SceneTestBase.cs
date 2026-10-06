@@ -20,6 +20,8 @@ namespace MixedUp.Tests
         /// <summary>The scene each test starts in. Override to test another scene.</summary>
         protected virtual string SceneToLoad => ScenePath;
         protected virtual bool NeedsPlayer => true;
+        /// <summary>The game mode the scene starts in. Most tests use the classic puzzle of the map.</summary>
+        protected virtual GameModeInfo ModeToLoad => GameModes.Classic;
         const string LanguagePref = "settings.language";
         const string ComboPref = "combos.learned";
         const string WalletPref = "wallet.coins";
@@ -70,6 +72,13 @@ namespace MixedUp.Tests
                 createdKeyboard = true;
             }
 
+            yield return LoadLevel(ModeToLoad);
+        }
+
+        /// <summary>Loads the scene in the given game mode and looks everything up again.</summary>
+        protected IEnumerator LoadLevel(GameModeInfo mode)
+        {
+            LevelDirector.Override = mode;
 #if UNITY_EDITOR
             yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(SceneToLoad, new LoadSceneParameters(LoadSceneMode.Single));
 #else
@@ -150,6 +159,7 @@ namespace MixedUp.Tests
             yield return null;
 
             Time.timeScale = 1f;
+            LevelDirector.Override = null;
             InputSystem.settings.backgroundBehavior = savedBackground;
             InputSystem.settings.editorInputBehaviorInPlayMode = savedEditorBehavior;
             if (createdKeyboard && keyboard != null) InputSystem.RemoveDevice(keyboard);

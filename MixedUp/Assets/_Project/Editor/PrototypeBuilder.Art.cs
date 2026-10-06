@@ -25,6 +25,7 @@ namespace MixedUp.EditorTools
             public GameObject[] trees, rocks;
             public Mesh groundSouth, groundNorth, riverBed, water, hills;
             public LowPoly.HillField hillField;
+            public Mesh valleyWest, valleyEast, riverWest, riverEast, lake, cave;
             public Mesh[] clouds, tufts, flowers, bushes;
             public VolumeProfile post;
         }
@@ -42,6 +43,7 @@ namespace MixedUp.EditorTools
             foreach (var path in Directory.GetFiles(TexturesDir, "box_*.*").Where(p => !p.EndsWith(".meta")))
                 ConfigureTexture(path.Replace('\\', '/'), FilterMode.Bilinear, mips: true, uncompressed: false, npotNone: false);
             ConfigureTexture(CharactersDir + "/face.png", FilterMode.Bilinear, mips: true, uncompressed: true, npotNone: false);
+            ConfigureTexture(CharactersDir + "/face_atlas.png", FilterMode.Bilinear, mips: true, uncompressed: true, npotNone: false);
             foreach (var path in Directory.GetFiles(OverlaysDir, "overlay_*.png"))
                 ConfigureTexture(path.Replace('\\', '/'), FilterMode.Bilinear, mips: false, uncompressed: false, npotNone: false);
 
@@ -309,7 +311,10 @@ namespace MixedUp.EditorTools
             art.riverBed = SaveMesh(LowPoly.River("River_Bed", -45f, 45f, 5f, 13f, -0.4f, -0.12f));
             art.water = SaveMesh(LowPoly.Water("River_Water", -45f, 45f, 5f, 13f, -0.12f));
             art.hillField = new LowPoly.HillField(new Rect(-45f, -35f, 90f, 90f), 5f, 300f, 7, RoadCalm);
+            art.hillField.cutouts.Add(RiverWestRect);
+            art.hillField.cutouts.Add(RiverEastRect);
             art.hills = SaveMesh(LowPoly.Hills("Hills", art.hillField));
+            CreateRiverMeshes(art);
 
             art.clouds = new[]
             {
@@ -395,11 +400,11 @@ namespace MixedUp.EditorTools
                 EditorUtility.SetDirty(effect);
             }
 
-            // Every box has its own hand-drawn frame around the screen (the toxic one also keeps its fog).
-            Assign(DataDir + "/Effects/Effect_Heat.asset", "overlay_hot_frame.png", EffectOverlay.Vignette);
+            // Every box has its own hand-drawn frame around the screen, all from the old Mixed_Up project (the toxic one also keeps its fog).
+            Assign(DataDir + "/Effects/Effect_Heat.asset", "overlay_hot.png", EffectOverlay.Vignette);
             Assign(DataDir + "/Effects/Effect_Frozen.asset", "overlay_frozen.png", EffectOverlay.Vignette);
             Assign(DataDir + "/Effects/Effect_Electric.asset", "overlay_electric.png", EffectOverlay.Vignette);
-            Assign(DataDir + "/Effects/Effect_Toxic.asset", "overlay_toxic_frame.png", EffectOverlay.Fog);
+            Assign(DataDir + "/Effects/Effect_Toxic.asset", "overlay_toxic.png", EffectOverlay.Fog);
         }
 
         static void ConfigureRenderPipelineAssets()

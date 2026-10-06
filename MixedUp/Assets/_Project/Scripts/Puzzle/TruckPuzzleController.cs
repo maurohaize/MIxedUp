@@ -95,7 +95,17 @@ namespace MixedUp
                 A = resolution.A,
                 B = resolution.B
             };
-            result.Reward = RewardCalculator.Compute(result.Outcome, result.DangerCount, baseReward, dangerPenalty);
+            // Harder modes pay more, and finishing early in a timed mode earns a little extra.
+            var mode = LevelDirector.Instance != null ? LevelDirector.Instance.Mode : GameModes.Classic;
+            int scaled = Mathf.RoundToInt(baseReward * mode.reward);
+            result.BaseReward = scaled;
+            result.ModeId = mode.id;
+            result.Reward = RewardCalculator.Compute(result.Outcome, result.DangerCount, scaled, dangerPenalty);
+            if (game != null && game.HasTimeLimit && result.Outcome < CombinationOutcome.Explosion)
+            {
+                result.TimeBonus = Mathf.RoundToInt(game.TimeLeft * 0.5f);
+                result.Reward += result.TimeBonus;
+            }
 
             if (result.Outcome >= CombinationOutcome.Explosion)
             {

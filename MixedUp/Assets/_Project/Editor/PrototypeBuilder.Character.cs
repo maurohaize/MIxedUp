@@ -20,7 +20,7 @@ namespace MixedUp.EditorTools
         sealed class CharacterParts
         {
             public Transform visual, body, handLeft, handRight, bootLeft, bootRight, carryAnchor;
-            public Renderer head, dress, handLeftRenderer, handRightRenderer;
+            public Renderer head, dress, handLeftRenderer, handRightRenderer, face;
         }
 
         static Material CharacterMaterial(string name, string shaderName, System.Action<Material> setup)
@@ -57,10 +57,13 @@ namespace MixedUp.EditorTools
             });
 
             var face = AssetDatabase.LoadAssetAtPath<Texture2D>(CharactersDir + "/face.png");
-            m.face = CharacterMaterial("Face", "Sprites/Default", material =>
+            var atlas = AssetDatabase.LoadAssetAtPath<Texture2D>(CharactersDir + "/face_atlas.png");
+            m.face = CharacterMaterial("Face", "MixedUp/FaceAtlas", material =>
             {
-                material.SetTexture("_MainTex", face);
-                material.SetColor("_Color", Color.white);
+                material.SetTexture("_MainTex", atlas != null ? atlas : face);
+                material.SetVector("_Grid", atlas != null ? new Vector4(4f, 4f, 0f, 0f) : new Vector4(1f, 1f, 0f, 0f));
+                material.SetVector("_Cell", Vector4.zero);
+                material.SetColor("_Tint", Color.white);
             });
         }
 
@@ -114,6 +117,7 @@ namespace MixedUp.EditorTools
             face.AddComponent<MeshFilter>().sharedMesh = faceMesh;
             var faceRenderer = face.AddComponent<MeshRenderer>();
             faceRenderer.sharedMaterial = m.face;
+            parts.face = faceRenderer;
             faceRenderer.shadowCastingMode = ShadowCastingMode.Off;
             faceRenderer.receiveShadows = false;
 
@@ -184,6 +188,9 @@ namespace MixedUp.EditorTools
                 controller = root.AddComponent<PlayerController>();
                 controller.visual = parts.visual;
                 root.AddComponent<PlayerInteractor>();
+                root.AddComponent<PlayerPush>();
+                var hug = root.AddComponent<PlayerHug>();
+                hug.heartMaterial = fxHeart;
             }
             else
             {
@@ -207,6 +214,9 @@ namespace MixedUp.EditorTools
             var carry = root.AddComponent<CarriedBoxesView>();
             carry.status = status;
             carry.anchor = parts.carryAnchor;
+
+            var expression = root.AddComponent<CharacterFace>();
+            expression.faceRenderer = parts.face;
 
             var animator = root.AddComponent<PlayerAnimator>();
             animator.controller = controller;

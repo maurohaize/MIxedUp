@@ -40,6 +40,7 @@ namespace MixedUp.EditorTools
             ui.healthHud = BuildHealth(hudRoot, damageFlash);
             ui.effectHud = BuildEffects(hudRoot, overlays, shockFlash);
             BuildOrder(hudRoot, a, truck);
+            BuildTimer(hudRoot);
             ui.inventoryHud = BuildInventory(hudRoot);
             ui.promptHud = BuildPrompt(hudRoot);
             BuildToast(hudRoot);
@@ -169,7 +170,7 @@ namespace MixedUp.EditorTools
         static void BuildOrder(RectTransform parent, GameAssets a, Truck truck)
         {
             int lines = a.order.lines.Length;
-            float height = 90f + lines * 60f;
+            float height = 90f + lines * 78f;
             var inner = UiFactory.Panel("OrderPanel", parent, new Vector2(400f, height), out var root);
             UiFactory.Place(root, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-30f, -30f), new Vector2(400f, height));
 
@@ -177,7 +178,7 @@ namespace MixedUp.EditorTools
             UiFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -20f), new Vector2(330f, 44f));
 
             var rows = UiFactory.NewRect("Rows", inner);
-            UiFactory.Place(rows, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -76f), new Vector2(330f, lines * 60f));
+            UiFactory.Place(rows, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -76f), new Vector2(330f, lines * 78f));
             var layout = rows.gameObject.AddComponent<VerticalLayoutGroup>();
             layout.spacing = 6f;
             layout.childControlWidth = true;
@@ -186,12 +187,12 @@ namespace MixedUp.EditorTools
             layout.childForceExpandHeight = false;
 
             var template = UiFactory.NewRect("RowTemplate", rows);
-            template.sizeDelta = new Vector2(0f, 54f);
+            template.sizeDelta = new Vector2(0f, 72f);
             var icon = UiFactory.NewImage("Icon", template, Color.white);
-            UiFactory.Place(icon.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(4f, 0f), new Vector2(46f, 46f));
+            UiFactory.Place(icon.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(0f, 0f), new Vector2(66f, 66f));
             icon.preserveAspect = true;
             var nameLabel = UiFactory.NewText("Name", template, "", 28f, Ink, TextAlignmentOptions.MidlineLeft);
-            UiFactory.Place(nameLabel.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(58f, 0f), new Vector2(180f, 40f));
+            UiFactory.Place(nameLabel.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(72f, 0f), new Vector2(170f, 44f));
             var countLabel = UiFactory.NewText("Count", template, "", 30f, Ink, TextAlignmentOptions.MidlineRight);
             UiFactory.Place(countLabel.rectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-2f, 0f), new Vector2(80f, 40f));
             var strike = UiFactory.NewImage("Strike", template, Ink);
@@ -211,6 +212,26 @@ namespace MixedUp.EditorTools
             hud.truck = truck;
             hud.rowContainer = rows;
             hud.rowTemplate = rowView;
+            hud.panel = root;
+        }
+
+        // ------------------------------------------------------------------ timer
+
+        static void BuildTimer(RectTransform parent)
+        {
+            // Under the health card, top left: the name of the game mode and (in timed modes) the clock.
+            var inner = UiFactory.Panel("TimerPanel", parent, new Vector2(440f, 112f), out var root, false);
+            UiFactory.Place(root, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(30f, -140f), new Vector2(440f, 112f));
+
+            var mode = UiFactory.NewText("Mode", inner, "", 30f, Brick, TextAlignmentOptions.Top);
+            UiFactory.Place(mode.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -14f), new Vector2(390f, 40f));
+            var time = UiFactory.NewText("Time", inner, "03:00", 56f, Ink, TextAlignmentOptions.Center);
+            UiFactory.Place(time.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 10f), new Vector2(300f, 62f));
+
+            var hud = root.gameObject.AddComponent<TimerHud>();
+            hud.panel = root;
+            hud.modeLabel = mode;
+            hud.timeLabel = time;
         }
 
         // ------------------------------------------------------------- inventory

@@ -16,7 +16,7 @@ MonoBehaviour:
   nameKey: box.electric.name
   descriptionKey: box.electric.desc
   color: {r: 0.95, g: 0.8, b: 0.25, a: 1}
-  icon: {fileID: 21300000, guid: 37a03c8feea83a5488378a96dafb2e50, type: 3}
+  icon: {fileID: 21300000, guid: bcb11b5e5f2f15641a6c215876e49bb0, type: 3}
   worldPrefab: {fileID: 3854198212009534208, guid: 0f85f915c411b794bac602f0aee67f30, type: 3}
   effects:
   - {fileID: 11400000, guid: 6a9c2fcdfeae4524a9871779b4eb33de, type: 2}

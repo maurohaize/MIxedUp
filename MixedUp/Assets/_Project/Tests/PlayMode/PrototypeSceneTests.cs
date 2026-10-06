@@ -43,7 +43,7 @@ namespace MixedUp.Tests
                 Assert.IsNull(pickup.GetComponentInChildren<SpriteRenderer>(true), pickup.name + " has no floating icon");
             }
             Assert.IsNotNull(RenderSettings.skybox, "custom sky");
-            Assert.IsTrue(RenderSettings.fog, "distance fog");
+            Assert.IsFalse(RenderSettings.fog, "no fog: it washed out the horizon");
             Assert.IsNotNull(Object.FindAnyObjectByType<UnityEngine.Rendering.Volume>(), "post-processing volume");
 
             Assert.AreEqual(1, PlayerRegistry.All.Count, "only the local player has a controller; the teammate is a dummy");

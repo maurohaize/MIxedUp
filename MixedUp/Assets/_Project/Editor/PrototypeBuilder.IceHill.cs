@@ -9,7 +9,7 @@ namespace MixedUp.EditorTools
     public static partial class PrototypeBuilder
     {
         static Mesh[] iceCrystals, snowPines, snowDrifts, flags;
-        static Mesh icePlateau, snowman, lampMesh;
+        static Mesh icePlateau, snowmanBody, snowmanHead, snowmanHat, lampMesh;
 
         static GameObject iceSlabPrefab;
 
@@ -46,7 +46,9 @@ namespace MixedUp.EditorTools
         {
             lampMesh = SaveInkedMesh(LowPolyProps.LampPost());
             icePlateau = SaveInkedMesh(LowPolyProps.IcePlateau());
-            snowman = SaveInkedMesh(LowPolyProps.Snowman());
+            snowmanBody = SaveInkedMesh(LowPolyProps.SnowmanBody());
+            snowmanHead = SaveInkedMesh(LowPolyProps.SnowmanHead());
+            snowmanHat = SaveInkedMesh(LowPolyProps.SnowmanHat());
             snowPines = new[] { SaveInkedMesh(LowPolyProps.SnowPine(1)), SaveInkedMesh(LowPolyProps.SnowPine(2)) };
             iceCrystals = new[] { SaveInkedMesh(LowPolyProps.IceCrystals(3)), SaveInkedMesh(LowPolyProps.IceCrystals(7)), SaveInkedMesh(LowPolyProps.IceCrystals(11)) };
             snowDrifts = new[] { SaveInkedMesh(LowPolyProps.SnowDrift(1)), SaveInkedMesh(LowPolyProps.SnowDrift(5)) };
@@ -59,6 +61,55 @@ namespace MixedUp.EditorTools
             Vector3 along = to - from;
             return Prim(PrimitiveType.Cube, name, parent, (from + to) * 0.5f, new Vector3(thickness, thickness, along.magnitude), material,
                 false, Quaternion.LookRotation(along.normalized), ink);
+        }
+
+        /// <summary>The snowman: three loose parts so it can fall apart when somebody runs into it.</summary>
+        static void BuildSnowman(Transform parent, Material mat, Vector3 position, float yaw)
+        {
+            var root = new GameObject("Snowman");
+            root.transform.SetParent(parent, false);
+            root.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));
+            var solid = root.AddComponent<CapsuleCollider>();
+            solid.center = new Vector3(0f, 1.05f, 0f);
+            solid.radius = 0.55f;
+            solid.height = 2.2f;
+
+            var body = MeshObject("Body", root.transform, snowmanBody, mat);
+            var head = MeshObject("Head", root.transform, snowmanHead, mat);
+            head.transform.localPosition = new Vector3(0f, 1.85f, 0f);
+            var hat = MeshObject("Hat", root.transform, snowmanHat, mat);
+            hat.transform.localPosition = new Vector3(0f, 2.08f, 0f);
+            foreach (var part in new[] { body, head, hat }) part.isStatic = false;
+
+            var puff = NewParticles("SnowPuff", root.transform, fxSoft);
+            puff.transform.localPosition = new Vector3(0f, 1f, 0f);
+            var main = puff.main;
+            main.loop = false;
+            main.playOnAwake = false;
+            main.startLifetime = 1.2f;
+            main.startSpeed = new ParticleSystem.MinMaxCurve(1f, 3f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.25f, 0.6f);
+            main.startColor = new Color(1f, 1f, 1f, 0.9f);
+            main.gravityModifier = 0.5f;
+            var emission = puff.emission;
+            emission.enabled = false;
+            var shape = puff.shape;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
+            shape.radius = 0.5f;
+            var fade = puff.colorOverLifetime;
+            fade.enabled = true;
+            var gradient = new Gradient();
+            gradient.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
+            fade.color = gradient;
+            puff.Stop();
+
+            var snowman = root.AddComponent<Snowman>();
+            snowman.body = body.transform;
+            snowman.head = head.transform;
+            snowman.hat = hat.transform;
+            snowman.solid = solid;
+            snowman.puff = puff;
         }
 
         static void BuildIceHill(Transform env, Mats m, ArtAssets art)
@@ -176,7 +227,7 @@ namespace MixedUp.EditorTools
             // --- on top: pines, a snowman, crystals around the frozen box
             foreach (var (x, z, s) in new[] { (-35.7f, -9.6f, 0.8f), (-35.9f, -2.3f, 0.9f), (-28.9f, -1.7f, 0.7f) })
                 Prop(hill, "SnowPine", snowPines[rng.Next(2)], mat, x, z, (float)rng.NextDouble() * 360f, s, Solid.Capsule, new Vector3(0f, 1.5f, 0f), new Vector3(0.3f, 3f, 0f), plateauTop);
-            Prop(hill, "Snowman", snowman, mat, -35.1f, -6.2f, 90f, 1f, Solid.Capsule, new Vector3(0f, 1f, 0f), new Vector3(0.6f, 2.2f, 0f), plateauTop);
+            BuildSnowman(hill, mat, new Vector3(-35.1f, plateauTop, -6.2f), 90f);
             foreach (var (x, z) in new[] { (-33.6f, -9.9f), (-29.8f, -2.4f), (-35.4f, -3.8f) })
             {
                 var crystal = MeshObject("TopCrystals", hill, iceCrystals[rng.Next(iceCrystals.Length)], mat);

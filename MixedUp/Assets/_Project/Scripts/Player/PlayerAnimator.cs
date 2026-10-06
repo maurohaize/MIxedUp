@@ -16,6 +16,8 @@ namespace MixedUp
         public float handSwing = 0.2f;
         public float bootSwingDegrees = 38f;
         public float swingSpeed = 11f;
+        public PlayerPush push;
+        public PlayerHug hug;
 
         Vector3 handLeftRest, handRightRest, bootLeftRest, bootRightRest;
         bool captured;
@@ -41,6 +43,8 @@ namespace MixedUp
         {
             if (status == null || body == null) return;
             Capture();
+            if (push == null) push = GetComponent<PlayerPush>();
+            if (hug == null) hug = GetComponent<PlayerHug>();
 
             float dt = Time.deltaTime;
             float speed = controller != null ? controller.HorizontalVelocity.magnitude : 0f;
@@ -64,7 +68,21 @@ namespace MixedUp
             float airLift = airborne ? 0.32f : 0f;
             Vector3 freeLeft = handLeftRest + new Vector3(0f, airLift, -swing * handSwing) + shakeOffset;
             Vector3 freeRight = handRightRest + new Vector3(0f, airLift, swing * handSwing) - shakeOffset;
-            if (carry != null)
+            // Pushing thrusts both hands forward; hugging opens the arms wide in front.
+            float punch = push != null ? push.PunchAmount : 0f;
+            float hugBlend = hug != null && hug.IsHugging ? 1f : 0f;
+            if (punch > 0f)
+            {
+                freeLeft = Vector3.Lerp(freeLeft, new Vector3(-0.2f, 0.75f, 0.95f), punch);
+                freeRight = Vector3.Lerp(freeRight, new Vector3(0.2f, 0.75f, 0.95f), punch);
+            }
+            if (hugBlend > 0f)
+            {
+                freeLeft = Vector3.Lerp(freeLeft, new Vector3(-0.62f, 0.85f, 0.5f), hugBlend);
+                freeRight = Vector3.Lerp(freeRight, new Vector3(0.62f, 0.85f, 0.5f), hugBlend);
+            }
+
+            if (carry != null && hugBlend <= 0f)
             {
                 carry.AnimationOffset = shakeOffset;
                 Place(handLeft, Vector3.Lerp(freeLeft, carry.HandPosition(-1), carryBlend), 0f);
@@ -87,8 +105,9 @@ namespace MixedUp
             wasAirTimeBonus = Mathf.Min(0.55f, airTime * 0.4f);
             squash = Mathf.MoveTowards(squash, 0f, dt * 3.5f);
             float bounce = Mathf.Sin(squash * Mathf.PI * 0.5f);
+            float crouch = controller != null ? controller.CrouchAmount : 0f;
             if (!status.IsDead)
-                body.localScale = new Vector3(1f + 0.16f * bounce, 1f - 0.2f * bounce + (airborne ? 0.04f : 0f), 1f + 0.16f * bounce);
+                body.localScale = new Vector3((1f + 0.16f * bounce) * (1f + 0.1f * crouch), (1f - 0.2f * bounce + (airborne ? 0.04f : 0f)) * (1f - 0.3f * crouch), (1f + 0.16f * bounce) * (1f + 0.1f * crouch));
 
             deathBlend = Mathf.MoveTowards(deathBlend, status.IsDead ? 1f : 0f, dt * 3f);
             body.localRotation = Quaternion.Euler(0f, 0f, sway) * Quaternion.Euler(-90f * deathBlend, 0f, 0f);

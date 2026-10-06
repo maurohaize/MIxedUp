@@ -7,8 +7,13 @@ namespace MixedUp
     /// water, and the slippery movement caused by FROZEN boxes and icy ground.
     /// </summary>
     [RequireComponent(typeof(CharacterController), typeof(PlayerStatus))]
-    public class PlayerController : MonoBehaviour
+    public class PlayerController : MonoBehaviour, IPushable
     {
+        [Header("Crouch")]
+        [Tooltip("Walking speed while crouched, compared with walking upright.")]
+        [Range(0.2f, 1f)] public float crouchSpeedMultiplier = 0.45f;
+        public float crouchHeight = 1.0f;
+
         [Header("Identity")]
         [Tooltip("Only the local player reads input. Remote players are driven by the network (phase 3).")]
         public bool isLocal = true;
@@ -64,10 +69,25 @@ namespace MixedUp
         float jumpBufferTimer;
         float peakY;
         Vector3 groundNormal = Vector3.up;
+        float standingHeight = 1.6f;
+        float crouchAmount;
+        bool crouching;
+        float lockedUntil;
+        readonly Collider[] headroom = new Collider[8];
+
+        public event System.Action Jumped;
+        /// <summary>Raised on landing, with the height dropped (0 for a tiny hop).</summary>
+        public event System.Action<float> Landed;
 
         public bool IsGrounded => grounded;
         public Vector3 HorizontalVelocity => horizontalVelocity;
         public PlayerStatus Status => status;
+        public bool IsCrouching => crouching;
+        /// <summary>0 = upright, 1 = fully crouched (smoothed).</summary>
+        public float CrouchAmount => crouchAmount;
+        public bool MovementLocked => Time.time < lockedUntil;
+        public Transform PushTransform => transform;
+        public bool CanBePushed => status != null && !status.IsDead;
         public bool CanControl => isLocal && status != null && !status.IsDead && !GameManager.InputBlocked;
 
         void Awake()
@@ -76,6 +96,7 @@ namespace MixedUp
             // The default (1 mm) swallows tiny per-frame moves, so on a very fast frame rate slow movement and slides
             // would freeze: speed * deltaTime must not fall under it.
             controller.minMoveDistance = 0f;
+            standingHeight = controller.height;
             status = GetComponent<PlayerStatus>();
             peakY = transform.position.y;
         }
@@ -99,6 +120,39 @@ namespace MixedUp
             }
         }
 
+        /// <summary>Moves the player along with something they stand on (a raft).</summary>
+        public void Carry(Vector3 delta)
+        {
+            if (controller != null && controller.enabled) controller.Move(delta);
+        }
+
+        public void ReceivePush(Vector3 horizontalImpulse, float upSpeed) => AddImpulse(horizontalImpulse, upSpeed);
+
+        /// <summary>Holds the player still (a hug, for example): no walking, jumping or crouching for a while.</summary>
+        public void LockMovement(float seconds) => lockedUntil = Mathf.Max(lockedUntil, Time.time + seconds);
+
+        bool HasHeadroom()
+        {
+            float radius = controller.radius * 0.95f;
+            Vector3 bottom = transform.position + Vector3.up * (radius + 0.05f);
+            Vector3 top = transform.position + Vector3.up * (standingHeight - radius);
+            int count = Physics.OverlapCapsuleNonAlloc(bottom, top, radius, headroom, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++)
+                if (!headroom[i].transform.IsChildOf(transform)) return false;
+            return true;
+        }
+
+        void UpdateCrouch(bool wantsCrouch, float dt)
+        {
+            if (wantsCrouch && grounded) crouching = true;
+            else if (!wantsCrouch && crouching && HasHeadroom()) crouching = false;
+
+            crouchAmount = Mathf.MoveTowards(crouchAmount, crouching ? 1f : 0f, dt * 8f);
+            float height = Mathf.Lerp(standingHeight, crouchHeight, crouchAmount);
+            controller.height = height;
+            controller.center = new Vector3(0f, height * 0.5f, 0f);
+        }
+
         public void Teleport(Vector3 position)
         {
             controller.enabled = false;
@@ -114,10 +168,10 @@ namespace MixedUp
             float dt = Time.deltaTime;
             if (dt <= 0f) return;
 
-            bool control = CanControl;
+            bool control = CanControl && !MovementLocked;
             Vector2 input = control ? GameInput.Move.ReadValue<Vector2>() : Vector2.zero;
             bool sprint = control && GameInput.Sprint.IsPressed();
-            if (control && GameInput.Jump.WasPressedThisFrame()) jumpBufferTimer = jumpBuffer;
+            if (control && GameInput.Jump.WasPressedThisFrame() && !crouching) jumpBufferTimer = jumpBuffer;
 
             Vector3 moveDir = CameraRelative(input);
             bool hasInput = moveDir.sqrMagnitude > 0.0001f;
@@ -137,6 +191,9 @@ namespace MixedUp
             }
             wasGrounded = grounded;
 
+            UpdateCrouch(control && GameInput.Crouch.IsPressed(), dt);
+            if (crouching) sprint = false;
+
             var mods = status.Modifiers;
             var hazards = status.Hazards;
             bool slippery = hazards.OnSlippery;
@@ -144,6 +201,7 @@ namespace MixedUp
             float speed = (sprint ? runSpeed : walkSpeed) * mods.SpeedMul;
             if (hazards.InWater) speed *= waterSpeedMultiplier;
             if (hazards.InMud) speed *= mudSpeedMultiplier;
+            if (crouching) speed *= crouchSpeedMultiplier;
             Vector3 target = moveDir * speed;
 
             float accel;
@@ -166,6 +224,7 @@ namespace MixedUp
             {
                 verticalVelocity = Mathf.Sqrt(2f * gravity * jumpHeight * (hazards.InMud ? mudJumpMultiplier : 1f));
                 jumpBufferTimer = 0f;
+                Jumped?.Invoke();
                 lastGroundedTime = -999f;
                 grounded = false;
             }
@@ -236,6 +295,7 @@ namespace MixedUp
         void OnLanded()
         {
             float drop = peakY - transform.position.y;
+            Landed?.Invoke(Mathf.Max(0f, drop));
             if (drop > safeFallHeight && !status.Hazards.InWater)
                 status.Damage((drop - safeFallHeight) * fallDamagePerMeter, DeathCause.Fall);
         }

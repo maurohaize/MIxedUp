@@ -9,6 +9,10 @@ namespace MixedUp
         public Truck truck;
         public RectTransform rowContainer;
         public OrderRowView rowTemplate;
+        [Tooltip("The card that holds the rows; it grows with the number of lines of the order.")]
+        public RectTransform panel;
+        public float rowHeight = 78f;
+        public float headerHeight = 90f;
 
         readonly List<OrderRowView> rows = new List<OrderRowView>();
 
@@ -24,6 +28,13 @@ namespace MixedUp
                 row.icon.sprite = line.box.icon;
                 row.icon.color = line.box.icon != null ? Color.white : line.box.color;
                 rows.Add(row);
+            }
+
+            // Random modes order more (or fewer) boxes than the card was drawn for.
+            if (panel != null)
+            {
+                panel.sizeDelta = new Vector2(panel.sizeDelta.x, headerHeight + rows.Count * rowHeight);
+                rowContainer.sizeDelta = new Vector2(rowContainer.sizeDelta.x, rows.Count * rowHeight);
             }
 
             truck.Changed += Refresh;

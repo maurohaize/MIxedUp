@@ -36,7 +36,9 @@ namespace MixedUp.EditorTools
 
             // Average the normals of every vertex at the same spot, weighting by triangle corner angle.
             var weld = new Dictionary<Vector3Int, Vector3>();
-            Vector3Int Key(Vector3 p) => new Vector3Int(Mathf.RoundToInt(p.x * 1000f), Mathf.RoundToInt(p.y * 1000f), Mathf.RoundToInt(p.z * 1000f));
+            // Vertices closer than a ten-thousandth of the model's size count as the same point (models can be tiny in their own units).
+            float resolution = 1f / Mathf.Max(1e-7f, mesh.bounds.size.magnitude * 1e-4f);
+            Vector3Int Key(Vector3 p) => new Vector3Int(Mathf.RoundToInt(p.x * resolution), Mathf.RoundToInt(p.y * resolution), Mathf.RoundToInt(p.z * resolution));
 
             for (int sub = 0; sub < mesh.subMeshCount; sub++)
             {
@@ -44,14 +46,15 @@ namespace MixedUp.EditorTools
                 for (int i = 0; i + 2 < indices.Length; i += 3)
                 {
                     Vector3 a = vertices[indices[i]], b = vertices[indices[i + 1]], c = vertices[indices[i + 2]];
-                    Vector3 face = Vector3.Cross(b - a, c - a);
-                    if (face.sqrMagnitude < 1e-14f) continue;
+                    // Scaled up first: Vector3.normalized returns zero for vectors shorter than 1e-5 (tiny imported models).
+                    Vector3 face = Vector3.Cross((b - a) * 1000f, (c - a) * 1000f);
+                    if (face.sqrMagnitude < 1e-12f) continue;
                     face.Normalize();
                     for (int k = 0; k < 3; k++)
                     {
                         Vector3 p = vertices[indices[i + k]];
                         Vector3 e1 = vertices[indices[i + (k + 1) % 3]] - p, e2 = vertices[indices[i + (k + 2) % 3]] - p;
-                        float angle = Mathf.Acos(Mathf.Clamp(Vector3.Dot(e1.normalized, e2.normalized), -1f, 1f));
+                        float angle = Mathf.Acos(Mathf.Clamp(Vector3.Dot((e1 * 1000f).normalized, (e2 * 1000f).normalized), -1f, 1f));
                         var key = Key(p);
                         weld[key] = (weld.TryGetValue(key, out var sum) ? sum : Vector3.zero) + face * angle;
                     }

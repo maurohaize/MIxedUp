@@ -136,6 +136,35 @@ namespace MixedUp.EditorTools
             }
         }
 
+        /// <summary>The card in the corner where the game mode is picked: name, description, time limit and reward.</summary>
+        static void BuildModeSelector(RectTransform parent)
+        {
+            // Low in the corner, so the character of the diorama stays in view above it.
+            var card = UiFactory.Panel("ModeCard", parent, new Vector2(800f, 300f), out var root, true, true);
+            UiFactory.Place(root, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-60f, 40f), new Vector2(800f, 300f));
+
+            var header = UiFactory.NewText("Header", card, "", 36f, Brick, TextAlignmentOptions.Center, "ui.mode");
+            At(header.rectTransform, 200f, 34f, 400f, 46f);
+            var name = UiFactory.NewText("Name", card, "", 58f, UiFactory.Ink, TextAlignmentOptions.Center);
+            At(name.rectTransform, 160f, 80f, 480f, 76f);
+            var description = UiFactory.NewText("Description", card, "", 30f, new Color(UiFactory.Ink.r, UiFactory.Ink.g, UiFactory.Ink.b, 0.85f), TextAlignmentOptions.Top);
+            At(description.rectTransform, 80f, 160f, 640f, 70f);
+            var detail = UiFactory.NewText("Detail", card, "", 32f, Brick, TextAlignmentOptions.Center);
+            At(detail.rectTransform, 160f, 236f, 480f, 42f);
+
+            var previous = UiFactory.NewButton("Previous", card, "<", null, new Vector2(100f, 84f), UiFactory.ButtonStyle.Plank);
+            At((RectTransform)previous.transform, 36f, 78f, 100f, 84f);
+            var next = UiFactory.NewButton("Next", card, ">", null, new Vector2(100f, 84f), UiFactory.ButtonStyle.Plank);
+            At((RectTransform)next.transform, 664f, 78f, 100f, 84f);
+
+            var selector = root.gameObject.AddComponent<ModeSelector>();
+            selector.previous = previous;
+            selector.next = next;
+            selector.nameLabel = name;
+            selector.descriptionLabel = description;
+            selector.detailLabel = detail;
+        }
+
         static void BuildMainMenuUi(GameAssets a, Prefabs p)
         {
             var canvasGo = new GameObject("UI", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -169,16 +198,21 @@ namespace MixedUp.EditorTools
 
             menu.playButton = UiFactory.NewButton("Play", signpost, "", "ui.play", new Vector2(560f, 128f));
             At((RectTransform)menu.playButton.transform, 50f, 520f, 560f, 128f);
-            menu.settingsButton = UiFactory.NewButton("Settings", signpost, "", "ui.settings", new Vector2(500f, 112f));
-            At((RectTransform)menu.settingsButton.transform, 76f, 680f, 500f, 112f);
-            menu.quitButton = UiFactory.NewButton("Quit", signpost, "", "ui.quit", new Vector2(400f, 100f), UiFactory.ButtonStyle.SignLeft);
-            At((RectTransform)menu.quitButton.transform, 150f, 826f, 400f, 100f);
+            menu.multiplayerButton = UiFactory.NewButton("Multiplayer", signpost, "", "ui.multiplayer", new Vector2(540f, 104f), UiFactory.ButtonStyle.SignLeft);
+            At((RectTransform)menu.multiplayerButton.transform, 60f, 655f, 540f, 104f);
+            menu.settingsButton = UiFactory.NewButton("Settings", signpost, "", "ui.settings", new Vector2(500f, 100f));
+            At((RectTransform)menu.settingsButton.transform, 76f, 770f, 500f, 100f);
+            menu.quitButton = UiFactory.NewButton("Quit", signpost, "", "ui.quit", new Vector2(400f, 92f), UiFactory.ButtonStyle.SignLeft);
+            At((RectTransform)menu.quitButton.transform, 150f, 884f, 400f, 92f);
+
+            BuildModeSelector(signpost);
 
             var footer = UiFactory.NewText("Footer", canvasGo.transform, "MIXED UP", 30f, new Color(UiFactory.Ink.r, UiFactory.Ink.g, UiFactory.Ink.b, 0.55f), TextAlignmentOptions.BottomRight);
             UiFactory.Place(footer.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-40f, 28f), new Vector2(500f, 50f));
 
             menu.settings = BuildSettingsPanel(canvasGo.transform, a, p.preview);
             menu.settings.gameObject.SetActive(false);
+            menu.lobby = BuildLobbyPanel(canvasGo.transform, a);
         }
     }
 }

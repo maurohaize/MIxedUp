@@ -5,7 +5,7 @@ namespace MixedUp
 {
     /// <summary>
     /// All gameplay actions, defined in code so bindings can be remapped and persisted later.
-    /// Defaults: WASD move, Shift run, Space jump, E interact, F take boxes from a teammate, Q/scroll/1-4 inventory slot, Esc pause.
+    /// Defaults: WASD move, Shift run, Space jump, E interact, F take boxes from a teammate, C crouch, G push, H hug, Q/scroll/1-4 inventory slot, Esc pause.
     /// </summary>
     public static class GameInput
     {
@@ -20,6 +20,9 @@ namespace MixedUp
         public static InputAction Jump { get; private set; }
         public static InputAction Interact { get; private set; }
         public static InputAction Take { get; private set; }
+        public static InputAction Crouch { get; private set; }
+        public static InputAction Push { get; private set; }
+        public static InputAction Hug { get; private set; }
         public static InputAction Pause { get; private set; }
         public static InputAction NextSlot { get; private set; }
         public static InputAction[] SelectSlot { get; private set; }
@@ -74,6 +77,20 @@ namespace MixedUp
             Take = map.AddAction("Take", InputActionType.Button);
             Take.AddBinding("<Keyboard>/f");
             Take.AddBinding("<Gamepad>/buttonEast");
+
+            Crouch = map.AddAction("Crouch", InputActionType.Button);
+            Crouch.AddBinding("<Keyboard>/c");
+            Crouch.AddBinding("<Keyboard>/leftCtrl");
+            Crouch.AddBinding("<Gamepad>/rightStickPress");
+
+            Push = map.AddAction("Push", InputActionType.Button);
+            Push.AddBinding("<Keyboard>/g");
+            Push.AddBinding("<Mouse>/leftButton");
+            Push.AddBinding("<Gamepad>/rightShoulder");
+
+            Hug = map.AddAction("Hug", InputActionType.Button);
+            Hug.AddBinding("<Keyboard>/h");
+            Hug.AddBinding("<Gamepad>/leftShoulder");
 
             Pause = map.AddAction("Pause", InputActionType.Button);
             Pause.AddBinding("<Keyboard>/escape");

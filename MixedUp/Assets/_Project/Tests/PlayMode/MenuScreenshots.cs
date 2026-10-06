@@ -62,6 +62,46 @@ namespace MixedUp.Tests
         }
 
         [UnityTest, Explicit("Needs a GPU; writes PNGs")]
+        public IEnumerator LobbyGallery()
+        {
+            RoomServices.Use(new LocalRoomService { BotDelay = 0.3f });
+            var menu = Object.FindAnyObjectByType<MainMenu>();
+            Localization.SetLanguage(Language.Spanish);
+            yield return new WaitForSecondsRealtime(0.4f);
+            menu.multiplayerButton.onClick.Invoke();
+            yield return new WaitForSecondsRealtime(0.3f);
+            yield return Capture("54_lobby_entry");
+
+            menu.lobby.nameInput.text = "Mauro";
+            menu.lobby.createButton.onClick.Invoke();
+            yield return new WaitForSecondsRealtime(2.2f);
+            yield return Capture("55_lobby_room_host");
+            menu.lobby.Close();
+
+            menu.multiplayerButton.onClick.Invoke();
+            menu.lobby.codeInput.text = "AMETSA";
+            menu.lobby.joinButton.onClick.Invoke();
+            yield return new WaitForSecondsRealtime(0.4f);
+            yield return Capture("56_lobby_room_guest");
+            menu.lobby.Close();
+            RoomServices.Use(null);
+        }
+
+        [UnityTest, Explicit("Needs a GPU; writes PNGs")]
+        public IEnumerator ModeSelectorGallery()
+        {
+            Localization.SetLanguage(Language.Spanish);
+            GameModes.Selected = GameModes.Express;
+            yield return new WaitForSecondsRealtime(0.5f);
+            yield return Capture("57_mode_express");
+            GameModes.Selected = GameModes.Challenge;
+            Object.FindAnyObjectByType<ModeSelector>().Refresh();
+            yield return new WaitForSecondsRealtime(0.2f);
+            yield return Capture("58_mode_challenge");
+            GameModes.Selected = GameModes.Classic;
+        }
+
+        [UnityTest, Explicit("Needs a GPU; writes PNGs")]
         public IEnumerator MainMenuGallery()
         {
             var menu = Object.FindAnyObjectByType<MainMenu>();

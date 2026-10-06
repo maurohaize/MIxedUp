@@ -215,11 +215,12 @@ namespace MixedUp.Tests
             var p = f.Player();
             p.Damage(30f, DeathCause.Fall);
 
-            p.Tick(3f);
-            Assert.AreEqual(70f, p.Health, 0.001f);
+            p.Tick(8f);
+            Assert.AreEqual(70f, p.Health, 0.001f, "hurt players wait a long time before they start to heal");
 
-            p.Tick(2f);
+            p.Tick(3f);
             Assert.Greater(p.Health, 70f);
+            Assert.Less(p.Health, 77f, "and then heal slowly");
         }
 
         [Test]

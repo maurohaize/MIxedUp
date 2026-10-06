@@ -8,7 +8,7 @@ namespace MixedUp
     /// selected with the keyboard / gamepad, and squashes when pressed. Uses unscaled time so it works while paused.
     /// </summary>
     public class HandDrawnButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler,
-        IPointerDownHandler, IPointerUpHandler
+        IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
     {
         public float restTilt;
         public float hoverTilt = -1.6f;
@@ -45,7 +45,13 @@ namespace MixedUp
             transform.localScale = new Vector3(scale, scale, 1f);
         }
 
-        public void OnPointerEnter(PointerEventData eventData) => hovered = true;
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            hovered = true;
+            AudioManager.Play(SfxId.UiHover, null, 0.5f);
+        }
+
+        public void OnPointerClick(PointerEventData eventData) => AudioManager.Play(SfxId.UiClick);
         public void OnPointerExit(PointerEventData eventData) { hovered = false; pressed = false; }
         public void OnSelect(BaseEventData eventData) => selected = true;
         public void OnDeselect(BaseEventData eventData) => selected = false;

@@ -14,5 +14,8 @@ namespace MixedUp
         public BoxData B;
         public bool LocalPlayerDied;
         public DeathCause? Cause;
+        public string ModeId;
+        /// <summary>Extra money for the seconds left on the clock in a timed mode.</summary>
+        public int TimeBonus;
     }
 }

@@ -11,6 +11,8 @@ namespace MixedUp
         public PlayerStatus status;
         public PlayerController controller;
         public string displayNameKey = "ui.teammate";
+        [Tooltip("A name to show instead of the localized one (the name of a player in a room).")]
+        public string literalName;
 
         readonly StringBuilder builder = new StringBuilder();
         float refreshTimer;
@@ -32,7 +34,7 @@ namespace MixedUp
             refreshTimer = 0.15f;
 
             builder.Clear();
-            builder.Append(Localization.Get(displayNameKey)).Append('\n');
+            builder.Append(!string.IsNullOrEmpty(literalName) ? literalName : Localization.Get(displayNameKey)).Append('\n');
             if (status.IsDead)
             {
                 builder.Append("KO");

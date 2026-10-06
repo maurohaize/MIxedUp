@@ -112,6 +112,7 @@ namespace MixedUp.EditorTools
                     if (!OutsidePlayArea(x, z)) continue;
                     if (rng.NextDouble() > OutsideDensity(x, z)) continue;
                     if (DistanceToRoad(x, z) < minRoad) continue;
+                    if (NearValleyWater(x, z, 7f)) continue;
                     if (SlopeAt(field, x, z) > maxSlope) continue;
                     return true;
                 }
@@ -124,7 +125,7 @@ namespace MixedUp.EditorTools
             for (int i = 0; i < 4000 && trees < 560; i++)
             {
                 if (!Spot(out float x, out float z, 6.5f, 0.75f)) continue;
-                PlaceDecor(outside, art.trees[rng.Next(art.trees.Length)], new Vector3(x, field.Surface(x, z), z), (float)rng.NextDouble() * 360f,
+                PlaceDecor(outside, art.trees[rng.Next(art.trees.Length)], new Vector3(x, OutsideHeight(art, x, z), z), (float)rng.NextDouble() * 360f,
                     Mathf.Lerp(0.85f, 1.5f, (float)rng.NextDouble()), tints[rng.Next(tints.Length)]);
                 trees++;
             }
@@ -135,7 +136,7 @@ namespace MixedUp.EditorTools
             {
                 if (!Spot(out float x, out float z, 5f, 1.1f)) continue;
                 float scale = rng.NextDouble() < 0.12 ? Mathf.Lerp(1.8f, 3.2f, (float)rng.NextDouble()) : Mathf.Lerp(0.7f, 1.7f, (float)rng.NextDouble());
-                PlaceDecor(outside, art.rocks[rng.Next(art.rocks.Length)], new Vector3(x, field.Surface(x, z), z), (float)rng.NextDouble() * 360f, scale, null, 0.2f);
+                PlaceDecor(outside, art.rocks[rng.Next(art.rocks.Length)], new Vector3(x, OutsideHeight(art, x, z), z), (float)rng.NextDouble() * 360f, scale, null, 0.2f);
                 rocks++;
             }
 
@@ -143,13 +144,13 @@ namespace MixedUp.EditorTools
             for (int i = 0; i < 1500; i++)
             {
                 float x = Mathf.Lerp(-95f, 95f, (float)rng.NextDouble()), z = Mathf.Lerp(-85f, 125f, (float)rng.NextDouble());
-                if (!OutsidePlayArea(x, z) || DistanceToRoad(x, z) < 3.4f) continue;
+                if (!OutsidePlayArea(x, z) || DistanceToRoad(x, z) < 3.4f || NearValleyWater(x, z, 5f)) continue;
                 if (rng.NextDouble() > OutsideDensity(x, z)) continue;
 
                 int kind = rng.Next(10);
                 Mesh mesh = kind < 3 ? art.bushes[rng.Next(art.bushes.Length)] : kind < 8 ? art.tufts[rng.Next(art.tufts.Length)] : art.flowers[rng.Next(art.flowers.Length)];
                 var go = MeshObject(kind < 3 ? "Bush" : kind < 8 ? "Tuft" : "Flower", outside, mesh, art.palette, kind < 3);
-                go.transform.position = new Vector3(x, field.Surface(x, z), z);
+                go.transform.position = new Vector3(x, OutsideHeight(art, x, z), z);
                 go.transform.rotation = Quaternion.Euler(0f, (float)rng.NextDouble() * 360f, 0f);
                 go.transform.localScale = Vector3.one * (kind < 3 ? Mathf.Lerp(0.9f, 1.8f, (float)rng.NextDouble()) : Mathf.Lerp(1f, 2f, (float)rng.NextDouble()));
             }
@@ -180,8 +181,8 @@ namespace MixedUp.EditorTools
             {
                 Vector3 a = Edge(i, from), b = Edge(i, to), c = Edge(i + 1, to), d = Edge(i + 1, from);
                 a.y += lift; b.y += lift; c.y += lift; d.y += lift;
-                if (Vector3.Cross(b - a, d - a).y > 0f) dirt.Quad(a, d, c, b, colour);
-                else dirt.Quad(a, b, c, d, colour);
+                if (Vector3.Cross(b - a, d - a).y > 0f) dirt.Quad(a, b, c, d, colour);
+                else dirt.Quad(a, d, c, b, colour);
             }
 
             float half = RoadWidth * 0.5f;

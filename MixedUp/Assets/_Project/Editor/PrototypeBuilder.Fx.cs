@@ -11,8 +11,8 @@ namespace MixedUp.EditorTools
     /// </summary>
     public static partial class PrototypeBuilder
     {
-        static Material fxSoft, fxGlow, fxRing, fxFlame, fxMist, fxWater, fxBulb;
-        static Texture2D glowTexture, ringTexture;
+        static Material fxSoft, fxGlow, fxRing, fxFlame, fxMist, fxWater, fxBulb, fxHeart, fxWaterFar, fxLake;
+        static Texture2D glowTexture, ringTexture, heartTexture;
 
         // ------------------------------------------------------------ assets
 
@@ -66,6 +66,20 @@ namespace MixedUp.EditorTools
                 return Mathf.Exp(-d * d) * Mathf.Clamp01((1f - r) * 8f);
             }, 256);
 
+            heartTexture = MakeFxTexture("fx_heart.png", (u, v) =>
+            {
+                float x = u * 1.25f, y = v * 1.25f + 0.15f;
+                float a = x * x + y * y - 1f;
+                float f = a * a * a - x * x * y * y * y;
+                return Mathf.Clamp01(-f * 7f);
+            }, 128);
+            fxHeart = FxMaterial("FxHeart", "MixedUp/SoftParticle", m =>
+            {
+                m.SetTexture("_MainTex", heartTexture);
+                m.SetFloat("_DstBlend", 10f);
+                m.SetColor("_Tint", Color.white);
+            });
+
             fxSoft = FxMaterial("FxSoft", "MixedUp/SoftParticle", m =>
             {
                 m.SetTexture("_MainTex", glowTexture);
@@ -104,6 +118,23 @@ namespace MixedUp.EditorTools
                 m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(TexturesDir + "/palette.png"));
                 m.SetColor("_Tint", Color.white);
                 m.SetFloat("_Opacity", 0.9f);
+            });
+            fxWaterFar = FxMaterial("RiverWaterFar", "MixedUp/Water", m =>
+            {
+                m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(TexturesDir + "/palette.png"));
+                m.SetFloat("_Opacity", 0.92f);
+                m.SetFloat("_BankMin", -10000f);
+                m.SetFloat("_BankMax", 10000f);
+            });
+            fxLake = FxMaterial("LakeWater", "MixedUp/Water", m =>
+            {
+                m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(TexturesDir + "/palette.png"));
+                m.SetFloat("_Opacity", 0.93f);
+                m.SetFloat("_BankMin", -10000f);
+                m.SetFloat("_BankMax", 10000f);
+                m.SetVector("_FlowDirection", new Vector4(0.08f, 0.05f, 0f, 0f));
+                m.SetFloat("_WaveHeight", 0.05f);
+                m.SetFloat("_DeepMix", 0.62f);
             });
             fxBulb = FxMaterial("LampBulb", "Universal Render Pipeline/Lit", m =>
             {

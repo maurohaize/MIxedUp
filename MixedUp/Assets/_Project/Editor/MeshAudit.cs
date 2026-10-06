@@ -66,6 +66,9 @@ namespace MixedUp.EditorTools
             public bool closed;
             public float volume;
             public Vector3 centre;
+            /// <summary>Volume of the box around the piece, to judge whether a signed volume is meaningful.</summary>
+            public float boxVolume;
+            public bool InsideOut => volume < 0f && (closed || -volume > 0.08f * boxVolume);
         }
 
         /// <summary>Splits a mesh into welded pieces and reports each closed piece's signed volume (negative = inside out).</summary>
@@ -77,10 +80,14 @@ namespace MixedUp.EditorTools
             var vertices = mesh.vertices;
             var weld = new Dictionary<Vector3Int, int>();
             var vertexIds = new int[vertices.Length];
+            // Points closer than a ten-thousandth of the size of the piece are the same point (imported models can be tiny in their own units).
+            var worldBounds = new Bounds(toWorld.MultiplyPoint3x4(vertices.Length > 0 ? vertices[0] : Vector3.zero), Vector3.zero);
+            foreach (var v in vertices) worldBounds.Encapsulate(toWorld.MultiplyPoint3x4(v));
+            float resolution = 1f / Mathf.Max(1e-6f, worldBounds.size.magnitude * 1e-4f);
             for (int i = 0; i < vertices.Length; i++)
             {
                 var p = toWorld.MultiplyPoint3x4(vertices[i]);
-                var key = new Vector3Int(Mathf.RoundToInt(p.x * 500f), Mathf.RoundToInt(p.y * 500f), Mathf.RoundToInt(p.z * 500f));
+                var key = new Vector3Int(Mathf.RoundToInt(p.x * resolution), Mathf.RoundToInt(p.y * resolution), Mathf.RoundToInt(p.z * resolution));
                 if (!weld.TryGetValue(key, out int id))
                 {
                     id = weld.Count;
@@ -91,29 +98,39 @@ namespace MixedUp.EditorTools
 
             bool mirrored = toWorld.determinant < 0f;
             var tris = new List<int[]>();
-            for (int sub = 0; sub < mesh.subMeshCount; sub++)
+            // A mesh baked for the outline repeats its triangles in a second submesh: look at the first one only.
+            int submeshes = OutlineBake.IsBaked(mesh) ? 1 : mesh.subMeshCount;
+            for (int sub = 0; sub < submeshes; sub++)
             {
                 var indices = mesh.GetIndices(sub);
                 for (int i = 0; i + 2 < indices.Length; i += 3)
                     tris.Add(mirrored ? new[] { indices[i], indices[i + 2], indices[i + 1], tris.Count } : new[] { indices[i], indices[i + 1], indices[i + 2], tris.Count });
             }
 
-            var parent = new int[weld.Count];
+            // Pieces are groups of triangles that share edges (not just corner points): a leaf blob that merely touches a branch is
+            // its own piece, so its orientation can be judged on its own.
+            var parent = new int[tris.Count];
             for (int i = 0; i < parent.Length; i++) parent[i] = i;
             int Find(int x) { while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
-            foreach (var t in tris)
+            var edgeOwner = new Dictionary<long, int>();
+            for (int ti = 0; ti < tris.Count; ti++)
             {
-                int a = Find(vertexIds[t[0]]), b = Find(vertexIds[t[1]]), c = Find(vertexIds[t[2]]);
-                parent[b] = a;
-                parent[c] = a;
+                var t = tris[ti];
+                for (int k = 0; k < 3; k++)
+                {
+                    int u = vertexIds[t[k]], v = vertexIds[t[(k + 1) % 3]];
+                    long key = u < v ? ((long)u << 32) | (uint)v : ((long)v << 32) | (uint)u;
+                    if (edgeOwner.TryGetValue(key, out int other)) parent[Find(ti)] = Find(other);
+                    else edgeOwner[key] = ti;
+                }
             }
 
             var groups = new Dictionary<int, List<int[]>>();
-            foreach (var t in tris)
+            for (int ti = 0; ti < tris.Count; ti++)
             {
-                int root = Find(vertexIds[t[0]]);
+                int root = Find(ti);
                 if (!groups.TryGetValue(root, out var list)) groups[root] = list = new List<int[]>();
-                list.Add(t);
+                list.Add(tris[ti]);
             }
 
             var result = new List<ComponentInfo>();
@@ -140,6 +157,9 @@ namespace MixedUp.EditorTools
                     if (n != 2) { closed = false; break; }
 
                 float volume = 0f;
+                var box = new Bounds(toWorld.MultiplyPoint3x4(vertices[group[0][0]]), Vector3.zero);
+                foreach (var t in group)
+                    for (int k = 0; k < 3; k++) box.Encapsulate(toWorld.MultiplyPoint3x4(vertices[t[k]]));
                 foreach (var t in group)
                 {
                     Vector3 a = toWorld.MultiplyPoint3x4(vertices[t[0]]) - centre;
@@ -147,7 +167,7 @@ namespace MixedUp.EditorTools
                     Vector3 c = toWorld.MultiplyPoint3x4(vertices[t[2]]) - centre;
                     volume += Vector3.Dot(a, Vector3.Cross(b, c)) / 6f;
                 }
-                result.Add(new ComponentInfo { triangles = group.Count, closed = closed, volume = volume, centre = centre });
+                result.Add(new ComponentInfo { triangles = group.Count, closed = closed, volume = volume, centre = centre, boxVolume = box.size.x * box.size.y * box.size.z });
                 if (members != null)
                 {
                     var list = new List<int>();
@@ -241,6 +261,16 @@ namespace MixedUp.EditorTools
         /// Returns a copy of the mesh in which every closed piece that is inside out (so you would see through it) is turned
         /// the right way round, or null when the mesh is already fine. `toWorld` is the matrix the mesh is rendered with.
         /// </summary>
+        /// <summary>
+        /// Unit normal of a triangle. Imported models are often tiny in their own units (centimetres of a hundredth of a metre), and
+        /// Vector3.normalized gives zero for vectors shorter than 1e-5: scale up first.
+        /// </summary>
+        public static Vector3 FaceNormal(Vector3 a, Vector3 b, Vector3 c)
+        {
+            Vector3 cross = Vector3.Cross((b - a) * 1000f, (c - a) * 1000f);
+            return cross.sqrMagnitude < 1e-12f ? Vector3.up : cross.normalized;
+        }
+
         public static Mesh FixInsideOut(Mesh mesh, Matrix4x4 toWorld)
         {
             var members = new List<List<int>>();
@@ -249,7 +279,7 @@ namespace MixedUp.EditorTools
             var flip = new HashSet<int>();
             for (int i = 0; i < parts.Count; i++)
             {
-                if (!parts[i].closed || parts[i].volume >= 0f) continue;
+                if (!parts[i].InsideOut) continue;
                 foreach (var t in members[i]) flip.Add(t);
             }
             if (flip.Count == 0) return null;
@@ -269,7 +299,7 @@ namespace MixedUp.EditorTools
                     if (normals.Length == vertices.Length)
                     {
                         // Flat normal of the corrected face, pointing outwards (a mirrored transform turns the winding around once more).
-                        Vector3 face = Vector3.Cross(vertices[indices[i + 1]] - vertices[indices[i]], vertices[indices[i + 2]] - vertices[indices[i]]).normalized;
+                        Vector3 face = FaceNormal(vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]);
                         if (toWorld.determinant < 0f) face = -face;
                         for (int k = 0; k < 3; k++) normals[indices[i + k]] = face;
                     }
@@ -287,11 +317,52 @@ namespace MixedUp.EditorTools
             int closed = 0, flipped = 0, open = 0;
             foreach (var p in parts)
             {
-                if (!p.closed) { open++; continue; }
-                closed++;
-                if (p.volume < 0f) flipped++;
+                if (!p.closed) open++; else closed++;
+                if (p.InsideOut) flipped++;
             }
             return "COMP " + name + ": " + parts.Count + " parts, " + closed + " closed, " + flipped + " inside-out, " + open + " open";
+        }
+
+        /// <summary>Which palette colour each piece of a model uses (a black one shows up as a black blob).</summary>
+        public static void TreeColours()
+        {
+            var text = new StringBuilder();
+            foreach (var name in new[] { "Tree1", "Tree2", "Tree3", "Tree4" })
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/" + name + ".prefab");
+                foreach (var filter in prefab.GetComponentsInChildren<MeshFilter>(true))
+                {
+                    var mesh = filter.sharedMesh;
+                    var uvs = mesh.uv;
+                    var vertices = mesh.vertices;
+                    var counts = new Dictionary<int, int>();
+                    for (int i = 0; i < uvs.Length; i++)
+                    {
+                        int cell = Mathf.FloorToInt(uvs[i].x * 30f);
+                        counts[cell] = counts.TryGetValue(cell, out int n) ? n + 1 : 1;
+                    }
+                    var parts = new StringBuilder();
+                    foreach (var pair in counts) parts.Append(pair.Key + ":" + pair.Value + " ");
+                    var normals = mesh.normals;
+                    int zero = 0, inward = 0;
+                    var zeroByCell = new Dictionary<int, int>();
+                    var centre = mesh.bounds.center;
+                    for (int i = 0; i < normals.Length; i++)
+                    {
+                        if (normals[i].sqrMagnitude < 0.5f)
+                        {
+                            zero++;
+                            int cell = Mathf.FloorToInt(uvs[i].x * 30f);
+                            zeroByCell[cell] = zeroByCell.TryGetValue(cell, out int zn) ? zn + 1 : 1;
+                        }
+                        else if (Vector3.Dot(normals[i], vertices[i] - centre) < 0f) inward++;
+                    }
+                    foreach (var pair in zeroByCell) parts.Append(" zeroInCell" + pair.Key + "=" + pair.Value);
+                    parts.Append(" zeroNormals " + zero + " inwardNormals " + inward + " of " + normals.Length + " transform scale " + filter.transform.lossyScale.ToString("0.00"));
+                    text.AppendLine("TREECOL " + name + " mesh " + mesh.name + " verts " + vertices.Length + " cells " + parts);
+                }
+            }
+            Debug.Log("[MixedUp] Tree colours" + System.Environment.NewLine + text);
         }
 
         [MenuItem("MixedUp/Audit Mesh Winding")]

@@ -8,6 +8,7 @@ namespace MixedUp.EditorTools
         static Prefabs CreatePrefabs(GameAssets a, Mats m, ArtAssets art)
         {
             iceSlabPrefab = SavePrefab(BuildIceSlab(art), "IceSlab");
+            beaconPrefab = SavePrefab(BuildBeacon(), "BoxBeacon");
             return new Prefabs
             {
                 box = SavePrefab(BuildBoxPickup(), "BoxPickup"),

@@ -69,7 +69,7 @@ namespace MixedUp.EditorTools
                 else Face(b, m, b0, t0, t1, b1, radial, palette);
 
                 if (rTop > 0.0001f) Tri(b, m, new Vector3(0f, height, 0f), t1, t0, Vector3.up, capPalette >= 0 ? capPalette : palette);
-                if (bottomCap) Tri(b, m, Vector3.zero, b0, b1, Vector3.down, palette);
+                if (bottomCap) Tri(b, m, Vector3.zero, b0, b1, Vector3.down, capPalette >= 0 ? capPalette : palette);
             }
         }
 
@@ -95,7 +95,7 @@ namespace MixedUp.EditorTools
         {
             var b = new LowPoly.MeshBuilder();
             var lying = At(0f, 0.55f, 0f) * Matrix4x4.Rotate(Quaternion.Euler(0f, 0f, 90f)) * At(0f, -0.5f, 0f);
-            Frustum(b, lying, 0.55f, 0.55f, 1.0f, 9, Gold, Sand);
+            Frustum(b, lying, 0.55f, 0.55f, 1.0f, 9, Gold, Sand, true);
             // twine bands
             foreach (var y in new[] { 0.22f, 0.78f })
                 Frustum(b, lying * At(0f, y - 0.03f, 0f), 0.575f, 0.575f, 0.06f, 9, DarkWood);
@@ -113,7 +113,7 @@ namespace MixedUp.EditorTools
         public static Mesh Barrel()
         {
             var b = new LowPoly.MeshBuilder();
-            Frustum(b, At(0f, 0f, 0f), 0.36f, 0.33f, 0.95f, 10, Wood, Tan);
+            Frustum(b, At(0f, 0f, 0f), 0.36f, 0.33f, 0.95f, 10, Wood, Tan, true);
             foreach (var y in new[] { 0.16f, 0.72f })
                 Frustum(b, At(0f, y, 0f), 0.375f, 0.375f, 0.07f, 10, DarkWood);
             return b.ToMesh("Prop_Barrel");
@@ -146,7 +146,7 @@ namespace MixedUp.EditorTools
         {
             var b = new LowPoly.MeshBuilder();
             var lying = At(0f, 0.4f, 0f) * Matrix4x4.Rotate(Quaternion.Euler(0f, 0f, 90f)) * At(0f, -1.6f, 0f);
-            Frustum(b, lying, 0.4f, 0.37f, 3.2f, 8, DarkWood, Tan);
+            Frustum(b, lying, 0.4f, 0.37f, 3.2f, 8, DarkWood, Tan, true);
             Frustum(b, lying * At(0f, 3.19f, 0f), 0.29f, 0.29f, 0.03f, 8, Cocoa);
             return b.ToMesh("Prop_Log");
         }
@@ -177,7 +177,7 @@ namespace MixedUp.EditorTools
         {
             var b = new LowPoly.MeshBuilder();
             var lying = At(0f, 0.55f, 0f) * Matrix4x4.Rotate(Quaternion.Euler(0f, 0f, 90f)) * At(0f, -3.2f, 0f);
-            Frustum(b, lying, 0.3f, 0.3f, 6.4f, 8, Clay, DarkRust);
+            Frustum(b, lying, 0.3f, 0.3f, 6.4f, 8, Clay, DarkRust, true);
             foreach (var x in new[] { -2.6f, -1.3f, 0f, 1.3f, 2.6f })
                 Frustum(b, lying * At(0f, x + 3.2f - 0.1f, 0f), 0.325f, 0.325f, 0.2f, 8, Cream);
             Frustum(b, At(0f, 0.2f, 0f), 0.38f, 0.3f, 0.7f, 8, DarkWood);
@@ -204,7 +204,7 @@ namespace MixedUp.EditorTools
             for (int i = 0; i < 4; i++)
             {
                 var lean = At(0f, 0.1f * scale, 0f, i * 90f + 20f) * Matrix4x4.Translate(new Vector3(0f, 0f, 0.5f * scale)) * Matrix4x4.Rotate(Quaternion.Euler(-62f, 0f, 0f));
-                Frustum(b, lean, 0.09f * scale, 0.08f * scale, 0.95f * scale, 6, DarkWood, Tan);
+                Frustum(b, lean, 0.09f * scale, 0.08f * scale, 0.95f * scale, 6, DarkWood, Tan, true);
             }
             Frustum(b, At(0f, 0.12f * scale, 0f), 0.46f * scale, 0.02f, 1.5f * scale, 5, Clay);
             Frustum(b, At(0.16f * scale, 0.12f * scale, 0.06f * scale), 0.3f * scale, 0.02f, 1.2f * scale, 5, Brick, -1, false, 0.5f);
@@ -352,6 +352,53 @@ namespace MixedUp.EditorTools
             return b.ToMesh("Prop_Lily" + seed);
         }
 
+        /// <summary>Reeds and cattails growing in a clump.</summary>
+        public static Mesh Reeds(int seed)
+        {
+            var b = new LowPoly.MeshBuilder();
+            var rng = new System.Random(seed * 13);
+            for (int i = 0; i < 7; i++)
+            {
+                float angle = (float)rng.NextDouble() * Mathf.PI * 2f, spread = (float)rng.NextDouble() * 0.3f;
+                float height = 1.1f + (float)rng.NextDouble() * 0.9f;
+                var at = At(new Vector3(Mathf.Cos(angle) * spread, 0f, Mathf.Sin(angle) * spread),
+                    Quaternion.Euler((float)(rng.NextDouble() - 0.5) * 22f, (float)rng.NextDouble() * 360f, (float)(rng.NextDouble() - 0.5) * 22f));
+                Frustum(b, at, 0.035f, 0.012f, height, 4, i % 2 == 0 ? Olive : Moss);
+                if (i % 3 == 0) Frustum(b, at * Matrix4x4.Translate(new Vector3(0f, height * 0.72f, 0f)), 0.06f, 0.05f, 0.3f, 5, Brown, Cocoa);
+            }
+            return b.ToMesh("Prop_Reeds" + seed);
+        }
+
+        /// <summary>
+        /// A rocky cave mouth: the opening faces +x (where the river flows), 9 m wide and 5 m tall, filled with darkness and
+        /// framed by boulders and stalactites. The mesh stands on the origin.
+        /// </summary>
+        public static Mesh CaveArch()
+        {
+            var b = new LowPoly.MeshBuilder();
+            var rng = new System.Random(21);
+            Box(b, At(-2.2f, 2.4f, 0f), new Vector3(4.4f, 4.8f, 8.6f), 27);                         // the dark inside
+            foreach (var side in new[] { -1f, 1f })
+            {
+                for (int i = 0; i < 4; i++)
+                    Blob(b, new Vector3(0.2f + (float)rng.NextDouble() * 0.5f, 0.9f + i * 1.3f, side * (4.6f + (float)rng.NextDouble() * 0.3f)),
+                        new Vector3(1.6f, 1.5f, 1.4f) * (0.9f + (float)rng.NextDouble() * 0.4f), 1, 0.16f, (i + (side > 0 ? 1 : 0)) % 2 == 0 ? Stone : Grey, 3 + i);
+                for (int i = 0; i < 3; i++)
+                    Blob(b, new Vector3(-1.5f - i * 1.3f, 1.5f + i * 1.8f, side * (5.4f + i * 0.7f)), new Vector3(2.8f, 3.0f, 2.6f), 1, 0.18f, i % 2 == 0 ? Grey : Stone, 9 + i);
+            }
+            for (int i = 0; i < 7; i++)
+                Blob(b, new Vector3(0.1f + (float)rng.NextDouble() * 0.6f, 5.0f + (float)rng.NextDouble() * 0.4f, -3.9f + i * 1.3f),
+                    new Vector3(1.5f, 1.1f, 1.0f), 1, 0.15f, i % 2 == 0 ? Stone : Grey, 20 + i);
+            for (int i = 0; i < 4; i++)
+                Blob(b, new Vector3(-2.5f, 6.0f + i * 1.2f, -4f + i * 2.6f), new Vector3(3.6f, 2.2f, 2.8f), 1, 0.16f, Grey, 30 + i);
+            for (int i = 0; i < 9; i++)
+            {
+                float z = -3.6f + i * 0.9f;
+                Frustum(b, At(0.4f, 4.6f, z, 0f) * Matrix4x4.Rotate(Quaternion.Euler(180f, 0f, 0f)), 0.14f, 0.01f, 0.45f + (float)rng.NextDouble() * 0.8f, 5, i % 2 == 0 ? Stone : Grey);
+            }
+            return b.ToMesh("Prop_CaveArch");
+        }
+
         /// <summary>A traffic cone: an orange pyramid with a cream stripe on a square base.</summary>
         public static Mesh Cone()
         {
@@ -442,23 +489,66 @@ namespace MixedUp.EditorTools
             return b.ToMesh("Prop_SnowPine" + seed);
         }
 
-        public static Mesh Snowman()
+        /// <summary>The two lower snowballs with scarf, arms and buttons; stands on the origin.</summary>
+        public static Mesh SnowmanBody()
         {
             var b = new LowPoly.MeshBuilder();
             Blob(b, new Vector3(0f, 0.5f, 0f), new Vector3(0.62f, 0.55f, 0.62f), 1, 0.05f, Snow, 3);
             Blob(b, new Vector3(0f, 1.25f, 0f), new Vector3(0.46f, 0.42f, 0.46f), 1, 0.05f, Snow, 4);
-            Blob(b, new Vector3(0f, 1.85f, 0f), new Vector3(0.34f, 0.32f, 0.34f), 1, 0.05f, Snow, 5);
             Frustum(b, At(0f, 1.5f, 0f), 0.4f, 0.4f, 0.1f, 8, Brick);                      // scarf
             Box(b, At(0.22f, 1.35f, 0.05f), new Vector3(0.1f, 0.4f, 0.1f), Brick);          // its hanging end
-            Frustum(b, At(0f, 2.08f, 0f), 0.42f, 0.42f, 0.04f, 8, Navy);                    // hat brim
-            Frustum(b, At(0f, 2.1f, 0f), 0.25f, 0.21f, 0.36f, 8, Navy);
-            Frustum(b, At(0f, 1.86f, 0.3f) * Matrix4x4.Rotate(Quaternion.Euler(90f, 0f, 0f)), 0.05f, 0.01f, 0.32f, 4, Rust);   // carrot nose
-            Blob(b, new Vector3(-0.12f, 1.95f, 0.28f), new Vector3(0.04f, 0.04f, 0.04f), 0, 0.05f, 27, 7);
-            Blob(b, new Vector3(0.12f, 1.95f, 0.28f), new Vector3(0.04f, 0.04f, 0.04f), 0, 0.05f, 27, 8);
             for (int i = 0; i < 3; i++) Blob(b, new Vector3(0f, 1.0f + i * 0.17f, 0.4f), new Vector3(0.05f, 0.05f, 0.05f), 0, 0.05f, 27, 9 + i);
             Box(b, At(-0.68f, 1.45f, 0f) * Matrix4x4.Rotate(Quaternion.Euler(0f, 0f, 35f)), new Vector3(0.7f, 0.06f, 0.06f), DarkWood);
             Box(b, At(0.68f, 1.45f, 0f) * Matrix4x4.Rotate(Quaternion.Euler(0f, 0f, -35f)), new Vector3(0.7f, 0.06f, 0.06f), DarkWood);
-            return b.ToMesh("Prop_Snowman");
+            return b.ToMesh("Prop_SnowmanBody");
+        }
+
+        /// <summary>The head with eyes and a carrot nose (+z), centred on the origin so it can roll.</summary>
+        public static Mesh SnowmanHead()
+        {
+            var b = new LowPoly.MeshBuilder();
+            Blob(b, Vector3.zero, new Vector3(0.34f, 0.32f, 0.34f), 1, 0.05f, Snow, 5);
+            Frustum(b, At(0f, -0.04f, 0.28f) * Matrix4x4.Rotate(Quaternion.Euler(90f, 0f, 0f)), 0.05f, 0.01f, 0.32f, 4, Rust);
+            Blob(b, new Vector3(-0.12f, 0.09f, 0.28f), new Vector3(0.04f, 0.04f, 0.04f), 0, 0.05f, 27, 7);
+            Blob(b, new Vector3(0.12f, 0.09f, 0.28f), new Vector3(0.04f, 0.04f, 0.04f), 0, 0.05f, 27, 8);
+            return b.ToMesh("Prop_SnowmanHead");
+        }
+
+        /// <summary>A top hat standing on the origin.</summary>
+        public static Mesh SnowmanHat()
+        {
+            var b = new LowPoly.MeshBuilder();
+            Frustum(b, At(0f, 0f, 0f), 0.42f, 0.42f, 0.04f, 8, Navy);
+            Frustum(b, At(0f, 0.02f, 0f), 0.25f, 0.21f, 0.36f, 8, Navy);
+            return b.ToMesh("Prop_SnowmanHat");
+        }
+
+        /// <summary>A raft: 3 x 3 m of planks bound with rope, the top of the deck at y = 0.05.</summary>
+        public static Mesh Raft()
+        {
+            var b = new LowPoly.MeshBuilder();
+            for (int i = 0; i < 6; i++)
+                Box(b, At(-1.25f + i * 0.5f, -0.05f, 0f), new Vector3(0.46f, 0.2f, 3.0f), i % 2 == 0 ? Wood : Tan);
+            foreach (var z in new[] { -1.1f, 1.1f })
+                Box(b, At(0f, -0.2f, z), new Vector3(3.1f, 0.14f, 0.2f), DarkWood);
+            foreach (var (x, z) in new[] { (-1.45f, -1.45f), (1.45f, -1.45f), (-1.45f, 1.45f), (1.45f, 1.45f) })
+                Box(b, At(x, 0.3f, z), new Vector3(0.12f, 0.7f, 0.12f), DarkWood);
+            Box(b, At(0f, 0.55f, -1.45f), new Vector3(3.0f, 0.07f, 0.07f), Tan);
+            Box(b, At(0f, 0.55f, 1.45f), new Vector3(3.0f, 0.07f, 0.07f), Tan);
+            return b.ToMesh("Prop_Raft");
+        }
+
+        /// <summary>A rubber duck floating on its origin (waterline at y = 0).</summary>
+        public static Mesh Duck()
+        {
+            var b = new LowPoly.MeshBuilder();
+            Blob(b, new Vector3(0f, 0.16f, 0f), new Vector3(0.3f, 0.22f, 0.36f), 1, 0.04f, Gold, 21);
+            Blob(b, new Vector3(0f, 0.45f, 0.18f), new Vector3(0.18f, 0.18f, 0.18f), 1, 0.03f, Gold, 22);
+            Frustum(b, At(0f, 0.43f, 0.34f) * Matrix4x4.Rotate(Quaternion.Euler(90f, 0f, 0f)), 0.09f, 0.05f, 0.16f, 5, Rust);
+            Blob(b, new Vector3(-0.09f, 0.5f, 0.3f), new Vector3(0.03f, 0.03f, 0.03f), 0, 0.03f, 27, 23);
+            Blob(b, new Vector3(0.09f, 0.5f, 0.3f), new Vector3(0.03f, 0.03f, 0.03f), 0, 0.03f, 27, 24);
+            Blob(b, new Vector3(0f, 0.2f, -0.33f), new Vector3(0.1f, 0.09f, 0.12f), 0, 0.04f, Gold, 25);
+            return b.ToMesh("Prop_Duck");
         }
 
         /// <summary>A cluster of ice crystals growing out of the ground.</summary>

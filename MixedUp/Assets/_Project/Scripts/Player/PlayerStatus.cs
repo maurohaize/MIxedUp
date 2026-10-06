@@ -14,8 +14,8 @@ namespace MixedUp
     {
         public float maxHealth = 100f;
         [Tooltip("Seconds without taking damage before health starts to regenerate.")]
-        public float regenDelay = 4f;
-        public float regenPerSecond = 6f;
+        public float regenDelay = 10f;
+        public float regenPerSecond = 2f;
         public float visionRiseSpeed = 1f;
         public float visionFallSpeed = 1.2f;
         [Tooltip("Damage per second while standing in flames.")]
@@ -30,6 +30,7 @@ namespace MixedUp
         public event Action<float, DeathCause> Damaged;
         public event Action<DeathCause> Died;
         public event Action Shocked;
+        public event Action<float> Healed;
 
         public PlayerInventory Inventory { get { EnsureInit(); return inventory; } }
         public float Health { get { EnsureInit(); return health; } }
@@ -46,6 +47,7 @@ namespace MixedUp
         {
             // Every character gets its death animations without having to be set up in the scene.
             if (GetComponent<DeathEffects>() == null) gameObject.AddComponent<DeathEffects>();
+            if (GetComponent<PlayerAudio>() == null) gameObject.AddComponent<PlayerAudio>();
         }
 
         void EnsureInit()
@@ -114,6 +116,15 @@ namespace MixedUp
             Damaged?.Invoke(amount, cause);
 
             if (health <= 0f) Die(cause);
+        }
+
+        /// <summary>Restores health (a hug, for example). Does nothing to the dead.</summary>
+        public void Heal(float amount)
+        {
+            EnsureInit();
+            if (IsDead || amount <= 0f || health >= maxHealth) return;
+            health = Mathf.Min(maxHealth, health + amount);
+            Healed?.Invoke(amount);
         }
 
         public void Kill(DeathCause cause)

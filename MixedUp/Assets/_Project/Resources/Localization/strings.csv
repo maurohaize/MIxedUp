@@ -118,3 +118,52 @@ prompt.take_all,GUZTIAK HARTU,QUITAR TODAS,TAKE ALL
 ui.reset_progress,PROGRESOA BERRIRO,REINICIAR PROGRESO,RESET PROGRESS
 ui.reset_progress_confirm,ZIUR? SAKATU BERRIRO,¿SEGURO? PULSA OTRA VEZ,SURE? PRESS AGAIN
 ui.reset_progress_done,PROGRESOA BERRIRO DA!,¡PROGRESO REINICIADO!,PROGRESS RESET!
+ui.you,ZU,TÚ,YOU
+sweeper.title,JAUZI SEGIDAK,SALTOS SEGUIDOS,JUMPS IN A ROW
+sweeper.now,Orain: {0},Ahora: {0},Now: {0}
+snowman.oops,Ai ene! Elur-gizona erori da!,¡Ay! ¡Se cayó el muñeco de nieve!,Oops! The snowman fell apart!
+duck.squeak,Kua kua!,¡Cuac cuac!,Quack quack!
+raft.hint,Baltsa: ibaia gurutzatzeko modu segurua,Balsa: una forma segura de cruzar el río,Raft: a safe way across the river
+prompt.squeeze,ARDIA ESTU,APRETAR EL PATITO,SQUEEZE THE DUCK
+ui.mode,MODUA,MODO,MODE
+mode.minutes,{0} min,{0} min,{0} min
+mode.no_limit,Mugarik gabe,Sin límite,No limit
+mode.classic.name,ERREPARTO KLASIKOA,REPARTO CLÁSICO,CLASSIC DELIVERY
+mode.classic.desc,Mapako eskaera betiko moduan. Presarik ez.,El pedido de siempre. Sin prisas.,The usual order. No rush.
+mode.express.name,ENTREGA EXPRESA,ENTREGA EXPRÉS,EXPRESS DELIVERY
+mode.express.desc,3 kutxa 3 minututan. Ausazko lekuetan ezkutatuta.,3 cajas en 3 minutos. Escondidas en sitios al azar.,3 boxes in 3 minutes. Hidden in random places.
+mode.giant.name,ESKAERA ERRALDOIA,PEDIDO GIGANTE,GIANT ORDER
+mode.giant.desc,9 kutxa 10 minututan. Ordena ondo!,9 cajas en 10 minutos. ¡Ordénalas bien!,9 boxes in 10 minutes. Sort them well!
+mode.surprise.name,SORPRESA,SORPRESA,SURPRISE
+mode.surprise.desc,Eskaera eta kutxen lekuak ausaz aldatzen dira.,El pedido y los sitios de las cajas cambian cada vez.,The order and the box spots change every time.
+mode.night.name,GAUEKO ENTREGA,ENTREGA NOCTURNA,NIGHT DELIVERY
+mode.night.desc,Eskaera klasikoa gauez. Jarraitu argiak!,"El pedido clásico, de noche. ¡Sigue las luces!",The classic order at night. Follow the lights!
+mode.challenge.name,ERRETO ZAILA,DESAFÍO,CHALLENGE
+mode.challenge.desc,"Kutxa zailak: jauziak, tunelak eta enbor biraka.","Cajas difíciles: saltos, túneles y un tronco giratorio.","Hard boxes: jumps, tunnels and a spinning log."
+death.timeout,Denbora amaitu da! Entrega berandu iritsi da.,¡Se acabó el tiempo! La entrega llegó tarde.,Time is up! The delivery arrived too late.
+result.mode,Modua: {0},Modo: {0},Mode: {0}
+result.time_bonus,Denbora-saria: +{0},Bonus de tiempo: +{0},Time bonus: +{0}
+ui.player,JOKALARIA,JUGADOR,PLAYER
+ui.multiplayer,ONLINE JOKOA,MULTIJUGADOR,MULTIPLAYER
+lobby.name,Zure izena,Tu nombre,Your name
+lobby.name_hint,Idatzi zure izena,Escribe tu nombre,Type your name
+lobby.create,SALA SORTU,CREAR SALA,CREATE ROOM
+lobby.join,SALA SARTU,UNIRSE A UNA SALA,JOIN A ROOM
+lobby.code,Sala kodea,Código de sala,Room code
+lobby.code_hint,ABC123,ABC123,ABC123
+lobby.hint_demo,Sarerik gabe probatu: sartu AMETSA kodea lagun simulatu batzuekin jolasteko.,Prueba sin red: entra con el código AMETSA y juega con amigos simulados.,No network? Join with the code AMETSA and play with stand-in friends.
+lobby.err.bad,Kodeak 6 karaktere izan behar ditu.,El código tiene que tener 6 caracteres.,The code needs 6 characters.
+lobby.err.notfound,Ez da sala hori aurkitu.,No se encontró esa sala.,That room was not found.
+lobby.err.full,Sala beteta dago.,La sala está llena.,The room is full.
+lobby.err.started,Partida hasita dago jada.,La partida ya ha empezado.,The game has already started.
+lobby.closed,Anfitrioiak sala itxi du.,El anfitrión cerró la sala.,The host closed the room.
+lobby.host,ANFITRIOIA,ANFITRIÓN,HOST
+lobby.ready,PRESTA,LISTO,READY
+lobby.not_ready,ITXARONEN,ESPERANDO,WAITING
+lobby.waiting_slot,Hutsik,Libre,Free
+lobby.ready_action,PRESTA NAGO,ESTOY LISTO,I AM READY
+lobby.not_ready_action,EZ NAGO PRESTA,NO ESTOY LISTO,NOT READY
+lobby.start,HASI PARTIDA,EMPEZAR PARTIDA,START GAME
+lobby.leave,IRTEN,SALIR,LEAVE
+lobby.need_ready,Jokalari guztiak prest egon behar dira.,Todos los jugadores tienen que estar listos.,Everyone has to be ready.
+lobby.waiting_host,Anfitrioiak hasiko du partida.,El anfitrión empezará la partida.,The host will start the game.

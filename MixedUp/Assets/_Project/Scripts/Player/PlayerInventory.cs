@@ -24,6 +24,8 @@ namespace MixedUp
         int selected;
 
         public event Action Changed;
+        /// <summary>Raised on both inventories when a box changes hands between players (true = this one received it).</summary>
+        public event Action<bool> Transferred;
 
         public int Capacity { get { EnsureSlots(); return capacity; } }
         public IReadOnlyList<Slot> Slots { get { EnsureSlots(); return slots; } }
@@ -94,6 +96,8 @@ namespace MixedUp
             var box = slots[index].box;
             if (!target.TryAdd(box, out _)) return false;
             RemoveAt(index);
+            Transferred?.Invoke(false);
+            target.Transferred?.Invoke(true);
             return true;
         }
 

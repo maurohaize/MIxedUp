@@ -187,6 +187,8 @@ namespace MixedUp.EditorTools
             public readonly Rect hole;
             public readonly float cell, halfExtent;
             public readonly int seed, n;
+            /// <summary>Rectangles (on the grid lines) where another, finer mesh replaces the hills (the river valleys).</summary>
+            public readonly List<Rect> cutouts = new List<Rect>();
             readonly float[,] heights;
             readonly float cx, cz;
             readonly System.Func<float, float, float> flatten;
@@ -244,7 +246,10 @@ namespace MixedUp.EditorTools
             public bool Inside(int i, int j)
             {
                 float px = X(i), pz = Z(j);
-                return px >= hole.xMin - 0.01f && px <= hole.xMax + 0.01f && pz >= hole.yMin - 0.01f && pz <= hole.yMax + 0.01f;
+                if (px >= hole.xMin - 0.01f && px <= hole.xMax + 0.01f && pz >= hole.yMin - 0.01f && pz <= hole.yMax + 0.01f) return true;
+                foreach (var r in cutouts)
+                    if (px >= r.xMin - 0.01f && px <= r.xMax + 0.01f && pz >= r.yMin - 0.01f && pz <= r.yMax + 0.01f) return true;
+                return false;
             }
         }
 

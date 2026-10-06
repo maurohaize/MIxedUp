@@ -34,7 +34,8 @@ namespace MixedUp.EditorTools
             (V(22f, 19f), 4.8f), (V(22f, 26f), 5.8f),
             (V(-18f, 43f), 6.5f), (V(-18f, 38.6f), 2.8f), (V(-18f, 48.5f), 4.5f),
             (V(-17f, 22f), 7f), (V(13.5f, 32f), 7f), (V(14f, -30f), 6.5f), (V(20.5f, 9f), 4f),
-            (V(6f, 30f), 5.5f), (V(30f, 38f), 6.5f), (V(-12f, 38f), 3f), (V(24f, 33f), 5.5f), (V(36f, 30f), 5.5f)
+            (V(6f, 30f), 5.5f), (V(30f, 38f), 6.5f), (V(-12f, 38f), 3f), (V(24f, 33f), 5.5f), (V(36f, 30f), 5.5f),
+            (V(38f, -7f), 6.5f), (V(-37f, 33f), 6.5f), (V(32f, 50f), 7.5f)
         };
 
         static float DistanceToTrail(float x, float z)
@@ -100,7 +101,16 @@ namespace MixedUp.EditorTools
             public Mesh[] mud, stones, lilies;
         }
 
-        static WorldMeshes CreateWorldMeshes() => new WorldMeshes
+        static Mesh mushroomMesh;
+
+        static WorldMeshes CreateWorldMeshes()
+        {
+            var meshes = CreateWorldMeshesCore();
+            mushroomMesh = meshes.mushroom;
+            return meshes;
+        }
+
+        static WorldMeshes CreateWorldMeshesCore() => new WorldMeshes
         {
             hay = SaveInkedMesh(LowPolyProps.HayBale()),
             haystack = SaveInkedMesh(LowPolyProps.Haystack()),
@@ -213,6 +223,7 @@ namespace MixedUp.EditorTools
             BuildHurdles(world, wm, mat);
             BuildDecorMushrooms(world, wm, mat, rng);
             BuildTrailFlowers(world, art, rng);
+            BuildSecrets(world, wm, mat, m, art);
         }
 
         /// <summary>Wild flowers along the trails, so the paths read as paths from afar.</summary>
@@ -312,6 +323,7 @@ namespace MixedUp.EditorTools
             sweeper.arm = arm.transform;
             sweeper.halfExtents = new Vector3(3.2f, 0.3f, 0.3f);
             sweeper.height = 0.55f;
+            BuildSweeperSign(world, sweeper, m, new Vector3(18.6f, GroundHeight(18.6f, 28.8f), 28.8f), 131f);
 
             // A few big rocks flank the trail so the sweeper feels like a gate.
             PlaceProp(world, art.rocks[1], new Vector3(x - 5.6f, GroundHeight(x - 5.6f, z + 4f), z + 4f), 40f, 1.5f);

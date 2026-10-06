@@ -18,9 +18,35 @@ sin que nada explote. Idiomas: euskera, español e inglés.
 | --- | --- | --- |
 | Moverse / correr / saltar | WASD (o flechas) / Shift / Espacio | Stick izquierdo |
 | Cámara | Ratón | Stick derecho |
-| Interactuar (coger, entregar, pasar caja) | E | — |
-| Cambiar de caja | Q, rueda o 1-2 | — |
+| Interactuar (coger, entregar, pasar caja) | E | Botón oeste |
+| Quitar todas las cajas a un compañero | F | Botón este |
+| Agacharse | C o Ctrl izquierdo | Pulsar stick derecho |
+| Empujar a otro jugador | G o clic izquierdo | Botón superior derecho |
+| Abrazar (cura a los dos) | H | Botón superior izquierdo |
+| Cambiar de caja | Q, rueda o 1-2 | Botón norte |
 | Pausa y ajustes | Esc | — |
+
+## Modos de partida
+
+Se eligen en el menú principal (tarjeta de la esquina) o los elige el anfitrión en una sala:
+
+| Modo | Pedido | Cajas | Tiempo |
+| --- | --- | --- | --- |
+| Reparto clásico | El del mapa (6 cajas) | Donde las diseñó el mapa | Sin límite |
+| Entrega exprés | 3 cajas al azar | Sitios al azar | 3 min |
+| Pedido gigante | 9 cajas al azar | Sitios al azar | 10 min |
+| Sorpresa | 5-7 cajas al azar | Sitios al azar | 7 min |
+| Entrega nocturna | El del mapa | Como el clásico, de noche (las cajas brillan) | Sin límite |
+| Desafío | 5 cajas al azar | Solo sitios difíciles: torre de saltos, túnel, repisas con setas, tronco giratorio, rampa de hielo | 8 min |
+
+Todos se pueden ganar (los pedidos aleatorios solo se aceptan si existe una colocación segura, `PuzzleSolver`) y perder
+(morir, quedarte sin tiempo o que explote el camión).
+
+## Multijugador (en preparación)
+
+El menú principal tiene **Multijugador**: crear sala (código de 6 caracteres) o unirse con un código. Ahora funciona sin red con
+amigos simulados (`LocalRoomService`; el código `AMETSA` abre una sala de prueba). Todo pasa por `IRoomService`, así que el servicio
+real (Relay/Lobby con Netcode for GameObjects, ya añadido al `manifest.json`) se enchufará sin tocar los menús.
 
 ## Estructura (`MixedUp/Assets/_Project`)
 
@@ -30,6 +56,8 @@ sin que nada explote. Idiomas: euskera, español e inglés.
 | `Scripts/Boxes` | `BoxData`, `BoxEffect` y los cuatro efectos (calor, eléctrico, hielo, tóxico). Todo son ScriptableObjects |
 | `Scripts/Player` | Movimiento, inventario, estado, apariencia (`CharacterCustomization`), cajas en las manos (`CarriedBoxesView`) |
 | `Scripts/World` | Cajas del mapa, camión, zonas peligrosas (agua, hielo, barro, fuego), tronco giratorio, setas saltarinas |
+| `Scripts/Audio` | Todo el sonido sintetizado por código (`ProceduralAudio`): efectos, música y ambiente. No hay archivos de audio |
+| `Scripts/Net` | Salas y sesión multijugador (`IRoomService`, `LocalRoomService`, `RoomSession`) |
 | `Scripts/Puzzle` | Reglas de combinación, estado del viaje, recompensa, cartera |
 | `Scripts/UI` | HUD, menús, ajustes (`SettingsPanel`), menú principal (`MainMenu`), vista previa del personaje |
 | `Editor` | Los constructores de escena (`PrototypeBuilder*.cs`), mallas procedurales (`LowPoly*.cs`, `CharacterMeshes`) |
@@ -53,6 +81,7 @@ El arte dibujado a mano se genera con scripts de Python (necesitan `pip install 
 
 ```
 python Tools/generate_character_art.py   # la cara del personaje
+python Tools/generate_face_atlas.py      # las 16 expresiones de la cara
 python Tools/generate_ui_art.py          # papel, carteles, sliders... y recortes de tus dibujos del Mixed_Up antiguo
 ```
 

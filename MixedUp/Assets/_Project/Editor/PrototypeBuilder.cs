@@ -16,7 +16,7 @@ namespace MixedUp.EditorTools
         const string DataDir = Root + "/Data";
         const string MaterialsDir = Root + "/Materials";
         const string PrefabsDir = Root + "/Prefabs";
-        const string IconsDir = Root + "/Art/UI/Boxes";
+        const string IconsDir = Root + "/Art/UI/Boxes/Trimmed";   // the box drawings without their empty margins (Tools/trim_box_icons.py)
         const string ScenePath = "Assets/Scenes/Level_Prototype.unity";
 
         /// <summary>Ink material for the outline of the props (hull pushed along the baked smooth normals).</summary>
@@ -34,7 +34,7 @@ namespace MixedUp.EditorTools
         /// <summary>Flat-colour materials for primitive shapes (planks, ramps). Textured props use the palette material.</summary>
         sealed class Mats
         {
-            public Material character, wood, woodDark, stone, ice, marker, boots, outline, face, snow;
+            public Material character, wood, woodDark, stone, ice, marker, boots, outline, face, snow, grass, sandy;
         }
 
         sealed class Prefabs
@@ -158,9 +158,11 @@ namespace MixedUp.EditorTools
                 b.effects = effects;
             });
 
-            if (box.icon == null)
+            // Always use the trimmed drawing: the original has big transparent margins that make the icon tiny.
+            var icon = LoadIcon(id);
+            if (icon != null && box.icon != icon)
             {
-                box.icon = LoadIcon(id);
+                box.icon = icon;
                 EditorUtility.SetDirty(box);
             }
             return box;
@@ -196,7 +198,9 @@ namespace MixedUp.EditorTools
                 stone = Mat("Stone", new Color(0.52f, 0.5f, 0.44f)),
                 ice = Mat("Ice", new Color(0.6f, 0.8f, 0.86f), 0.7f),
                 marker = Mat("Marker", new Color(0.87f, 0.73f, 0.53f)),
-                snow = Mat("Snow", new Color(0.96f, 0.95f, 0.93f), 0.25f)
+                snow = Mat("Snow", new Color(0.96f, 0.95f, 0.93f), 0.25f),
+                grass = Mat("GrassTop", new Color(0.44f, 0.54f, 0.24f)),
+                sandy = Mat("SandTop", new Color(0.82f, 0.7f, 0.45f))
             };
             CreateCharacterMaterials(m);
             return m;

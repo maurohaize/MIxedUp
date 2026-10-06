@@ -17,6 +17,7 @@ namespace MixedUp
 
         float shake;
         PlayerStatus watched;
+        PlayerController targetController;
         float yaw;
         float pitch = 22f;
         bool initialised;
@@ -46,7 +47,9 @@ namespace MixedUp
             if (!GameManager.InputBlocked) ReadLook();
 
             Quaternion rotation = Quaternion.Euler(pitch, yaw, 0f);
-            Vector3 pivot = target.position + pivotOffset;
+            if (targetController == null || targetController.transform != target) targetController = target.GetComponent<PlayerController>();
+            float crouch = targetController != null ? targetController.CrouchAmount : 0f;
+            Vector3 pivot = target.position + pivotOffset + Vector3.down * (0.45f * crouch);
             Vector3 direction = rotation * Vector3.back;
 
             float dist = distance;

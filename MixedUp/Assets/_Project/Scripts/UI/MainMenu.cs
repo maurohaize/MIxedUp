@@ -10,6 +10,8 @@ namespace MixedUp
         public const string LevelScene = "Level_Prototype";
 
         public Button playButton;
+        public Button multiplayerButton;
+        public LobbyPanel lobby;
         public Button settingsButton;
         public Button quitButton;
         public SettingsPanel settings;
@@ -24,6 +26,12 @@ namespace MixedUp
             GameInput.Enable();
 
             playButton.onClick.AddListener(Play);
+            if (multiplayerButton != null) multiplayerButton.onClick.AddListener(lobby.Open);
+            if (lobby != null)
+            {
+                lobby.gameObject.SetActive(false);
+                lobby.Closed += OnSettingsClosed;
+            }
             settingsButton.onClick.AddListener(settings.Open);
             quitButton.onClick.AddListener(Quit);
             settings.gameObject.SetActive(false);
@@ -33,12 +41,18 @@ namespace MixedUp
         void OnDestroy()
         {
             if (settings != null) settings.Closed -= OnSettingsClosed;
+            if (lobby != null) lobby.Closed -= OnSettingsClosed;
         }
 
         void Update()
         {
-            if (signpost != null && signpost.activeSelf == settings.IsOpen) signpost.SetActive(!settings.IsOpen);
-            if (settings.IsOpen && GameInput.Pause.WasPressedThisFrame()) settings.Close();
+            bool overlay = settings.IsOpen || (lobby != null && lobby.IsOpen);
+            if (signpost != null && signpost.activeSelf == overlay) signpost.SetActive(!overlay);
+            if (GameInput.Pause.WasPressedThisFrame())
+            {
+                if (settings.IsOpen) settings.Close();
+                else if (lobby != null && lobby.IsOpen) lobby.Close();
+            }
         }
 
         void OnSettingsClosed()

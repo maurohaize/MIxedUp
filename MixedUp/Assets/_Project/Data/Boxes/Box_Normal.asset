@@ -16,6 +16,6 @@ MonoBehaviour:
   nameKey: box.normal.name
   descriptionKey: box.normal.desc
   color: {r: 0.76, g: 0.6, b: 0.4, a: 1}
-  icon: {fileID: 21300000, guid: 11db1103c8f5267438584c0389c1151a, type: 3}
+  icon: {fileID: 21300000, guid: d2caa187b9bfeab42bebcb39d47d21c2, type: 3}
   worldPrefab: {fileID: 4259132237826336072, guid: 35a640333151d4245925e36dd69436a6, type: 3}
   effects: []

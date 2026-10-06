@@ -37,18 +37,12 @@ namespace MixedUp.EditorTools
             var truck = BuildTruck(env, m, a, art);
             BuildScenery(env, m, art);
             BuildWorld(env, m, art);
+            BuildChallenges(env, m, art);
+            BuildSpawnPoints(env);
             BuildOutside(env, m, art);
-            BuildEdgeMist(env);
+            BuildRiverExtension(env, m, art);
             BuildWaterLife(env, art);
             BuildSkyDecor(env, art);
-
-            var boxesRoot = new GameObject("Boxes").transform;
-            PlaceBox(boxesRoot, p, a.normal, new Vector3(-10f, 0f, -24f));
-            PlaceBox(boxesRoot, p, a.normal, new Vector3(10f, 0f, -20f));
-            PlaceBox(boxesRoot, p, a.hot, new Vector3(6f, 0f, 30f));
-            PlaceBox(boxesRoot, p, a.electric, new Vector3(30f, 0f, 38f));
-            PlaceBox(boxesRoot, p, a.frozen, new Vector3(-32f, 5f, -6f));
-            PlaceBox(boxesRoot, p, a.toxic, new Vector3(-18f, 2.4f, 43f));
 
             var players = new GameObject("Players").transform;
             SpawnCharacter(players, p.player, new Vector3(4f, 0.05f, -31f), a.palette, CharacterCustomization.DefaultSkin, CharacterCustomization.DefaultClothes);
@@ -65,6 +59,7 @@ namespace MixedUp.EditorTools
             var puzzle = managers.AddComponent<TruckPuzzleController>();
             puzzle.truck = truck;
             puzzle.rules = a.rules;
+            BuildDirector(managers.transform, a, p, truck);
 
             ConfigureCamera();
             BuildHud(a, p, truck, puzzle);
@@ -92,11 +87,8 @@ namespace MixedUp.EditorTools
             RenderSettings.ambientEquatorColor = new Color(0.66f, 0.7f, 0.62f);
             RenderSettings.ambientGroundColor = new Color(0.38f, 0.35f, 0.3f);
 
-            RenderSettings.fog = true;
-            RenderSettings.fogMode = FogMode.Linear;
-            RenderSettings.fogColor = new Color(0.74f, 0.93f, 0.95f);
-            RenderSettings.fogStartDistance = 130f;
-            RenderSettings.fogEndDistance = 600f;
+            // No fog at all: it washed out the horizon and the trees.
+            RenderSettings.fog = false;
 
             var volumeObject = new GameObject("PostProcessing");
             var volume = volumeObject.AddComponent<Volume>();
@@ -217,6 +209,8 @@ namespace MixedUp.EditorTools
             if (WorldBlocked(x, z, margin)) return false;                          // trails and landmarks
             if (x > 22f && x < 43f && z > -37f && z < -17f) return false;          // warehouse
             foreach (var r in Reserved)
+                if (Vector2.Distance(new Vector2(x, z), r) < 3.5f + margin) return false;
+            foreach (var r in EasySpots)
                 if (Vector2.Distance(new Vector2(x, z), r) < 3.5f + margin) return false;
             return true;
         }

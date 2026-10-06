@@ -142,7 +142,7 @@ namespace MixedUp.Tests
         [UnityTest]
         public IEnumerator SteppingOnTheMushroomLaunchesYouUpAndOntoThePlatform()
         {
-            var pad = Object.FindAnyObjectByType<BouncePad>();
+            var pad = Object.FindObjectsByType<BouncePad>().First(b => Vector2.Distance(new Vector2(b.transform.position.x, b.transform.position.z), new Vector2(-18f, 38.6f)) < 2f);
             Assert.IsNotNull(pad);
             var platform = GameObject.Find("Platform");
             Assert.IsNotNull(platform);

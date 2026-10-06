@@ -15,6 +15,8 @@ Shader "MixedUp/Water"
         _BankMax ("North bank z", Float) = 13
         _SkyColor ("Sky reflection", Color) = (0.72, 0.9, 0.95, 1)
         _Sparkle ("Sun sparkle", Float) = 1.3
+        _DeepColor ("Deep colour", Color) = (0.22, 0.45, 0.45, 1)
+        _DeepMix ("Share of deep colour", Range(0, 1)) = 0.55
     }
 
     SubShader
@@ -49,6 +51,8 @@ Shader "MixedUp/Water"
                 float _BankMax;
                 half4 _SkyColor;
                 float _Sparkle;
+                half4 _DeepColor;
+                half _DeepMix;
             CBUFFER_END
 
             struct Attributes
@@ -104,7 +108,7 @@ Shader "MixedUp/Water"
             {
                 float t = _Time.y * _WaveSpeed;
                 float3 wp = input.positionWS;
-                half3 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb * _Tint.rgb;
+                half3 baseColor = lerp(SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv).rgb, _DeepColor.rgb, _DeepMix) * _Tint.rgb;
 
                 // Normal from the swell slope (finite differences), exaggerated so the highlights move visibly.
                 float e = 0.15;

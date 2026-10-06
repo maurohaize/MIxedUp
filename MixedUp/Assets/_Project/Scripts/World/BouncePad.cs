@@ -18,6 +18,11 @@ namespace MixedUp
         [Tooltip("The part that squashes. Falls back to this transform.")]
         public Transform squashed;
 
+        public static event System.Action<BouncePad> Bounced;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() => Bounced = null;
+
         float lastBounce = -10f;
         float squash;
         Vector3 baseScale = Vector3.one;
@@ -43,6 +48,7 @@ namespace MixedUp
                 lastBounce = Time.time;
                 squash = 1f;
                 player.AddImpulse(Vector3.zero, launchSpeed);
+                Bounced?.Invoke(this);
             }
 
             // A damped wobble: squashed flat first, then stretched, then settling.
