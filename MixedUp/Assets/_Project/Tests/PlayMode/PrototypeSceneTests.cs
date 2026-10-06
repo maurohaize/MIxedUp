@@ -302,6 +302,7 @@ namespace MixedUp.Tests
             if (withFrozenBox) status.Inventory.TryAdd(BoxOf("frozen"), out _);
 
             yield return GoTo(new Vector3(-5f, 0.05f, -12f));
+            ClearLane(player.transform.position, Vector3.forward, 14f);
             yield return new WaitForSeconds(0.4f);
 
             SetKey(Key.W, true);

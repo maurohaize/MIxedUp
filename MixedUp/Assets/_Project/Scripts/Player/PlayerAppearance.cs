@@ -2,24 +2,58 @@ using UnityEngine;
 
 namespace MixedUp
 {
-    /// <summary>Applies skin and clothes colours to the character renderers without touching materials.</summary>
+    /// <summary>
+    /// Applies skin and clothes colours to the character renderers without touching materials.
+    /// The local player (and the preview in the settings menu) follows the saved customisation live;
+    /// other characters keep the colours they were given.
+    /// </summary>
     public class PlayerAppearance : MonoBehaviour
     {
         static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
         public Renderer[] skinRenderers;
         public Renderer[] clothesRenderers;
-        public Color skinColor = new Color(0.72f, 0.72f, 0.74f);
-        public Color clothesColor = new Color(0.55f, 0.65f, 0.85f);
+        public Color skinColor = new Color(0.667f, 0.357f, 0.212f);
+        public Color clothesColor = new Color(0.165f, 0.482f, 0.608f);
+
+        [Tooltip("Use the colours chosen in the settings menu instead of the fixed ones above.")]
+        public bool followSavedChoice;
+        public PlayerPalette palette;
 
         MaterialPropertyBlock block;
 
-        void Awake() => Apply();
+        void OnEnable()
+        {
+            if (followSavedChoice)
+            {
+                CharacterCustomization.Changed += ApplySaved;
+                ApplySaved();
+            }
+            else
+            {
+                Apply();
+            }
+        }
+
+        void OnDisable()
+        {
+            if (followSavedChoice) CharacterCustomization.Changed -= ApplySaved;
+        }
 
         public void SetColors(Color skin, Color clothes)
         {
             skinColor = skin;
             clothesColor = clothes;
+            Apply();
+        }
+
+        void ApplySaved()
+        {
+            if (palette != null)
+            {
+                skinColor = palette.Skin(CharacterCustomization.SkinIndex);
+                clothesColor = palette.Clothes(CharacterCustomization.ClothesIndex);
+            }
             Apply();
         }
 

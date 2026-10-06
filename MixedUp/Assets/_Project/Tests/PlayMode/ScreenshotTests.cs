@@ -122,6 +122,54 @@ namespace MixedUp.Tests
             ui.pausePanel.SetActive(false);
         }
 
+        // ------------------------------------------------------- character
+
+        [UnityTest, Explicit("Needs a GPU; writes PNGs")]
+        public IEnumerator CharacterGallery()
+        {
+            ui.hudRoot.SetActive(false);
+            var teammate = Object.FindAnyObjectByType<TeammateDummy>();
+            var at = player.transform.position;
+
+            FreeCamera(at + new Vector3(0.9f, 1.25f, 3.3f), at + Vector3.up * 0.85f);
+            yield return Capture("30_character_front");
+
+            FreeCamera(at + new Vector3(-3.4f, 1.1f, 0.2f), at + Vector3.up * 0.85f);
+            yield return Capture("31_character_side");
+
+            var inv = status.Inventory;
+            inv.TryAdd(BoxOf("normal"), out _);
+            yield return new WaitForSeconds(0.5f);
+            FreeCamera(at + new Vector3(1.4f, 1.3f, 3.0f), at + Vector3.up * 0.9f);
+            yield return Capture("32_carry_one_front");
+
+            inv.TryAdd(BoxOf("frozen"), out _);
+            yield return new WaitForSeconds(0.5f);
+            FreeCamera(at + new Vector3(1.4f, 1.3f, 3.0f), at + Vector3.up * 1.0f);
+            yield return Capture("33_carry_two_front");
+
+            FreeCamera(at + new Vector3(3.2f, 1.2f, 0.6f), at + Vector3.up * 1.0f);
+            yield return Capture("34_carry_two_side");
+
+            FollowCamera();
+            ui.hudRoot.SetActive(true);
+            yield return new WaitForSeconds(0.3f);
+            yield return Capture("35_carry_two_game_camera");
+
+            ui.hudRoot.SetActive(false);
+            var theirs = teammate.transform.position;
+            FreeCamera(theirs + new Vector3(0.8f, 1.2f, 3.2f), theirs + Vector3.up * 0.9f);
+            yield return Capture("36_teammate");
+
+            // Running while holding something: the hands keep hugging the boxes.
+            FollowCamera();
+            SetKey(UnityEngine.InputSystem.Key.W, true);
+            yield return new WaitForSeconds(0.7f);
+            ui.hudRoot.SetActive(true);
+            yield return Capture("37_running_with_boxes");
+            SetKey(UnityEngine.InputSystem.Key.W, false);
+        }
+
         // --------------------------------------------------------- phase two
 
         [UnityTest, Explicit("Needs a GPU; writes PNGs")]

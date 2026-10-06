@@ -7,7 +7,7 @@ namespace MixedUp
     public class ThirdPersonCamera : MonoBehaviour
     {
         public Transform target;
-        public Vector3 pivotOffset = new Vector3(0f, 1.6f, 0f);
+        public Vector3 pivotOffset = new Vector3(0f, 1.45f, 0f);
         public float distance = 5.5f;
         public float minPitch = -20f;
         public float maxPitch = 70f;

@@ -189,11 +189,21 @@ namespace MixedUp.Tests
         }
 
         [Test]
-        public void PaletteOffersTheNineRequestedClothesColours()
+        public void PaletteMatchesTheReferenceDrawing()
         {
             var palette = Load<PlayerPalette>(Data + "PlayerPalette.asset");
-            Assert.AreEqual(9, palette.clothesColors.Length);
-            Assert.GreaterOrEqual(palette.skinTones.Length, 1);
+            Assert.AreEqual(10, palette.clothesColors.Length, "clothes colours in the drawing");
+            Assert.AreEqual(5, palette.skinTones.Length, "skin tones in the drawing");
+
+            // The character in the drawing: skin #aa5b36 and a #2a7b9b dress.
+            AssertColor(palette.Skin(CharacterCustomization.DefaultSkin), 0xaa, 0x5b, 0x36);
+            AssertColor(palette.Clothes(CharacterCustomization.DefaultClothes), 0x2a, 0x7b, 0x9b);
+        }
+
+        static void AssertColor(Color actual, int r, int g, int b)
+        {
+            Color32 c = actual;
+            Assert.AreEqual((r << 16) | (g << 8) | b, (c.r << 16) | (c.g << 8) | c.b);
         }
     }
 }

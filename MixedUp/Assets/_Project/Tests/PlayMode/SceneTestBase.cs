@@ -188,6 +188,26 @@ namespace MixedUp.Tests
 
         protected BoxData BoxOf(string id) => pickups.First(p => p.data.id == id).data;
 
+        /// <summary>
+        /// Disables scenery colliders along a straight lane, so movement-physics tests measure the physics and not
+        /// whatever tree or rock the level happens to have there. The scene is reloaded for every test.
+        /// </summary>
+        protected void ClearLane(Vector3 start, Vector3 direction, float length, float halfWidth = 1.6f)
+        {
+            direction.y = 0f;
+            direction.Normalize();
+            var center = start + direction * (length * 0.5f) + Vector3.up * 1.3f;
+            var hits = Physics.OverlapBox(center, new Vector3(halfWidth, 1.2f, length * 0.5f), Quaternion.LookRotation(direction),
+                ~0, QueryTriggerInteraction.Ignore);
+            var mine = player.GetComponentsInChildren<Collider>();
+            foreach (var hit in hits)
+            {
+                if (mine.Contains(hit)) continue;
+                if (hit.name.StartsWith("Ground") || hit.name == "RiverBed") continue;
+                hit.enabled = false;
+            }
+        }
+
         protected IEnumerator GoTo(Vector3 position)
         {
             player.Teleport(position);

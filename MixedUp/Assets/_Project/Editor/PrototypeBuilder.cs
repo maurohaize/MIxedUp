@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -30,12 +31,12 @@ namespace MixedUp.EditorTools
         /// <summary>Flat-colour materials for primitive shapes (planks, ramps). Textured props use the palette material.</summary>
         sealed class Mats
         {
-            public Material character, wood, woodDark, stone, ice, marker;
+            public Material character, wood, woodDark, stone, ice, marker, boots, outline, face;
         }
 
         sealed class Prefabs
         {
-            public GameObject box, player, teammate, loreNote;
+            public GameObject box, player, teammate, preview, loreNote;
         }
 
         [MenuItem("MixedUp/Build Prototype Scene")]
@@ -52,7 +53,7 @@ namespace MixedUp.EditorTools
             var assets = CreateData();
             var mats = CreateMaterials();
             var art = CreateArt(assets, mats);
-            var prefabs = CreatePrefabs(mats, art);
+            var prefabs = CreatePrefabs(assets, mats, art);
             BuildScene(assets, mats, art, prefabs);
 
             AssetDatabase.SaveAssets();
@@ -114,20 +115,21 @@ namespace MixedUp.EditorTools
                 };
             });
 
-            a.palette = LoadOrCreate<PlayerPalette>(DataDir + "/PlayerPalette.asset", p =>
+            // The palette comes straight from the reference drawing and is not "tuned data": always rewrite it.
+            a.palette = LoadOrCreate<PlayerPalette>(DataDir + "/PlayerPalette.asset");
+            a.palette.skinTones = new[]
             {
-                p.skinTones = new[]
-                {
-                    new Color(0.72f, 0.72f, 0.74f), new Color(0.96f, 0.80f, 0.69f), new Color(0.87f, 0.68f, 0.50f),
-                    new Color(0.65f, 0.45f, 0.32f), new Color(0.40f, 0.28f, 0.20f)
-                };
-                p.clothesColors = new[]
-                {
-                    new Color(0.82f, 0.32f, 0.30f), new Color(0.35f, 0.50f, 0.80f), new Color(0.40f, 0.65f, 0.40f),
-                    new Color(0.92f, 0.80f, 0.35f), new Color(0.60f, 0.45f, 0.75f), new Color(0.92f, 0.60f, 0.30f),
-                    new Color(0.92f, 0.60f, 0.70f), new Color(0.93f, 0.92f, 0.88f), new Color(0.20f, 0.20f, 0.22f)
-                };
-            });
+                new Color32(0x85, 0x3a, 0x1a, 255), new Color32(0xaa, 0x5b, 0x36, 255), new Color32(0xd9, 0x8d, 0x5e, 255),
+                new Color32(0xed, 0xb0, 0x7e, 255), new Color32(0xfa, 0xd7, 0xb1, 255)
+            }.Select(c => (Color)c).ToArray();
+            a.palette.clothesColors = new[]
+            {
+                new Color32(0xed, 0xdc, 0x52, 255), new Color32(0xad, 0xd5, 0x5f, 255), new Color32(0x57, 0xc8, 0x86, 255),
+                new Color32(0x00, 0xba, 0xae, 255), new Color32(0x2a, 0x7b, 0x9b, 255), new Color32(0x3c, 0x3e, 0x6b, 255),
+                new Color32(0x52, 0x18, 0x49, 255), new Color32(0x91, 0x0b, 0x3f, 255), new Color32(0xc6, 0x04, 0x1f, 255),
+                new Color32(0xfe, 0x57, 0x32, 255)
+            }.Select(c => (Color)c).ToArray();
+            EditorUtility.SetDirty(a.palette);
 
             a.rules = CreateRules(a);
             return a;
@@ -173,15 +175,20 @@ namespace MixedUp.EditorTools
 
         // ------------------------------------------------------------ materials
 
-        static Mats CreateMaterials() => new Mats
+        static Mats CreateMaterials()
         {
-            character = Mat("Character", Color.white, 0.05f),
-            wood = Mat("Wood", new Color(0.58f, 0.44f, 0.32f)),
-            woodDark = Mat("WoodDark", new Color(0.5f, 0.37f, 0.21f)),
-            stone = Mat("Stone", new Color(0.52f, 0.5f, 0.44f)),
-            ice = Mat("Ice", new Color(0.6f, 0.8f, 0.86f), 0.7f),
-            marker = Mat("Marker", new Color(0.87f, 0.73f, 0.53f))
-        };
+            var m = new Mats
+            {
+                character = Mat("Character", Color.white, 0.05f),
+                wood = Mat("Wood", new Color(0.58f, 0.44f, 0.32f)),
+                woodDark = Mat("WoodDark", new Color(0.5f, 0.37f, 0.21f)),
+                stone = Mat("Stone", new Color(0.52f, 0.5f, 0.44f)),
+                ice = Mat("Ice", new Color(0.6f, 0.8f, 0.86f), 0.7f),
+                marker = Mat("Marker", new Color(0.87f, 0.73f, 0.53f))
+            };
+            CreateCharacterMaterials(m);
+            return m;
+        }
 
         static Material Mat(string name, Color color, float smoothness = 0.05f)
         {

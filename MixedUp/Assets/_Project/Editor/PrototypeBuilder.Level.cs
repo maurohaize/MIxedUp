@@ -46,8 +46,8 @@ namespace MixedUp.EditorTools
             PlaceBox(boxesRoot, p, a.toxic, new Vector3(-18f, 0f, 42f));
 
             var players = new GameObject("Players").transform;
-            SpawnCharacter(players, p.player, new Vector3(4f, 0.05f, -31f), a.palette, 0, 1);
-            SpawnCharacter(players, p.teammate, new Vector3(-4f, 0.05f, -31f), a.palette, 0, 2);
+            SpawnCharacter(players, p.player, new Vector3(4f, 0.05f, -31f), a.palette, CharacterCustomization.DefaultSkin, CharacterCustomization.DefaultClothes);
+            SpawnCharacter(players, p.teammate, new Vector3(-4f, 0.05f, -31f), a.palette, 3, 9);
 
             var notes = new GameObject("Notes").transform;
             PlaceNote(notes, p.loreNote, a.rules, a.hot, a.frozen, new Vector3(-5.5f, 0f, -30.5f), "Note_HotFrozen");

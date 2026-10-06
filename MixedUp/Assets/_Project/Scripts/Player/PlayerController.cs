@@ -69,6 +69,9 @@ namespace MixedUp
         void Awake()
         {
             controller = GetComponent<CharacterController>();
+            // The default (1 mm) swallows tiny per-frame moves, so on a very fast frame rate slow movement and slides
+            // would freeze: speed * deltaTime must not fall under it.
+            controller.minMoveDistance = 0f;
             status = GetComponent<PlayerStatus>();
             peakY = transform.position.y;
         }

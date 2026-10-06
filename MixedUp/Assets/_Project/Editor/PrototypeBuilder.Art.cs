@@ -40,6 +40,7 @@ namespace MixedUp.EditorTools
             ConfigureTexture(TexturesDir + "/palette.png", FilterMode.Point, mips: false, uncompressed: true, npotNone: true);
             foreach (var path in Directory.GetFiles(TexturesDir, "box_*.*").Where(p => !p.EndsWith(".meta")))
                 ConfigureTexture(path.Replace('\\', '/'), FilterMode.Bilinear, mips: true, uncompressed: false, npotNone: false);
+            ConfigureTexture(CharactersDir + "/face.png", FilterMode.Bilinear, mips: true, uncompressed: true, npotNone: false);
             foreach (var path in Directory.GetFiles(OverlaysDir, "overlay_*.png"))
                 ConfigureTexture(path.Replace('\\', '/'), FilterMode.Bilinear, mips: false, uncompressed: false, npotNone: false);
 

@@ -3,42 +3,77 @@ using UnityEngine;
 namespace MixedUp
 {
     /// <summary>
-    /// Procedural, exaggerated animation for the primitive character: limb swing, jump pose,
-    /// shaking hands when carrying something hot, a drunken sway when toxic, and a death pose.
+    /// Procedural, exaggerated animation for the cartoon character (floating hands, boots, no limbs):
+    /// hands swing while walking, hug the carried boxes, shake with something hot, boots step,
+    /// a drunken sway when toxic, and a death pose.
     /// </summary>
     public class PlayerAnimator : MonoBehaviour
     {
         public PlayerController controller;
         public PlayerStatus status;
-        public Transform armLeft, armRight, legLeft, legRight, body;
-        public float swingDegrees = 50f;
+        public CarriedBoxesView carry;
+        public Transform body, handLeft, handRight, bootLeft, bootRight;
+        public float handSwing = 0.2f;
+        public float bootSwingDegrees = 38f;
         public float swingSpeed = 11f;
 
+        Vector3 handLeftRest, handRightRest, bootLeftRest, bootRightRest;
+        bool captured;
         float phase;
         float deathBlend;
+        float carryBlend;
+
+        void Capture()
+        {
+            if (captured) return;
+            captured = true;
+            if (handLeft != null) handLeftRest = handLeft.localPosition;
+            if (handRight != null) handRightRest = handRight.localPosition;
+            if (bootLeft != null) bootLeftRest = bootLeft.localPosition;
+            if (bootRight != null) bootRightRest = bootRight.localPosition;
+        }
 
         void Update()
         {
             if (status == null || body == null) return;
+            Capture();
 
             float dt = Time.deltaTime;
             float speed = controller != null ? controller.HorizontalVelocity.magnitude : 0f;
             bool airborne = controller != null && !controller.IsGrounded;
+            float move01 = Mathf.Clamp01(speed / 4.5f);
 
             phase += dt * swingSpeed * Mathf.Lerp(0.6f, 1.5f, Mathf.Clamp01(speed / 7.5f));
-            float amplitude = Mathf.Clamp01(speed / 4.5f) * swingDegrees;
-            float swing = Mathf.Sin(phase) * amplitude;
+            float swing = Mathf.Sin(phase) * move01;
 
-            float armLift = airborne ? -150f : 0f;
-            float shake = HasEffect<HeatEffect>() ? Mathf.Sin(Time.time * 45f) * 18f : 0f;
+            bool carrying = carry != null && carry.VisibleCount > 0;
+            carryBlend = Mathf.MoveTowards(carryBlend, carrying ? 1f : 0f, dt * 7f);
 
-            Set(legLeft, swing, 0f);
-            Set(legRight, -swing, 0f);
-            Set(armLeft, -swing + armLift + shake, 6f);
-            Set(armRight, swing + armLift - shake, -6f);
+            float shake = HasEffect<HeatEffect>() ? Mathf.Sin(Time.time * 45f) * 0.03f : 0f;
+            Vector3 shakeOffset = new Vector3(shake, Mathf.Abs(shake) * 0.5f, 0f);
+
+            // Boots: a little step and hop, no legs needed.
+            Place(bootLeft, bootLeftRest + Vector3.up * Mathf.Max(0f, swing) * 0.07f, swing * bootSwingDegrees);
+            Place(bootRight, bootRightRest + Vector3.up * Mathf.Max(0f, -swing) * 0.07f, -swing * bootSwingDegrees);
+
+            // Hands: swing at the sides, fly up when airborne, or hold the boxes.
+            float airLift = airborne ? 0.32f : 0f;
+            Vector3 freeLeft = handLeftRest + new Vector3(0f, airLift, -swing * handSwing) + shakeOffset;
+            Vector3 freeRight = handRightRest + new Vector3(0f, airLift, swing * handSwing) - shakeOffset;
+            if (carry != null)
+            {
+                carry.AnimationOffset = shakeOffset;
+                Place(handLeft, Vector3.Lerp(freeLeft, carry.HandPosition(-1), carryBlend), 0f);
+                Place(handRight, Vector3.Lerp(freeRight, carry.HandPosition(1), carryBlend), 0f);
+            }
+            else
+            {
+                Place(handLeft, freeLeft, 0f);
+                Place(handRight, freeRight, 0f);
+            }
 
             float sway = HasEffect<ToxicEffect>() ? Mathf.Sin(Time.time * 2.2f) * 9f : 0f;
-            float bob = Mathf.Abs(Mathf.Sin(phase)) * 0.05f * Mathf.Clamp01(speed / 4.5f);
+            float bob = Mathf.Abs(Mathf.Sin(phase)) * 0.05f * move01;
             body.localPosition = new Vector3(0f, bob, 0f);
 
             deathBlend = Mathf.MoveTowards(deathBlend, status.IsDead ? 1f : 0f, dt * 3f);
@@ -53,9 +88,11 @@ namespace MixedUp
             return false;
         }
 
-        static void Set(Transform t, float xDegrees, float zDegrees)
+        static void Place(Transform t, Vector3 localPosition, float xDegrees)
         {
-            if (t != null) t.localRotation = Quaternion.Euler(xDegrees, 0f, zDegrees);
+            if (t == null) return;
+            t.localPosition = localPosition;
+            t.localRotation = Quaternion.Euler(xDegrees, 0f, 0f);
         }
     }
 }
