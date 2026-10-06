@@ -27,18 +27,18 @@ namespace MixedUp.EditorTools
             public CombinationRules rules;
         }
 
+        /// <summary>Flat-colour materials for primitive shapes (planks, ramps). Textured props use the palette material.</summary>
         sealed class Mats
         {
-            public Material ground, riverBed, water, ice, rock, wood, trunk, leaves;
-            public Material truckBody, truckCab, wheel, glass, character, box, tape, marker;
+            public Material character, wood, woodDark, stone, ice, marker;
         }
 
         sealed class Prefabs
         {
-            public GameObject box, player, teammate, bedCube, loreNote;
+            public GameObject box, player, teammate, loreNote;
         }
 
-        [MenuItem("MixedUp/Build Phase 1 Prototype")]
+        [MenuItem("MixedUp/Build Prototype Scene")]
         public static void BuildAll()
         {
             AssetDatabase.Refresh();
@@ -48,10 +48,12 @@ namespace MixedUp.EditorTools
             EnsureFolder(PrefabsDir);
             EnsureFolder("Assets/Scenes");
 
+            ImportArt();
             var assets = CreateData();
             var mats = CreateMaterials();
-            var prefabs = CreatePrefabs(mats);
-            BuildScene(assets, mats, prefabs);
+            var art = CreateArt(assets, mats);
+            var prefabs = CreatePrefabs(mats, art);
+            BuildScene(assets, mats, art, prefabs);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -173,35 +175,26 @@ namespace MixedUp.EditorTools
 
         static Mats CreateMaterials() => new Mats
         {
-            ground = Mat("Ground", new Color(0.52f, 0.62f, 0.42f)),
-            riverBed = Mat("RiverBed", new Color(0.55f, 0.5f, 0.4f)),
-            water = Mat("Water", new Color(0.42f, 0.6f, 0.72f), 0.6f),
-            ice = Mat("Ice", new Color(0.72f, 0.86f, 0.92f), 0.7f),
-            rock = Mat("Rock", new Color(0.6f, 0.58f, 0.55f)),
-            wood = Mat("Wood", new Color(0.55f, 0.4f, 0.28f)),
-            trunk = Mat("Trunk", new Color(0.4f, 0.3f, 0.22f)),
-            leaves = Mat("Leaves", new Color(0.4f, 0.52f, 0.35f)),
-            truckBody = Mat("TruckBody", new Color(0.85f, 0.78f, 0.6f)),
-            truckCab = Mat("TruckCab", new Color(0.75f, 0.35f, 0.3f)),
-            wheel = Mat("Wheel", new Color(0.2f, 0.2f, 0.22f)),
-            glass = Mat("Glass", new Color(0.3f, 0.36f, 0.42f), 0.5f),
             character = Mat("Character", Color.white, 0.05f),
-            box = Mat("Box", new Color(0.76f, 0.6f, 0.4f)),
-            tape = Mat("Tape", new Color(0.45f, 0.33f, 0.22f)),
-            marker = Mat("Marker", new Color(0.93f, 0.85f, 0.45f))
+            wood = Mat("Wood", new Color(0.58f, 0.44f, 0.32f)),
+            woodDark = Mat("WoodDark", new Color(0.5f, 0.37f, 0.21f)),
+            stone = Mat("Stone", new Color(0.52f, 0.5f, 0.44f)),
+            ice = Mat("Ice", new Color(0.6f, 0.8f, 0.86f), 0.7f),
+            marker = Mat("Marker", new Color(0.87f, 0.73f, 0.53f))
         };
 
         static Material Mat(string name, Color color, float smoothness = 0.05f)
         {
             string path = MaterialsDir + "/" + name + ".mat";
             var material = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (material != null) return material;
+            bool isNew = material == null;
+            if (isNew) material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
 
-            material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
             material.SetColor("_BaseColor", color);
             material.SetFloat("_Smoothness", smoothness);
             material.SetFloat("_Metallic", 0f);
-            AssetDatabase.CreateAsset(material, path);
+            if (isNew) AssetDatabase.CreateAsset(material, path);
+            else EditorUtility.SetDirty(material);
             return material;
         }
 

@@ -42,10 +42,23 @@ namespace MixedUp.EditorTools
                 foreach (var canvas in UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include))
                     canvas.gameObject.SetActive(false);
 
+            if (Flag("-shotNoVolume"))
+                foreach (var behaviour in UnityEngine.Object.FindObjectsByType<MonoBehaviour>())
+                    if (behaviour != null && behaviour.GetType().Name == "Volume") behaviour.enabled = false;
+
             var main = Camera.main != null ? Camera.main : UnityEngine.Object.FindAnyObjectByType<Camera>();
+            if (main != null && Flag("-shotNoPostCam"))
+            {
+                var data = main.GetComponent("UniversalAdditionalCameraData");
+                var property = data != null ? data.GetType().GetProperty("renderPostProcessing") : null;
+                if (property != null) property.SetValue(data, false);
+            }
+
             if (main != null)
             {
                 BindCanvases(main);
+                // The first frames after opening a scene render with uninitialised ambient lighting, so warm up first.
+                for (int i = 0; i < 3; i++) Render(main, w, h, Path.Combine(outDir, prefix + "_warmup.png"));
                 Render(main, w, h, Path.Combine(outDir, prefix + "_camera.png"));
             }
 

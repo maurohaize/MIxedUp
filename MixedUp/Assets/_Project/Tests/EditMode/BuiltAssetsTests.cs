@@ -44,6 +44,58 @@ namespace MixedUp.Tests
         }
 
         [Test]
+        public void EveryBoxIsAPaintedTexturedModelNotAFlatCube()
+        {
+            var db = Load<BoxDatabase>(Data + "BoxDatabase.asset");
+            var seenTextures = new System.Collections.Generic.HashSet<Texture>();
+
+            foreach (var box in db.boxes)
+            {
+                Assert.IsNotNull(box.worldPrefab, box.id + " has no 3D model");
+                var renderers = box.worldPrefab.GetComponentsInChildren<MeshRenderer>();
+                Assert.AreEqual(1, renderers.Length, box.id + " should be a single textured mesh");
+
+                var material = renderers[0].sharedMaterial;
+                Assert.IsNotNull(material, box.id + " material");
+                var texture = material.GetTexture("_BaseMap");
+                Assert.IsNotNull(texture, box.id + " has no painted texture");
+                Assert.IsTrue(seenTextures.Add(texture), box.id + " shares its texture with another box type");
+                Assert.IsNull(box.worldPrefab.GetComponentInChildren<SpriteRenderer>(), box.id + " must not use a floating icon");
+            }
+        }
+
+        [Test]
+        public void BoxModelsAreAboutOneMetreAndSitOnTheGround()
+        {
+            var db = Load<BoxDatabase>(Data + "BoxDatabase.asset");
+            foreach (var box in db.boxes)
+            {
+                var mesh = box.worldPrefab.GetComponentInChildren<MeshFilter>().sharedMesh;
+                var scale = box.worldPrefab.GetComponentInChildren<MeshFilter>().transform.lossyScale;
+                float height = mesh.bounds.size.y * scale.y;
+                Assert.That(height, Is.InRange(0.9f, 1.2f), box.id + " height " + height);
+            }
+        }
+
+        [Test]
+        public void HandDrawnEffectOverlaysAreAssignedToTheScreenEffects()
+        {
+            Assert.IsNotNull(Load<HeatEffect>(Data + "Effects/Effect_Heat.asset").screenOverlay, "heat");
+            Assert.IsNotNull(Load<FrozenEffect>(Data + "Effects/Effect_Frozen.asset").screenOverlay, "frozen");
+            Assert.IsNotNull(Load<ElectricEffect>(Data + "Effects/Effect_Electric.asset").screenOverlay, "electric");
+        }
+
+        [Test]
+        public void ThePaletteTextureIsSharpAndUncompressedSoColoursStayExact()
+        {
+            var texture = Load<Texture2D>("Assets/_Project/Art/Textures/palette.png");
+            Assert.AreEqual(30, texture.width);
+            Assert.AreEqual(FilterMode.Point, texture.filterMode);
+            Assert.IsTrue(texture.format == TextureFormat.RGBA32 || texture.format == TextureFormat.RGB24,
+                "no compression: it would blur neighbouring palette cells, but the format is " + texture.format);
+        }
+
+        [Test]
         public void BoxIdsAreUnique()
         {
             var db = Load<BoxDatabase>(Data + "BoxDatabase.asset");

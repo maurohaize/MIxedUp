@@ -17,5 +17,6 @@ MonoBehaviour:
   descriptionKey: box.hot.desc
   color: {r: 0.86, g: 0.36, b: 0.25, a: 1}
   icon: {fileID: 21300000, guid: 03bb6fc3d7dffdd40a9dcb055e6c7e53, type: 3}
+  worldPrefab: {fileID: 2442185979614983010, guid: 2fbd1b756c5dd7a47a400fec12c3615a, type: 3}
   effects:
   - {fileID: 11400000, guid: 0545fd7fccb696f44ab4f1c6a538d550, type: 2}

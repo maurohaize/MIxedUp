@@ -47,6 +47,14 @@ namespace MixedUp.EditorTools
             BuildPausePanel(canvasGo.transform, ui);
             BuildGameOverPanel(canvasGo.transform, ui);
             BuildPuzzleUi(canvasGo.transform, ui, a, puzzle);
+
+            // Save the scene tidy: only the HUD is visible, the other screens open when needed.
+            ui.pausePanel.SetActive(false);
+            ui.gameOverPanel.SetActive(false);
+            ui.puzzlePanel.SetActive(false);
+            ui.resultsPanel.SetActive(false);
+            ui.manualPanel.gameObject.SetActive(false);
+            ui.wipe.sheet.gameObject.SetActive(false);
         }
 
         static void BuildEventSystem()

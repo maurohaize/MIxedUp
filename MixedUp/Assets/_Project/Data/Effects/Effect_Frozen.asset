@@ -15,6 +15,7 @@ MonoBehaviour:
   displayNameKey: effect.frozen
   hudColor: {r: 0.5, g: 0.78, b: 0.92, a: 1}
   overlay: 1
+  screenOverlay: {fileID: 2800000, guid: d1842d67bebb558498baccc017e13491, type: 3}
   accelerationMultiplier: 0.12
   brakingMultiplier: 0.08
   speedMultiplier: 0.95

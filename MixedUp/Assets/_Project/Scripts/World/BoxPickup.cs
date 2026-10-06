@@ -3,14 +3,13 @@ using UnityEngine;
 
 namespace MixedUp
 {
-    /// <summary>A box lying in the world. Interacting with it moves it into the player's inventory.</summary>
+    /// <summary>
+    /// A box lying in the world. The textured model is a child of the visual node
+    /// (instantiated from BoxData.worldPrefab when the level is built). Interacting moves it into the inventory.
+    /// </summary>
     public class BoxPickup : MonoBehaviour, IInteractable
     {
-        static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-
         public BoxData data;
-        public Renderer[] tintRenderers;
-        public SpriteRenderer iconRenderer;
         public Transform visual;
         public float bobHeight = 0.12f;
         public float spinSpeed = 40f;
@@ -31,36 +30,6 @@ namespace MixedUp
         {
             if (visual != null) visualBase = visual.localPosition;
             phaseOffset = UnityEngine.Random.value * 6.28f;
-            ApplyVisuals();
-        }
-
-        public void Setup(BoxData boxData)
-        {
-            data = boxData;
-            ApplyVisuals();
-        }
-
-        void ApplyVisuals()
-        {
-            if (data == null) return;
-
-            var block = new MaterialPropertyBlock();
-            if (tintRenderers != null)
-            {
-                foreach (var r in tintRenderers)
-                {
-                    if (r == null) continue;
-                    r.GetPropertyBlock(block);
-                    block.SetColor(BaseColorId, data.color);
-                    r.SetPropertyBlock(block);
-                }
-            }
-
-            if (iconRenderer != null)
-            {
-                iconRenderer.sprite = data.icon;
-                iconRenderer.enabled = data.icon != null;
-            }
         }
 
         void Update()

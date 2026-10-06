@@ -11,7 +11,10 @@ namespace MixedUp
         public string nameKey;
         public string descriptionKey;
         public Color color = Color.white;
+        [Tooltip("Flat icon for the inventory and the manual.")]
         public Sprite icon;
+        [Tooltip("The textured 3D box shown in the world and stacked in the truck.")]
+        public GameObject worldPrefab;
         public BoxEffect[] effects = System.Array.Empty<BoxEffect>();
 
         public string DisplayName => Localization.Get(nameKey);

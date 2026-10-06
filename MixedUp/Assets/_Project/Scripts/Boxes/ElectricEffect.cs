@@ -21,6 +21,7 @@ namespace MixedUp
             ctx.Status.Damage(shockDamage, DeathCause.ElectricWater);
         }
 
-        public override float Severity01(in EffectContext ctx) => ctx.Hazards.InWater ? 1f : 0f;
+        /// <summary>A faint crackle while carried, full intensity the moment it touches water.</summary>
+        public override float Severity01(in EffectContext ctx) => ctx.Hazards.InWater ? 1f : 0.3f;
     }
 }

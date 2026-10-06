@@ -124,7 +124,8 @@ namespace MixedUp
         public static string Label(InputAction action)
         {
             EnsureCreated();
-            string label = action.GetBindingDisplayString();
+            // Index 0 is always the keyboard binding; showing every binding would print "E | X" for keyboard and gamepad.
+            string label = action.GetBindingDisplayString(0);
             return string.IsNullOrEmpty(label) ? "?" : label;
         }
     }

@@ -10,12 +10,11 @@ namespace MixedUp
     /// </summary>
     public class Truck : MonoBehaviour, IInteractable
     {
-        static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-
         public OrderData order;
         public Transform deliveryPoint;
+        [Tooltip("Where delivered boxes are stacked (the loading dock behind the truck).")]
         public Transform bedAnchor;
-        public GameObject bedCubePrefab;
+        public float stackScale = 0.85f;
 
         readonly Dictionary<BoxData, int> delivered = new Dictionary<BoxData, int>();
         readonly List<BoxData> deliveredOrder = new List<BoxData>();
@@ -74,20 +73,14 @@ namespace MixedUp
 
         void AddBedCube(BoxData box)
         {
-            if (bedCubePrefab == null || bedAnchor == null) return;
+            if (box.worldPrefab == null || bedAnchor == null) return;
 
             int index = deliveredOrder.Count - 1;
-            var cube = Instantiate(bedCubePrefab, bedAnchor);
-            cube.transform.localPosition = new Vector3((index % 3 - 1) * 0.9f, 0.4f + (index / 6) * 0.8f, ((index / 3) % 2) * 0.9f);
-            cube.transform.localRotation = Quaternion.Euler(0f, UnityEngine.Random.Range(-10f, 10f), 0f);
-
-            if (cube.TryGetComponent(out Renderer r))
-            {
-                var block = new MaterialPropertyBlock();
-                r.GetPropertyBlock(block);
-                block.SetColor(BaseColorId, box.color);
-                r.SetPropertyBlock(block);
-            }
+            float step = 1.05f * stackScale;
+            var stacked = Instantiate(box.worldPrefab, bedAnchor);
+            stacked.transform.localPosition = new Vector3((index % 3 - 1) * step, (index / 6) * step, ((index / 3) % 2) * step);
+            stacked.transform.localRotation = Quaternion.Euler(0f, UnityEngine.Random.Range(-8f, 8f), 0f);
+            stacked.transform.localScale = Vector3.one * stackScale;
         }
     }
 }

@@ -42,8 +42,9 @@ namespace MixedUp.Tests
             canvas.planeDistance = 1f;
             Canvas.ForceUpdateCanvases();
             yield return null;
-            yield return new WaitForEndOfFrame();
+            yield return null;
 
+            // Render explicitly instead of waiting for the end of frame, which never arrives in batch mode.
             cam.Render();
             RenderTexture.active = rt;
             var tex = new Texture2D(Width, Height, TextureFormat.RGB24, false);
@@ -133,6 +134,7 @@ namespace MixedUp.Tests
             puzzle.explosionFuseSeconds = 30f;
             puzzle.travelSeconds = 30f;
             yield return DeliverEverything();
+            yield return new WaitForSecondsRealtime(1.5f);   // let the paper wipe peel away
             yield return Capture("21_puzzle_arranging_unknown");
 
             CombinationManual.Discover(puzzle.rules.Find(BoxOf("hot"), BoxOf("electric")));
@@ -166,6 +168,7 @@ namespace MixedUp.Tests
             status.Damage(55f, DeathCause.Fall);
             puzzle.explosionFuseSeconds = 0.2f;
             yield return DeliverEverything();
+            yield return new WaitForSecondsRealtime(1.5f);
             screen.startButton.onClick.Invoke();
             puzzle.State.Tick(0.5f);
             yield return null;

@@ -23,7 +23,10 @@ namespace MixedUp
         public RectTransform overlayContainer;
         public Image shockFlash;
 
-        readonly Dictionary<BoxEffect, Image> overlays = new Dictionary<BoxEffect, Image>();
+        /// <summary>Share of the artwork's height cropped from the bottom (where the hand-drawn box is painted).</summary>
+        const float OverlayBottomCrop = 0.3f;
+
+        readonly Dictionary<BoxEffect, Graphic> overlays = new Dictionary<BoxEffect, Graphic>();
         readonly Dictionary<BoxEffect, float> active = new Dictionary<BoxEffect, float>();
         readonly List<BoxEffect> order = new List<BoxEffect>();
         readonly List<BoxEffect> stale = new List<BoxEffect>();
@@ -114,8 +117,8 @@ namespace MixedUp
                 var image = GetOverlay(effect);
                 float alpha = effect.overlay == EffectOverlay.Fog
                     ? status.VisionObstruction
-                    : Mathf.Lerp(0.18f, 0.7f, active[effect]) * pulse;
-                SetOverlay(image, effect.hudColor, alpha);
+                    : Mathf.Lerp(0.3f, 1f, active[effect]) * Mathf.Min(1f, pulse);
+                SetOverlay(image, OverlayColor(effect), alpha);
             }
 
             stale.Clear();
@@ -132,27 +135,43 @@ namespace MixedUp
             foreach (var effect in stale) overlays[effect].gameObject.SetActive(false);
         }
 
-        Image GetOverlay(BoxEffect effect)
+        Graphic GetOverlay(BoxEffect effect)
         {
-            if (!overlays.TryGetValue(effect, out var image))
+            if (!overlays.TryGetValue(effect, out var graphic))
             {
-                var go = new GameObject("Overlay_" + effect.name, typeof(RectTransform), typeof(Image));
+                bool art = effect.screenOverlay != null && effect.overlay != EffectOverlay.Fog;
+                var go = new GameObject("Overlay_" + effect.name, typeof(RectTransform), art ? typeof(RawImage) : typeof(Image));
                 go.transform.SetParent(overlayContainer, false);
                 var rect = (RectTransform)go.transform;
                 rect.anchorMin = Vector2.zero;
                 rect.anchorMax = Vector2.one;
                 rect.offsetMin = rect.offsetMax = Vector2.zero;
 
-                image = go.GetComponent<Image>();
-                image.raycastTarget = false;
-                image.sprite = effect.overlay == EffectOverlay.Fog ? ProceduralSprites.Fog : ProceduralSprites.Vignette;
-                overlays[effect] = image;
+                if (art)
+                {
+                    var raw = go.GetComponent<RawImage>();
+                    raw.texture = effect.screenOverlay;
+                    raw.uvRect = new Rect(0f, OverlayBottomCrop, 1f, 1f - OverlayBottomCrop);
+                    graphic = raw;
+                }
+                else
+                {
+                    var image = go.GetComponent<Image>();
+                    image.sprite = effect.overlay == EffectOverlay.Fog ? ProceduralSprites.Fog : ProceduralSprites.Vignette;
+                    graphic = image;
+                }
+                graphic.raycastTarget = false;
+                overlays[effect] = graphic;
             }
-            if (!image.gameObject.activeSelf) image.gameObject.SetActive(true);
-            return image;
+            if (!graphic.gameObject.activeSelf) graphic.gameObject.SetActive(true);
+            return graphic;
         }
 
-        static void SetOverlay(Image image, Color color, float alpha)
+        /// <summary>Hand-drawn artwork keeps its own colours; generated overlays are tinted by the effect.</summary>
+        static Color OverlayColor(BoxEffect effect) =>
+            effect.screenOverlay != null && effect.overlay != EffectOverlay.Fog ? Color.white : effect.hudColor;
+
+        static void SetOverlay(Graphic image, Color color, float alpha)
         {
             color.a = Mathf.Clamp01(alpha);
             image.color = color;

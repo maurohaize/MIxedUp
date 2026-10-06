@@ -13,6 +13,8 @@ namespace MixedUp
         public string displayNameKey;
         public Color hudColor = Color.white;
         public EffectOverlay overlay = EffectOverlay.Vignette;
+        [Tooltip("Hand-drawn full-screen frame (transparent centre) shown while the effect is active. Replaces the generated vignette.")]
+        public Texture2D screenOverlay;
 
         /// <summary>Called every frame while a box with this effect is carried.</summary>
         public virtual void Tick(in EffectContext ctx) { }

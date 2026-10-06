@@ -44,22 +44,21 @@ namespace MixedUp.EditorTools
 
         // ---------------------------------------------------------- level notes
 
-        static GameObject BuildLoreNote(Mats m)
+        /// <summary>A signpost with a notice (the hand-made sign model), with a "!" floating above it.</summary>
+        static GameObject BuildLoreNote(ArtAssets art)
         {
             var root = new GameObject("LoreNote");
             var collider = root.AddComponent<BoxCollider>();
-            collider.center = new Vector3(0f, 0.3f, 0f);
-            collider.size = new Vector3(0.8f, 0.6f, 0.9f);
+            collider.center = new Vector3(0f, 1f, 0f);
+            collider.size = new Vector3(1.1f, 2f, 1.1f);
 
             var visual = new GameObject("Visual").transform;
             visual.SetParent(root.transform, false);
-            visual.localPosition = new Vector3(0f, 0.55f, 0f);
-            Prim(PrimitiveType.Cube, "Paper", visual, Vector3.zero, new Vector3(0.6f, 0.04f, 0.8f), m.marker, false,
-                Quaternion.Euler(18f, 35f, 6f));
+            PrefabUtility.InstantiatePrefab(art.cartel, visual);
 
             var mark = new GameObject("Mark", typeof(Billboard));
             mark.transform.SetParent(root.transform, false);
-            mark.transform.localPosition = new Vector3(0f, 1.6f, 0f);
+            mark.transform.localPosition = new Vector3(0f, 3.1f, 0f);
             var text = mark.AddComponent<TextMeshPro>();
             text.text = "!";
             text.fontSize = 9f;
@@ -70,6 +69,7 @@ namespace MixedUp.EditorTools
 
             var note = root.AddComponent<LoreNote>();
             note.visual = visual;
+            note.bobHeight = 0f;
             return root;
         }
 
@@ -230,8 +230,8 @@ namespace MixedUp.EditorTools
             var travel = UiFactory.NewRect("Travel", parent);
             UiFactory.Place(travel, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 190f), new Vector2(1300f, 190f));
 
-            screen.timeLabel = UiFactory.NewText("Time", travel, "", 60f, Ink);
-            UiFactory.Place(screen.timeLabel.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, 0f), new Vector2(300f, 70f));
+            screen.timeLabel = UiFactory.NewText("Time", travel, "", 56f, Ink, TextAlignmentOptions.MidlineLeft);
+            UiFactory.Place(screen.timeLabel.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 0f), new Vector2(610f, 6f), new Vector2(150f, 64f));
 
             var track = UiFactory.NewImage("Track", travel, new Color(Ink.r, Ink.g, Ink.b, 0.25f));
             UiFactory.Place(track.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 20f), new Vector2(1200f, 26f));
@@ -257,7 +257,7 @@ namespace MixedUp.EditorTools
             var screen = panel.gameObject.AddComponent<ResultsScreen>();
             var card = CenteredCard(panel, new Vector2(1000f, 920f));
 
-            screen.titleLabel = CardText(card, "", null, 80f, 120f, Ink);
+            screen.titleLabel = CardText(card, "", null, 62f, 120f, Ink);
             screen.boxesLabel = CardText(card, "", null, 46f, 64f, Ink);
             screen.timeLabel = CardText(card, "", null, 46f, 64f, Ink);
             screen.penaltyLabel = CardText(card, "", null, 42f, 60f, new Color(0.75f, 0.35f, 0.1f));

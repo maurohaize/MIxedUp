@@ -37,6 +37,15 @@ namespace MixedUp.Tests
             Assert.AreEqual(5, pickups.Select(p => p.data.id).Distinct().Count());
             Assert.AreEqual(6, truck.order.TotalBoxes);
 
+            foreach (var pickup in pickups)
+            {
+                Assert.IsNotNull(pickup.visual.GetComponentInChildren<MeshRenderer>(), pickup.name + " shows its textured model");
+                Assert.IsNull(pickup.GetComponentInChildren<SpriteRenderer>(true), pickup.name + " has no floating icon");
+            }
+            Assert.IsNotNull(RenderSettings.skybox, "custom sky");
+            Assert.IsTrue(RenderSettings.fog, "distance fog");
+            Assert.IsNotNull(Object.FindAnyObjectByType<UnityEngine.Rendering.Volume>(), "post-processing volume");
+
             Assert.AreEqual(1, PlayerRegistry.All.Count, "only the local player has a controller; the teammate is a dummy");
             Assert.IsNotNull(Object.FindAnyObjectByType<TeammateDummy>());
 

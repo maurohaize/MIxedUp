@@ -17,5 +17,6 @@ MonoBehaviour:
   descriptionKey: box.toxic.desc
   color: {r: 0.5, g: 0.7, b: 0.3, a: 1}
   icon: {fileID: 21300000, guid: 33fb924cf0276674997c9224e4564db2, type: 3}
+  worldPrefab: {fileID: 3705561314461005633, guid: e0d1098ee70a64d47a117c22f5761bed, type: 3}
   effects:
   - {fileID: 11400000, guid: b0dfda3f047d27a4482023bae6b11561, type: 2}

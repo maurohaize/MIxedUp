@@ -17,5 +17,6 @@ MonoBehaviour:
   descriptionKey: box.frozen.desc
   color: {r: 0.6, g: 0.82, b: 0.92, a: 1}
   icon: {fileID: 21300000, guid: 810fcac7afb30f74db97063fa19d4f1d, type: 3}
+  worldPrefab: {fileID: 8625355273424967170, guid: 0a63593bca155204ebf40b9dcced564b, type: 3}
   effects:
   - {fileID: 11400000, guid: 965fe1dc8d6ba2a44bfbccb05b9e2aa8, type: 2}
