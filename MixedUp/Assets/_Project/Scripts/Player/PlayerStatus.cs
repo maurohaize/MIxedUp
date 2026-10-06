@@ -42,6 +42,12 @@ namespace MixedUp
         public float VisionObstruction { get; private set; }
         public float SimTime { get; private set; }
 
+        void Awake()
+        {
+            // Every character gets its death animations without having to be set up in the scene.
+            if (GetComponent<DeathEffects>() == null) gameObject.AddComponent<DeathEffects>();
+        }
+
         void EnsureInit()
         {
             if (initialized) return;

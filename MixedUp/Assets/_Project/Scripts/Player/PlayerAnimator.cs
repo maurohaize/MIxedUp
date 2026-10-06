@@ -22,6 +22,10 @@ namespace MixedUp
         float phase;
         float deathBlend;
         float carryBlend;
+        bool wasAirborne;
+        float squash;
+        float airTime;
+        float wasAirTimeBonus;
 
         void Capture()
         {
@@ -75,6 +79,16 @@ namespace MixedUp
             float sway = HasEffect<ToxicEffect>() ? Mathf.Sin(Time.time * 2.2f) * 9f : 0f;
             float bob = Mathf.Abs(Mathf.Sin(phase)) * 0.05f * move01;
             body.localPosition = new Vector3(0f, bob, 0f);
+
+            // Squash on landing after a real jump or fall, a little stretch while rising.
+            airTime = airborne ? airTime + dt : 0f;
+            if (wasAirborne && !airborne && !status.IsDead) squash = Mathf.Clamp01(0.45f + wasAirTimeBonus);
+            wasAirborne = airborne;
+            wasAirTimeBonus = Mathf.Min(0.55f, airTime * 0.4f);
+            squash = Mathf.MoveTowards(squash, 0f, dt * 3.5f);
+            float bounce = Mathf.Sin(squash * Mathf.PI * 0.5f);
+            if (!status.IsDead)
+                body.localScale = new Vector3(1f + 0.16f * bounce, 1f - 0.2f * bounce + (airborne ? 0.04f : 0f), 1f + 0.16f * bounce);
 
             deathBlend = Mathf.MoveTowards(deathBlend, status.IsDead ? 1f : 0f, dt * 3f);
             body.localRotation = Quaternion.Euler(0f, 0f, sway) * Quaternion.Euler(-90f * deathBlend, 0f, 0f);

@@ -15,6 +15,8 @@ namespace MixedUp
         public float gamepadSensitivity = 160f;
         public float collisionRadius = 0.25f;
 
+        float shake;
+        PlayerStatus watched;
         float yaw;
         float pitch = 22f;
         bool initialised;
@@ -26,6 +28,13 @@ namespace MixedUp
                 var local = PlayerRegistry.Local;
                 if (local == null) return;
                 target = local.transform;
+            }
+
+            if (watched == null || watched.transform != target)
+            {
+                if (watched != null) watched.Damaged -= OnDamaged;
+                watched = target.GetComponent<PlayerStatus>();
+                if (watched != null) watched.Damaged += OnDamaged;
             }
 
             if (!initialised)
@@ -45,6 +54,20 @@ namespace MixedUp
                 dist = Mathf.Max(0.4f, hit.distance - 0.1f);
 
             transform.SetPositionAndRotation(pivot + direction * dist, rotation);
+
+            // A short rumble when the player gets hurt.
+            if (shake > 0.001f)
+            {
+                transform.position += transform.right * (Random.value - 0.5f) * shake + transform.up * (Random.value - 0.5f) * shake;
+                shake = Mathf.MoveTowards(shake, 0f, Time.unscaledDeltaTime * 0.9f);
+            }
+        }
+
+        void OnDamaged(float amount, DeathCause cause) => shake = Mathf.Min(0.35f, shake + 0.06f + amount * 0.004f);
+
+        void OnDestroy()
+        {
+            if (watched != null) watched.Damaged -= OnDamaged;
         }
 
         void ReadLook()
