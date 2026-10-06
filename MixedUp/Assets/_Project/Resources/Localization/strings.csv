@@ -48,3 +48,48 @@ death.void,Hutsera erori zen.,Cayó al vacío.,Fell into the void.
 toast.delivered,{0} entregatuta,{0} entregada,{0} delivered
 toast.passed,{0} pasatuta,{0} pasada,{0} passed
 toast.teammate_died,Lagunak hil da: {0},El compañero ha muerto: {0},Your teammate died: {0}
+# --- Truck puzzle ---
+ui.manual,ESKULIBURUA,MANUAL,MANUAL
+ui.manual_title,KONBINAZIOEN ESKULIBURUA,MANUAL DE COMBINACIONES,COMBINATION MANUAL
+ui.close,ITXI,CERRAR,CLOSE
+prompt.read_note,IRAKURRI OHARRA,LEER NOTA,READ NOTE
+puzzle.title_arrange,ANTOLATU GARGA,ORDENA LA CARGA,ARRANGE THE CARGO
+puzzle.title_travel,BIDEAN... EGON ADI!,EN RUTA... ¡NO TE DESPISTES!,ON THE ROAD... STAY SHARP!
+puzzle.hint_swap,Egin klik bi kutxatan trukatzeko.,Haz clic en dos cajas para intercambiarlas.,Click two boxes to swap them.
+puzzle.hint_second,Orain aukeratu zeinekin trukatu.,Ahora elige con cuál cambiarla.,Now pick the one to swap with.
+puzzle.reaction_alert,ERREAKZIOA! Banandu kutxa horiek!,¡REACCIÓN! ¡Separa esas cajas!,REACTION! Pull those boxes apart!
+puzzle.start,GIDATU,CONDUCIR,DRIVE
+manual.unknown,??? Oraindik aurkitu gabe,??? Aún sin descubrir,??? Not discovered yet
+outcome.unknown,EZEZAGUNA,DESCONOCIDO,UNKNOWN
+outcome.safe,SEGURUA,SEGURO,SAFE
+outcome.danger,ARRISKUA,PELIGRO,DANGER
+outcome.explosion,EZTANDA,EXPLOSIÓN,EXPLOSION
+outcome.game_over,GAME OVER,GAME OVER,GAME OVER
+# --- Combination hints (notes and manual) ---
+hint.hot_electric,"Beroa eta elektrizitatea elkarrekin... ideia txarra. Oso txarra. BUM!","Calor y electricidad juntos... mala idea. Muy mala. ¡BUM!","Heat and electricity together... bad idea. Very bad. BOOM!"
+hint.hot_frozen,Izotzak beroa neutralizatzen duela dirudi.,El hielo parece neutralizar el calor.,Ice seems to cancel out heat.
+hint.hot_normal,Kartoiak beroa ondo jasaten du.,El cartón normal aguanta bien el calor.,Plain cardboard handles heat just fine.
+hint.toxic_electric,"Toxikoa eta elektrikoa... inork ez du hori bizirik ateratzen.","Lo tóxico y lo eléctrico... nadie sobrevive a eso.","Toxic and electric... nobody survives that."
+hint.frozen_electric,Izotza eta elektrizitatea harrigarri ondo konpontzen dira.,El hielo y la electricidad se llevan sorprendentemente bien.,Ice and electricity get along surprisingly well.
+hint.hot_toxic,"Beroa eta toxikoa: zama gehiegi berotzen da, istripu arina.","Calor y tóxico juntos recalientan la carga: accidente leve.","Heat and toxic together overheat the cargo: minor accident."
+hint.hot_hot,Bi kutxa bero elkarren ondoan gehiegi berotzen dira.,Dos cajas calientes juntas se recalientan.,Two hot boxes side by side overheat.
+hint.normal_electric,Kartoiak elektrizitatea isolatzen du.,El cartón aísla de la electricidad.,Cardboard insulates against electricity.
+hint.normal_frozen,Kartoia eta izotza: aspergarria baina segurua.,Cartón y hielo: aburrido pero seguro.,Cardboard and ice: boring but safe.
+hint.normal_toxic,Kartoiak lurrun toxikoak mugatzen ditu.,El cartón contiene los vapores tóxicos.,Cardboard contains toxic fumes.
+hint.frozen_toxic,Hotzak lurrun toxikoak moteltzen ditu.,El frío ralentiza los vapores tóxicos.,Cold slows toxic fumes down.
+# --- Results and game over ---
+result.title.safe,ENTREGA BIKAINA,ENTREGA COMPLETADA,DELIVERY COMPLETE
+result.title.danger,ISTRIPUEKIN ENTREGATUTA,ENTREGA CON ACCIDENTES,DELIVERY WITH ACCIDENTS
+result.title.explosion,EZTANDA!,¡EXPLOSIÓN!,EXPLOSION!
+result.boxes,Entregatutako kutxak: {0}/{1},Cajas entregadas: {0}/{1},Boxes delivered: {0}/{1}
+result.time,Denbora: {0},Tiempo: {0},Time: {0}
+result.destroyed,Eskaera suntsitu da,Pedido destruido,Order destroyed
+result.accidents,Istripuak: {0},Accidentes: {0},Accidents: {0}
+result.wallet,Zure diruzaintza: {0},Tu monedero: {0},Your wallet: {0}
+result.reward_label,SARIA,RECOMPENSA,REWARD
+death.explosion,{0} + {1} eztanda eragin zuen.,{0} + {1} produjo una explosión.,{0} + {1} caused an explosion.
+death.deadly_mix,{0} + {1} nahaste hilgarria sortu zuen.,{0} + {1} liberó una mezcla mortal.,{0} + {1} released a deadly mix.
+quip.1,Hori ez zegoen planean.,Eso no estaba en el plan.,That was not the plan.
+quip.2,Aseguruak ez du hau estaltzen.,El seguro no cubre esto.,Insurance does not cover this.
+quip.3,Gutxienez kutxak ez dira apurtu... edo bai.,Al menos las cajas no se han roto... o sí.,At least the boxes did not break... or did they.
+quip.4,Erreakzio nahiko lehergarria!,¡Menuda reacción más explosiva!,What an explosive reaction!

@@ -93,7 +93,7 @@ namespace MixedUp.Tests
         [Test]
         public void EveryKeyUsedInCodeExistsInTheTable()
         {
-            var pattern = new Regex("\"((?:ui|prompt|box|effect|death|toast)\\.[a-z_.]+)\"");
+            var pattern = new Regex("\"((?:ui|prompt|box|effect|death|toast|puzzle|result|outcome|manual)\\.[a-z_.]+)\"");
             var keysInCode = Directory.GetFiles(ScriptsPath, "*.cs", SearchOption.AllDirectories)
                 .SelectMany(file => pattern.Matches(File.ReadAllText(file)).Cast<Match>().Select(m => m.Groups[1].Value))
                 .Distinct()
@@ -102,6 +102,23 @@ namespace MixedUp.Tests
             Assert.IsNotEmpty(keysInCode);
             var missing = keysInCode.Where(k => !Localization.Has(k, Language.English)).ToList();
             Assert.IsEmpty(missing, "Keys used in code but missing from strings.csv: " + string.Join(", ", missing));
+        }
+
+        [Test]
+        public void GameOverQuipsAreAllTranslated()
+        {
+            for (int i = 1; i <= 4; i++)
+                foreach (var language in new[] { Language.Basque, Language.Spanish, Language.English })
+                    Assert.IsTrue(Localization.Has("quip." + i, language), "quip." + i + " " + language);
+        }
+
+        [Test]
+        public void ExplosionDeathCausesNameBothBoxes()
+        {
+            Localization.SetLanguage(Language.English);
+            Assert.AreEqual("HOT + ELECTRIC caused an explosion.", Localization.Get("death.explosion", "HOT", "ELECTRIC"));
+            Localization.SetLanguage(Language.Spanish);
+            Assert.AreEqual("CALOR + ELÉCTRICA produjo una explosión.", Localization.Get("death.explosion", "CALOR", "ELÉCTRICA"));
         }
 
         [Test]

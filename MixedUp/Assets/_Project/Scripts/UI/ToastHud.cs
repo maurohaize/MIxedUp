@@ -24,7 +24,7 @@ namespace MixedUp
         void Show(string key, object[] args)
         {
             label.text = Localization.Get(key, args);
-            timer = duration;
+            timer = Mathf.Max(duration, 1.2f + label.text.Length * 0.05f);
         }
 
         void Update()

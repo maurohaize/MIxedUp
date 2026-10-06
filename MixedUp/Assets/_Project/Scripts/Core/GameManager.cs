@@ -10,10 +10,11 @@ namespace MixedUp
         Playing,
         Paused,
         GameOver,
-        TruckPuzzle
+        TruckPuzzle,
+        Results
     }
 
-    /// <summary>Owns the high-level game state: pause, game over, and the hand-off to the truck puzzle.</summary>
+    /// <summary>Owns the high-level game state: pause, the truck puzzle, results and game over.</summary>
     [DefaultExecutionOrder(-200)]
     public class GameManager : MonoBehaviour
     {
@@ -29,6 +30,9 @@ namespace MixedUp
 
         public GameState State { get; private set; } = GameState.Playing;
         public DeathCause LastDeathCause { get; private set; }
+        public DeliveryResult LastResult { get; private set; }
+        /// <summary>Seconds of actual play (excludes pauses and screens) since the level started.</summary>
+        public float ElapsedPlaySeconds { get; private set; }
         public event Action<GameState> StateChanged;
 
         void Awake()
@@ -59,6 +63,7 @@ namespace MixedUp
 
         void Update()
         {
+            if (State == GameState.Playing) ElapsedPlaySeconds += Time.deltaTime;
             if (GameInput.Pause.WasPressedThisFrame()) TogglePause();
         }
 
@@ -71,6 +76,9 @@ namespace MixedUp
 
         void OnLocalPlayerDied(DeathCause cause)
         {
+            // Deaths during the truck puzzle are reported through CompleteDelivery instead.
+            if (State != GameState.Playing && State != GameState.Paused) return;
+
             LastDeathCause = cause;
             StartCoroutine(TransitionAfterDelay(GameState.GameOver));
         }
@@ -84,6 +92,21 @@ namespace MixedUp
             yield return new WaitForSeconds(transitionDelay);
             transitioning = false;
             if (State == GameState.Playing || State == GameState.Paused) SetState(next);
+        }
+
+        /// <summary>Called once the truck puzzle is resolved: shows results, or game over if the local player died.</summary>
+        public void CompleteDelivery(DeliveryResult result)
+        {
+            LastResult = result;
+            if (result.LocalPlayerDied && result.Cause.HasValue)
+            {
+                LastDeathCause = result.Cause.Value;
+                SetState(GameState.GameOver);
+            }
+            else
+            {
+                SetState(GameState.Results);
+            }
         }
 
         public void TogglePause()
@@ -100,7 +123,19 @@ namespace MixedUp
         public void Restart()
         {
             Time.timeScale = 1f;
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            var scene = SceneManager.GetActiveScene();
+            if (scene.buildIndex >= 0)
+            {
+                SceneManager.LoadScene(scene.buildIndex);
+                return;
+            }
+
+            // A scene opened by path (for example by tests) has no build index.
+#if UNITY_EDITOR
+            UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(scene.path, new LoadSceneParameters(LoadSceneMode.Single));
+#else
+            SceneManager.LoadScene(scene.name);
+#endif
         }
 
         public void Quit()
