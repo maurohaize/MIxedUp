@@ -166,6 +166,36 @@ namespace MixedUp.EditorTools
         }
 
         /// <summary>Local = the controllable player; otherwise a teammate stand-in until multiplayer arrives.</summary>
+        /// <summary>A small burst of icy mist that puffs up where a slab of ice forms.</summary>
+        static ParticleSystem BuildFrostPuffs(Transform parent)
+        {
+            var frost = NewParticles("IceFrost", parent, fxSoft);
+            var main = frost.main;
+            main.loop = true;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.6f, 1.1f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.3f, 1.1f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.35f, 0.7f);
+            main.startColor = new Color(0.8f, 0.95f, 1f, 0.65f);
+            main.gravityModifier = -0.04f;
+            main.maxParticles = 80;
+            var emission = frost.emission;
+            emission.enabled = false;
+            var shape = frost.shape;
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = 0.8f;
+            shape.rotation = new Vector3(-90f, 0f, 0f);
+            var fade = frost.colorOverLifetime;
+            fade.enabled = true;
+            var gradient = new Gradient();
+            gradient.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(0.8f, 0.2f), new GradientAlphaKey(0f, 1f) });
+            fade.color = gradient;
+            var size = frost.sizeOverLifetime;
+            size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 0.6f, 1f, 1.4f));
+            return frost;
+        }
+
         static GameObject BuildCharacter(Mats m, PlayerPalette palette, bool local)
         {
             var root = new GameObject(local ? "Player" : "Teammate");
@@ -208,6 +238,7 @@ namespace MixedUp.EditorTools
             // Wading through the river with a frozen box leaves a trail of ice behind.
             var iceTrail = root.AddComponent<IceTrailEmitter>();
             iceTrail.slabPrefab = iceSlabPrefab != null ? iceSlabPrefab.GetComponent<IceSlab>() : null;
+            iceTrail.frost = BuildFrostPuffs(root.transform);
 
             AddAppearance(root, parts, palette, local);
 

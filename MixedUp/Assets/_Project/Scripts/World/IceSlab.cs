@@ -22,6 +22,8 @@ namespace MixedUp
 
         public float Age => age;
         public bool IsMelting => age > lifetime;
+        /// <summary>Raised when the slab has melted away completely; the owner may reuse it (pooling) instead of destroying it.</summary>
+        public System.Action<IceSlab> Released;
         public bool IsSolid => !dead && solid != null && solid.enabled;
 
         void Awake()
@@ -31,6 +33,22 @@ namespace MixedUp
                 visualScale = visual.localScale;
                 visualPosition = visual.localPosition;
             }
+        }
+
+        /// <summary>Puts the slab (new or recycled) at a spot, solid and fresh again.</summary>
+        public void Begin(Vector3 position, Quaternion rotation)
+        {
+            transform.SetPositionAndRotation(position, rotation);
+            age = 0f;
+            dead = false;
+            if (visual != null)
+            {
+                visual.localScale = visualScale;
+                visual.localPosition = visualPosition;
+            }
+            if (solid != null) solid.enabled = true;
+            if (sheet != null) sheet.enabled = true;
+            gameObject.SetActive(true);
         }
 
         /// <summary>The player who made the ice walks through it for a moment, so the slab never shoves them around.</summary>
@@ -62,7 +80,9 @@ namespace MixedUp
             float melt = Mathf.Clamp01((age - lifetime) / meltSeconds);
             if (visual != null)
             {
-                visual.localScale = new Vector3(visualScale.x * (1f - 0.35f * melt), visualScale.y * (1f - 0.9f * melt), visualScale.z * (1f - 0.35f * melt));
+                // It shrinks and sinks, a little faster at the end.
+                float shrink = melt * melt * 0.3f + melt * 0.2f;
+                visual.localScale = new Vector3(visualScale.x * (1f - shrink), visualScale.y * (1f - 0.9f * melt), visualScale.z * (1f - shrink));
                 visual.localPosition = visualPosition + Vector3.down * (0.25f * melt);
             }
 
@@ -75,7 +95,8 @@ namespace MixedUp
             if (melt >= 1f)
             {
                 dead = true;
-                Destroy(gameObject);
+                if (Released != null) Released(this);
+                else Destroy(gameObject);
             }
         }
     }

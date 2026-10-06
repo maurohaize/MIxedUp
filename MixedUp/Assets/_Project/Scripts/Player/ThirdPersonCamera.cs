@@ -21,6 +21,57 @@ namespace MixedUp
         float yaw;
         float pitch = 22f;
         bool initialised;
+        Transform spectated;
+        float nextScan;
+        readonly System.Collections.Generic.List<Transform> candidates = new System.Collections.Generic.List<Transform>();
+
+        /// <summary>Who the camera is watching while the local player is dead (null when following the own character).</summary>
+        public Transform Spectated => spectated;
+        public static string SpectatedName { get; private set; }
+
+        /// <summary>The living players the dead one can watch: other real players and the stand-in teammates.</summary>
+        void ScanCandidates()
+        {
+            candidates.Clear();
+            foreach (var player in PlayerRegistry.All)
+            {
+                if (player == null || player == PlayerRegistry.Local) continue;
+                var status = player.GetComponent<PlayerStatus>();
+                if (status != null && !status.IsDead) candidates.Add(player.transform);
+            }
+            foreach (var dummy in FindObjectsByType<TeammateDummy>())
+            {
+                var status = dummy.GetComponent<PlayerStatus>();
+                if (status != null && !status.IsDead) candidates.Add(dummy.transform);
+            }
+        }
+
+        Transform UpdateSpectating(Transform own)
+        {
+            var ownStatus = own.GetComponent<PlayerStatus>();
+            if (ownStatus == null || !ownStatus.IsDead || GameManager.Instance == null || !GameManager.Instance.IsSpectating)
+            {
+                spectated = null;
+                SpectatedName = null;
+                return own;
+            }
+
+            bool next = !GameManager.InputBlocked && GameInput.Interact.WasPressedThisFrame();
+            bool lost = spectated == null || !spectated.gameObject.activeInHierarchy;
+            if (lost || next || Time.unscaledTime >= nextScan)
+            {
+                nextScan = Time.unscaledTime + 0.5f;
+                ScanCandidates();
+                if (candidates.Count > 0)
+                {
+                    int current = spectated != null ? candidates.IndexOf(spectated) : -1;
+                    if (lost || next || current < 0) spectated = candidates[(current + 1) % candidates.Count];
+                }
+                else spectated = null;
+            }
+            SpectatedName = spectated != null ? spectated.name.Replace("Mate_", "") : null;
+            return spectated != null ? spectated : own;
+        }
 
         void LateUpdate()
         {
@@ -45,11 +96,12 @@ namespace MixedUp
             }
 
             if (!GameManager.InputBlocked) ReadLook();
+            var follow = UpdateSpectating(target);
 
             Quaternion rotation = Quaternion.Euler(pitch, yaw, 0f);
-            if (targetController == null || targetController.transform != target) targetController = target.GetComponent<PlayerController>();
+            if (targetController == null || targetController.transform != follow) targetController = follow.GetComponent<PlayerController>();
             float crouch = targetController != null ? targetController.CrouchAmount : 0f;
-            Vector3 pivot = target.position + pivotOffset + Vector3.down * (0.45f * crouch);
+            Vector3 pivot = follow.position + pivotOffset + Vector3.down * (0.45f * crouch);
             Vector3 direction = rotation * Vector3.back;
 
             float dist = distance;

@@ -361,7 +361,7 @@ namespace MixedUp.EditorTools
         {
             const float x = 22f, z = 19f;
             var tower = Prop(world, "Windmill", wm.windmill, mat, x, z, 180f, 1f, Solid.Capsule, new Vector3(0f, 3.5f, 0f), new Vector3(2.0f, 7f, 0f));
-            AddLampLight(tower.transform, new Vector3(0f, 2.6f, 2.5f), 9f, 2.2f);
+            AddWallLantern(tower.transform, new Vector3(0f, 2.4f, 1.9f), Vector3.forward, 9f, 2.2f);
 
             var blades = MeshObject("Blades", tower.transform, wm.blades, mat);
             blades.transform.localPosition = new Vector3(0f, 5.1f, 2.35f);
@@ -377,9 +377,9 @@ namespace MixedUp.EditorTools
             farm.SetParent(world, false);
 
             var house = Prop(farm, "Farmhouse", wm.farmhouse, mat, -3f, 47f, 180f, 1f, Solid.Box, new Vector3(0f, 1.6f, 0f), new Vector3(6.6f, 3.2f, 5f));
-            AddLampLight(house.transform, new Vector3(0.1f, 2.5f, 2.9f), 9f, 2.2f);
+            AddWallLantern(house.transform, new Vector3(1.2f, 2.3f, 2.5f), Vector3.forward, 9f, 2.2f);
             var barn = Prop(farm, "Barn", wm.barn, mat, 9f, 48.5f, 200f, 1f, Solid.Box, new Vector3(0f, 2.1f, 0f), new Vector3(7.6f, 4.2f, 6.2f));
-            AddLampLight(barn.transform, new Vector3(0f, 3.6f, 3.5f), 10f, 2.2f);
+            AddWallLantern(barn.transform, new Vector3(1.6f, 2.8f, 3.1f), Vector3.forward, 10f, 2.2f);
             Prop(farm, "Well", wm.well, mat, -9.5f, 41.5f, 0f, 1f, Solid.Capsule, new Vector3(0f, 0.5f, 0f), new Vector3(1f, 1f, 0f));
             Prop(farm, "Haystack", wm.haystack, mat, 14.5f, 43f, 0f, 1f, Solid.Capsule, new Vector3(0f, 1f, 0f), new Vector3(1.4f, 2.4f, 0f));
             Prop(farm, "Haystack", wm.haystack, mat, -10f, 50.5f, 30f, 0.85f, Solid.Capsule, new Vector3(0f, 1f, 0f), new Vector3(1.4f, 2.4f, 0f));

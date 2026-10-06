@@ -23,8 +23,10 @@ namespace MixedUp.EditorTools
 
             var visual = new GameObject("Visual");
             visual.transform.SetParent(root.transform, false);
-            visual.AddComponent<MeshFilter>().sharedMesh = SaveInkedMesh(LowPolyProps.IceSlabMesh());
-            visual.AddComponent<MeshRenderer>().sharedMaterials = new[] { art.palette, propInk };
+            visual.AddComponent<MeshFilter>().sharedMesh = SaveMesh(LowPolyProps.IceFloe());
+            var floeRenderer = visual.AddComponent<MeshRenderer>();
+            floeRenderer.sharedMaterial = fxIce != null ? fxIce : art.palette;
+            floeRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
             var sheetObject = new GameObject("Sheet");
             sheetObject.transform.SetParent(root.transform, false);

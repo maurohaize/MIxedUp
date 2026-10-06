@@ -38,6 +38,9 @@ namespace MixedUp
         public bool IsDead { get; private set; }
         public DeathCause LastCause { get; private set; }
 
+        /// <summary>True when there is more than one player: health no longer regenerates by itself, a hug is needed.</summary>
+        public static bool HugsRequired => RoomSession.IsMultiplayer || PlayerRegistry.All.Count > 1;
+
         public HazardState Hazards { get; set; }
         public MovementModifiers Modifiers { get; private set; } = MovementModifiers.Default;
         public float VisionObstruction { get; private set; }
@@ -48,6 +51,7 @@ namespace MixedUp
             // Every character gets its death animations without having to be set up in the scene.
             if (GetComponent<DeathEffects>() == null) gameObject.AddComponent<DeathEffects>();
             if (GetComponent<PlayerAudio>() == null) gameObject.AddComponent<PlayerAudio>();
+            if (GetComponent<DeathDrops>() == null) gameObject.AddComponent<DeathDrops>();
         }
 
         void EnsureInit()
@@ -102,7 +106,8 @@ namespace MixedUp
             float rate = visionTarget > VisionObstruction ? visionRiseSpeed : visionFallSpeed;
             VisionObstruction = Mathf.MoveTowards(VisionObstruction, visionTarget, rate * deltaTime);
 
-            if (health < maxHealth && SimTime - lastDamageTime >= regenDelay)
+            // With teammates around, health only comes back through hugs.
+            if (!HugsRequired && health < maxHealth && SimTime - lastDamageTime >= regenDelay)
                 health = Mathf.Min(maxHealth, health + regenPerSecond * deltaTime);
         }
 

@@ -80,6 +80,25 @@ namespace MixedUp.EditorTools
             SpawnPoint(points, "Spawn_Hard_Cliff", new Vector3(35.5f, 6.85f, 50f), null, true);
             SpawnPoint(points, "Spawn_Hard_Sweeper", new Vector3(24.4f, GroundHeight(24.4f, 26f), 26f), null, true);
             SpawnPoint(points, "Spawn_Hard_IceRamp", new Vector3(-32f, 2.52f, -18f), null, true);
+
+            // Lights and flags of the out-of-the-way spots follow the boxes of the game mode.
+            LinkArea("Environment/Challenges/ParkourTower", points, "Spawn_Hard_Tower");
+            LinkArea("Environment/Challenges/CrawlTunnel", points, "Spawn_Hard_Tunnel");
+            LinkArea("Environment/Challenges/MushroomCliff", points, "Spawn_Hard_Cliff");
+        }
+
+        static void LinkArea(string path, Transform points, params string[] spawnNames)
+        {
+            var area = GameObject.Find(path);
+            var lights = area != null ? area.GetComponent<SpawnAreaLights>() : null;
+            if (lights == null) return;
+            var found = new System.Collections.Generic.List<BoxSpawnPoint>();
+            foreach (var name in spawnNames)
+            {
+                var t = points.Find(name);
+                if (t != null) found.Add(t.GetComponent<BoxSpawnPoint>());
+            }
+            lights.points = found.ToArray();
         }
 
         static void BuildDirector(Transform managers, GameAssets a, Prefabs p, Truck truck)
@@ -130,10 +149,14 @@ namespace MixedUp.EditorTools
             }
 
             // a flag and a lantern at the top so it can be seen from afar
-            var flag = MeshObject("TowerFlag", tower, flags[0], art.palette);
+            var dressing = new GameObject("Dressing").transform;
+            dressing.SetParent(tower, false);
+            var flag = MeshObject("TowerFlag", dressing, flags[0], art.palette);
             flag.transform.position = centre + new Vector3(1.2f, 7.0f, 1.2f);
-            AddLampLight(tower, centre + new Vector3(-1.1f, 7.9f, -1.1f), 10f, 2.4f);
-            AddHalo(tower, centre + new Vector3(0f, 8.6f, 0f), 3.2f, new Color(1f, 0.9f, 0.5f, 0.35f));
+            var lamp = MeshObject("TowerLamp", dressing, lampMesh, art.palette);
+            lamp.transform.position = centre + new Vector3(-1.1f, 7.0f, -1.1f);
+            AddLampLight(lamp.transform, new Vector3(0f, 2.78f, 0f), 10f, 2.4f);
+            tower.gameObject.AddComponent<SpawnAreaLights>().dressing = dressing.gameObject;
         }
 
         /// <summary>A low tunnel under a grassy mound: only a crouching player fits through. The box lies at the dead end.</summary>
@@ -147,11 +170,24 @@ namespace MixedUp.EditorTools
             Prim(PrimitiveType.Cube, "WallRight", tunnel, c + new Vector3(1.45f, 0.7f, 0f), new Vector3(0.9f, 1.4f, 7.4f), m.stone, true, null, true);
             Prim(PrimitiveType.Cube, "Roof", tunnel, c + new Vector3(0f, 1.575f, 0f), new Vector3(3.8f, 0.35f, 7.4f), m.stone, true, null, true);   // clearance 1.4 m
             Prim(PrimitiveType.Cube, "BackWall", tunnel, c + new Vector3(0f, 0.8f, 3.85f), new Vector3(3.8f, 1.6f, 0.4f), m.stone, true, null, true);
-            Prim(PrimitiveType.Cube, "Mound", tunnel, c + new Vector3(0f, 2.3f, 0f), new Vector3(4.6f, 1.4f, 7.8f), m.grass, true, null, true);
-            Prim(PrimitiveType.Cube, "MoundTop", tunnel, c + new Vector3(0f, 3.1f, 0.2f), new Vector3(3.4f, 0.9f, 6.2f), m.grass, true, null, true);
+            // The collision of the mound is two boxes; what you see is a lumpy turf dome.
+            foreach (var (name, centre, size) in new[] { ("Mound", new Vector3(0f, 2.3f, 0f), new Vector3(4.6f, 1.4f, 7.8f)), ("MoundTop", new Vector3(0f, 3.1f, 0.2f), new Vector3(3.4f, 0.9f, 6.2f)) })
+            {
+                var box = Prim(PrimitiveType.Cube, name, tunnel, c + centre, size, m.grass, true);
+                Object.DestroyImmediate(box.GetComponent<MeshRenderer>());
+                Object.DestroyImmediate(box.GetComponent<MeshFilter>());
+            }
+            var moundVisual = MeshObject("MoundVisual", tunnel, SaveInkedMesh(LowPolyProps.TunnelMound()), art.palette);
+            moundVisual.transform.position = c;
 
-            AddLampLight(tunnel, c + new Vector3(0f, 1.15f, 0.5f), 7f, 1.8f);
-            AddLampLight(tunnel, c + new Vector3(0f, 1.15f, 2.9f), 6f, 1.6f);
+            // lanterns hanging from the roof of the passage; they only burn when a box lies in here
+            var dressing = new GameObject("Dressing").transform;
+            dressing.SetParent(tunnel, false);
+            AddHangingLantern(dressing, c + new Vector3(0f, 1.4f, -0.4f), 0.3f, 7f, 1.8f);
+            AddHangingLantern(dressing, c + new Vector3(0f, 1.4f, 2.6f), 0.3f, 6f, 1.6f);
+            AddTorchPost(dressing, c + new Vector3(-1.9f, 0f, -3.9f), 1.6f);
+            AddTorchPost(dressing, c + new Vector3(1.9f, 0f, -3.9f), 1.6f);
+            tunnel.gameObject.AddComponent<SpawnAreaLights>().dressing = dressing.gameObject;
             // boulders and a signpost at the entrance
             PlaceProp(tunnel, art.rocks[1], c + new Vector3(-3.1f, 0f, -3.4f), 30f, 1.1f);
             PlaceProp(tunnel, art.rocks[5], c + new Vector3(3.2f, 0f, -3.1f), 160f, 1.0f);
@@ -172,9 +208,14 @@ namespace MixedUp.EditorTools
             AddBounce(cliff, new Vector3(30f, GroundHeight(30f, 44.5f), 44.5f), art);
             AddBounce(cliff, new Vector3(30.2f, 3.6f, 51.5f), art);
 
-            var flag = MeshObject("CliffFlag", cliff, flags[1], art.palette);
+            var dressing = new GameObject("Dressing").transform;
+            dressing.SetParent(cliff, false);
+            var flag = MeshObject("CliffFlag", dressing, flags[1], art.palette);
             flag.transform.position = new Vector3(36.6f, 6.9f, 51.2f);
-            AddLampLight(cliff, new Vector3(34.4f, 8.3f, 48.9f), 10f, 2.4f);
+            var lamp = MeshObject("CliffLamp", dressing, lampMesh, art.palette);
+            lamp.transform.position = new Vector3(34.4f, 6.9f, 48.9f);
+            AddLampLight(lamp.transform, new Vector3(0f, 2.78f, 0f), 10f, 2.4f);
+            cliff.gameObject.AddComponent<SpawnAreaLights>().dressing = dressing.gameObject;
         }
 
         static void AddBounce(Transform parent, Vector3 position, ArtAssets art)

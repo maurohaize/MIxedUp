@@ -396,7 +396,46 @@ namespace MixedUp.EditorTools
                 float z = -3.6f + i * 0.9f;
                 Frustum(b, At(0.4f, 4.6f, z, 0f) * Matrix4x4.Rotate(Quaternion.Euler(180f, 0f, 0f)), 0.14f, 0.01f, 0.45f + (float)rng.NextDouble() * 0.8f, 5, i % 2 == 0 ? Stone : Grey);
             }
+            // moss on the lintel and vines hanging over the mouth
+            for (int i = 0; i < 6; i++)
+                Blob(b, new Vector3(0.2f + (float)rng.NextDouble() * 0.5f, 5.7f + (float)rng.NextDouble() * 0.3f, -3.6f + i * 1.45f), new Vector3(1.1f, 0.45f, 0.9f), 1, 0.12f, i % 2 == 0 ? Olive : Moss, 40 + i);
+            for (int i = 0; i < 11; i++)
+            {
+                float z = -4.1f + i * 0.82f + (float)rng.NextDouble() * 0.3f;
+                float length = 0.7f + (float)rng.NextDouble() * 1.5f;
+                Box(b, At(0.55f, 5.35f - length * 0.5f, z), new Vector3(0.1f, length, 0.14f), i % 3 == 0 ? Moss : Olive);
+            }
             return b.ToMesh("Prop_CaveArch");
+        }
+
+        /// <summary>
+        /// The grassy mound over the crawl tunnel (about 4.6 x 7.8 m, 3.6 m tall, origin at the ground): a lumpy dome of turf with
+        /// stones showing through, flat stone lips round the entrance on the -Z side and tufts of grass on top.
+        /// </summary>
+        public static Mesh TunnelMound()
+        {
+            var b = new LowPoly.MeshBuilder();
+            var rng = new System.Random(77);
+            Blob(b, new Vector3(0f, 1.4f, 0f), new Vector3(2.45f, 2.1f, 4.1f), 2, 0.12f, Moss, 5);
+            Blob(b, new Vector3(0f, 2.0f, 0.2f), new Vector3(2.0f, 1.7f, 3.5f), 2, 0.14f, Olive, 6);
+            for (int i = 0; i < 9; i++)
+            {
+                float z = -3.2f + i * 0.8f;
+                float side = i % 2 == 0 ? 1f : -1f;
+                Blob(b, new Vector3(side * (1.6f + (float)rng.NextDouble() * 0.5f), 0.6f + (float)rng.NextDouble() * 1.4f, z), new Vector3(0.8f, 0.7f, 0.8f) * (0.8f + (float)rng.NextDouble() * 0.5f), 1, 0.2f, i % 3 == 0 ? Stone : Grey, 10 + i);
+            }
+            // the lip of the entrance: two stone jambs and a lintel
+            Box(b, At(-1.5f, 0.75f, -3.8f), new Vector3(0.6f, 1.5f, 0.5f), Stone);
+            Box(b, At(1.5f, 0.75f, -3.8f), new Vector3(0.6f, 1.5f, 0.5f), Stone);
+            Box(b, At(0f, 1.62f, -3.8f), new Vector3(3.8f, 0.3f, 0.6f), Grey);
+            // tufts and little flowers on top
+            for (int i = 0; i < 12; i++)
+            {
+                float x = ((float)rng.NextDouble() - 0.5f) * 2.4f, z = ((float)rng.NextDouble() - 0.5f) * 5.4f;
+                float top = 3.15f - (x * x) * 0.25f - (z * z) * 0.03f;
+                Frustum(b, At(x, top - 0.25f, z), 0.1f, 0.01f, 0.4f + (float)rng.NextDouble() * 0.3f, 4, i % 3 == 0 ? Gold : Olive, -1, false, i);
+            }
+            return b.ToMesh("Prop_TunnelMound");
         }
 
         /// <summary>A traffic cone: an orange pyramid with a cream stripe on a square base.</summary>
@@ -607,6 +646,26 @@ namespace MixedUp.EditorTools
                 Frustum(b, at, 0.1f, 0.01f, 0.28f + i * 0.04f, 5, Ice);
             }
             return b.ToMesh("Prop_IceSlab");
+        }
+
+        /// <summary>
+        /// A floe of ice for the trail a frozen box leaves in the river: an eight-sided slab, 2 m across, its top at y = 0.02,
+        /// with a frosted raised middle and a ring of little crystals round the edge.
+        /// </summary>
+        public static Mesh IceFloe()
+        {
+            var b = new LowPoly.MeshBuilder();
+            Frustum(b, At(0f, -0.34f, 0f), 0.78f, 0.98f, 0.36f, 8, Teal, Ice, false, 0.2f);
+            Frustum(b, At(0f, 0.02f, 0f), 0.86f, 0.74f, 0.05f, 8, Ice, Snow, false, 0.2f);
+            Frustum(b, At(0f, 0.07f, 0f), 0.5f, 0.4f, 0.04f, 8, Snow, Snow, false, 0.45f);
+            var rng = new System.Random(8);
+            for (int i = 0; i < 6; i++)
+            {
+                float angle = (i / 6f) * 360f + (float)rng.NextDouble() * 25f;
+                var at = At(Quaternion.Euler(0f, angle, 0f) * new Vector3(0f, 0.04f, 0.78f), Quaternion.Euler(0f, angle, 0f));
+                Frustum(b, at, 0.09f, 0.01f, 0.18f + (float)rng.NextDouble() * 0.2f, 5, i % 2 == 0 ? Ice : Snow);
+            }
+            return b.ToMesh("Prop_IceFloe");
         }
 
         /// <summary>The glowing part of a lamp: a small lantern bulb to be drawn with an emissive material.</summary>

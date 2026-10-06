@@ -94,7 +94,7 @@ namespace MixedUp.EditorTools
         /// `pathColor` returns a palette index (>= 0), which colours single tiles (trails, patches).
         /// </summary>
         public static Mesh Terrain(string name, float x0, float z0, float x1, float z1, float tile, int[] palette, int seed,
-            System.Func<float, float, float> height, System.Func<float, float, int> pathColor)
+            System.Func<float, float, float> height, System.Func<float, float, int> pathColor, bool alternateDiagonal = true)
         {
             var b = new MeshBuilder();
             int nx = Mathf.CeilToInt((x1 - x0) / tile), nz = Mathf.CeilToInt((z1 - z0) / tile);
@@ -115,7 +115,7 @@ namespace MixedUp.EditorTools
                     if (color < 0) color = Pick(palette, i / block, j / block, seed);
 
                     // Alternate the diagonal so the facets do not all lean the same way.
-                    if ((i + j) % 2 == 0)
+                    if (!alternateDiagonal || (i + j) % 2 == 0)
                     {
                         b.Triangle(a, c, d, color);
                         b.Triangle(a, d, e, color);

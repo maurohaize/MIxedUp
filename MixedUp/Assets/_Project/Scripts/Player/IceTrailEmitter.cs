@@ -18,7 +18,11 @@ namespace MixedUp
         [Tooltip("Seconds the player who makes the ice can walk through it.")]
         public float ownerPassSeconds = 2.5f;
 
-        readonly Queue<IceSlab> slabs = new Queue<IceSlab>();
+        [Tooltip("Puffs of icy mist where a slab forms (optional).")]
+        public ParticleSystem frost;
+
+        readonly List<IceSlab> slabs = new List<IceSlab>();
+        readonly Stack<IceSlab> pool = new Stack<IceSlab>();
         PlayerStatus status;
         Collider body;
         Vector3 lastSlab = new Vector3(0f, -999f, 0f);
@@ -48,6 +52,13 @@ namespace MixedUp
             Place(new Vector3(here.x, 0f, here.z));
         }
 
+        void Recycle(IceSlab slab)
+        {
+            slabs.Remove(slab);
+            slab.gameObject.SetActive(false);
+            pool.Push(slab);
+        }
+
         bool CarriesFrozenBox()
         {
             var slots = status.Inventory.Slots;
@@ -59,14 +70,30 @@ namespace MixedUp
         /// <summary>Puts a slab of ice at the water surface (the top is flush with the river banks).</summary>
         public IceSlab Place(Vector3 position)
         {
-            var slab = Instantiate(slabPrefab, position, Quaternion.Euler(0f, Random.Range(-12f, 12f), 0f));
+            // Melted slabs are recycled, so a long wade does not keep creating and destroying objects.
+            IceSlab slab = null;
+            while (pool.Count > 0 && slab == null) slab = pool.Pop();
+            if (slab == null)
+            {
+                slab = Instantiate(slabPrefab);
+                slab.Released = Recycle;
+            }
+            slab.Begin(position, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
+            if (frost != null)
+            {
+                frost.transform.position = position + Vector3.up * 0.1f;
+                frost.Emit(7);
+            }
             if (body != null) slab.IgnoreFor(body, ownerPassSeconds);
 
-            slabs.Enqueue(slab);
-            while (slabs.Count > maxSlabs)
+            slabs.Add(slab);
+            // Too many: the oldest start melting now (they leave the list once they are gone).
+            int melting = 0;
+            for (int i = 0; i < slabs.Count && slabs.Count - melting > maxSlabs; i++)
             {
-                var oldest = slabs.Dequeue();
-                if (oldest != null) oldest.MeltNow();
+                if (slabs[i].IsMelting) { melting++; continue; }
+                slabs[i].MeltNow();
+                melting++;
             }
 
             lastSlab = position;

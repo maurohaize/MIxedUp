@@ -152,7 +152,7 @@ namespace MixedUp.Tests
             yield return new WaitForSeconds(0.65f);
             Assert.IsFalse(slab.IsSolid, "mostly melted: no longer solid");
             yield return new WaitForSeconds(0.5f);
-            Assert.IsTrue(slab == null, "gone");
+            Assert.IsFalse(slab != null && slab.gameObject.activeSelf, "gone (recycled)");
         }
 
         // ---------------------------------------------------------------- water

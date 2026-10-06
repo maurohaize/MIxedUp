@@ -198,7 +198,7 @@ namespace MixedUp.EditorTools
             header.alignment = TextAlignmentOptions.Center;
 
             var frame = UiFactory.NewSprite("PreviewFrame", card, "paper", sliced: true, slicedScale: 4f);
-            At(frame.rectTransform, rx + 90f, 196f, 520f, 540f);
+            At(frame.rectTransform, rx + 120f, 190f, 460f, 480f);
             frame.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -1.2f);
             var halftone = UiFactory.NewSprite("Halftone", frame.transform, "halftone");
             halftone.preserveAspect = false;
@@ -217,28 +217,42 @@ namespace MixedUp.EditorTools
             preview.cameraDistance = 3.7f;
 
             var hint = UiFactory.NewText("DragHint", card, "", 28f, new Color(UiFactory.Ink.r, UiFactory.Ink.g, UiFactory.Ink.b, 0.6f), TextAlignmentOptions.Center, "ui.drag_to_turn");
-            At(hint.rectTransform, rx + 90f, 738f, 520f, 38f);
+            At(hint.rectTransform, rx + 120f, 672f, 460f, 38f);
 
+            // Each colour group sits in its own boxed grid, so it is clear which colours are for the skin and which for the clothes.
             const float swatch = 54f;
+            var gridTint = new Color(0.9f, 0.82f, 0.68f, 0.9f);
+            int skinCount = a.palette.skinTones.Length;
+            int count = a.palette.clothesColors.Length;
+            int clothesRows = (count + 4) / 5;
+            float skinTop = 716f, skinHeight = 86f;
+            float clothesTop = skinTop + skinHeight + 10f, clothesHeight = 22f + clothesRows * 62f;
+
+            var skinBox = UiFactory.NewSprite("SkinGrid", card, "paper", sliced: true, slicedScale: 4f);
+            skinBox.color = gridTint;
+            At(skinBox.rectTransform, rx - 10f, skinTop, 710f, skinHeight);
+            var clothesBox = UiFactory.NewSprite("ClothesGrid", card, "paper", sliced: true, slicedScale: 4f);
+            clothesBox.color = gridTint;
+            At(clothesBox.rectTransform, rx - 10f, clothesTop, 710f, clothesHeight);
+
             var skinLabel = UiFactory.NewText("SkinLabel", card, "", 38f, Brick, TextAlignmentOptions.MidlineLeft, "ui.skin");
-            At(skinLabel.rectTransform, rx, 782f, 150f, swatch);
-            panel.skinSwatches = new Button[a.palette.skinTones.Length];
-            panel.skinRings = new Image[a.palette.skinTones.Length];
-            for (int i = 0; i < a.palette.skinTones.Length; i++)
+            At(skinLabel.rectTransform, rx + 14f, skinTop + (skinHeight - swatch) * 0.5f, 150f, swatch);
+            panel.skinSwatches = new Button[skinCount];
+            panel.skinRings = new Image[skinCount];
+            for (int i = 0; i < skinCount; i++)
             {
                 panel.skinSwatches[i] = UiFactory.NewSwatch("Skin" + (i + 1), card, a.palette.skinTones[i], swatch, out panel.skinRings[i]);
-                At((RectTransform)panel.skinSwatches[i].transform, rx + 170f + i * 82f, 782f, swatch, swatch);
+                At((RectTransform)panel.skinSwatches[i].transform, rx + 180f + i * 76f, skinTop + (skinHeight - swatch) * 0.5f, swatch, swatch);
             }
 
             var clothesLabel = UiFactory.NewText("ClothesLabel", card, "", 38f, Brick, TextAlignmentOptions.MidlineLeft, "ui.clothes");
-            At(clothesLabel.rectTransform, rx, 848f, 150f, swatch);
-            int count = a.palette.clothesColors.Length;
+            At(clothesLabel.rectTransform, rx + 14f, clothesTop + 12f, 150f, swatch);
             panel.clothesSwatches = new Button[count];
             panel.clothesRings = new Image[count];
             for (int i = 0; i < count; i++)
             {
                 panel.clothesSwatches[i] = UiFactory.NewSwatch("Clothes" + (i + 1), card, a.palette.clothesColors[i], swatch, out panel.clothesRings[i]);
-                At((RectTransform)panel.clothesSwatches[i].transform, rx + 170f + (i % 5) * 82f, 848f + (i / 5) * 66f, swatch, swatch);
+                At((RectTransform)panel.clothesSwatches[i].transform, rx + 180f + (i % 5) * 76f, clothesTop + 11f + (i / 5) * 62f, swatch, swatch);
             }
 
             // --- bottom: back / reset settings / reset progress

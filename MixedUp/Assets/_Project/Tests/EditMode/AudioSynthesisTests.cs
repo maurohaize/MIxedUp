@@ -11,6 +11,7 @@ namespace MixedUp.Tests
         {
             foreach (SfxId id in Enum.GetValues(typeof(SfxId)))
             {
+                if (id == SfxId.Win || id == SfxId.Lose) continue;   // recorded jingles from the original game
                 for (int variant = 0; variant < 3; variant++)
                 {
                     var clip = ProceduralAudio.Get(id, variant);
@@ -46,15 +47,21 @@ namespace MixedUp.Tests
         }
 
         [Test]
-        public void BothMusicTracksLoopOverEightBars()
+        public void BothMusicTracksExist()
         {
             foreach (MusicId id in Enum.GetValues(typeof(MusicId)))
             {
                 var clip = ProceduralAudio.Music(id);
                 Assert.Greater(clip.length, 15f, id.ToString());
-                Assert.Less(clip.length, 40f, id.ToString());
             }
-            Assert.Greater(Mathf.Abs(ProceduralAudio.Music(MusicId.Menu).length - ProceduralAudio.Music(MusicId.Game).length), 0.01f, "different tempo");
+            Assert.Greater(Mathf.Abs(ProceduralAudio.Music(MusicId.Menu).length - ProceduralAudio.Music(MusicId.Game).length), 0.01f, "different tracks");
+        }
+
+        [Test]
+        public void TheJinglesOfTheOriginalGameAreUsed()
+        {
+            Assert.Greater(ProceduralAudio.Get(SfxId.Win, 0).length, 0.5f);
+            Assert.Greater(ProceduralAudio.Get(SfxId.Lose, 0).length, 0.5f);
         }
 
         [Test]

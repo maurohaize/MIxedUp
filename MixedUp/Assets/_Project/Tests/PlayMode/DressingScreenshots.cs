@@ -76,6 +76,30 @@ namespace MixedUp.Tests
         }
 
         [UnityTest, Explicit("Needs a GPU; writes PNGs")]
+        public IEnumerator EdgeGallery()
+        {
+            yield return Shot("100_seam_east", new Vector3(30f, 3f, 2f), new Vector3(60f, 0f, 9f), 1f);
+            yield return Shot("101_seam_west", new Vector3(-30f, 3f, 2f), new Vector3(-62f, 0f, 9f));
+            yield return Shot("102_west_slope", new Vector3(-36f, 3f, 24f), new Vector3(-70f, 6f, 30f));
+            yield return Shot("103_cave_front", new Vector3(-96f, 3f, 8.5f), new Vector3(-114f, 2.5f, 8f));
+            yield return Shot("104_cave_side", new Vector3(-100f, 5f, -2f), new Vector3(-113f, 3f, 8f));
+            yield return Shot("105_lake", new Vector3(62f, 4f, 3f), new Vector3(92f, 0f, 10f));
+            yield return Shot("106_north_edge", new Vector3(-20f, 4f, 48f), new Vector3(-30f, 4f, 80f));
+            yield return Shot("110_seam_east_top", new Vector3(45f, 16f, 9f), new Vector3(45f, 0f, 9.01f));
+            yield return Shot("111_seam_west_top", new Vector3(-45f, 16f, 9f), new Vector3(-45f, 0f, 9.01f));
+            yield return Shot("107_tunnel", new Vector3(-37f, 3f, 24f), new Vector3(-37f, 1f, 35f));
+        }
+
+        [UnityTest, Explicit("Needs a GPU; writes PNGs")]
+        public IEnumerator IceTrailGallery()
+        {
+            var emitter = player.GetComponent<IceTrailEmitter>();
+            for (int i = 0; i < 6; i++) emitter.Place(new Vector3(-6f + i * 1.4f, 0f, 9f + Mathf.Sin(i) * 0.4f));
+            yield return Shot("108_ice_trail", new Vector3(-4f, 3.2f, 3.5f), new Vector3(-1.5f, 0f, 9f), 0.4f);
+            yield return Shot("109_ice_trail_close", new Vector3(-3f, 1.2f, 6f), new Vector3(-2f, 0f, 9f));
+        }
+
+        [UnityTest, Explicit("Needs a GPU; writes PNGs")]
         public IEnumerator TreeCloseups()
         {
             var outside = GameObject.Find("Outside").transform;

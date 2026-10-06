@@ -13,6 +13,8 @@ namespace MixedUp
         public bool original;
 
         public Vector3 Position => transform.position;
+        /// <summary>True when the current game mode put a box here.</summary>
+        public bool InUse { get; set; }
 
         void OnDrawGizmos()
         {

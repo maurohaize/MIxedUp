@@ -26,6 +26,8 @@ namespace MixedUp
         /// <summary>One of a few slightly different takes of a sound, so repeated steps do not sound like a machine gun.</summary>
         public static AudioClip Get(SfxId id, int variant)
         {
+            var recorded = Recorded(id);
+            if (recorded != null) return recorded;
             if (!sfx.TryGetValue(id, out var clips))
             {
                 clips = new AudioClip[Variants];
@@ -36,8 +38,21 @@ namespace MixedUp
             return clips[index];
         }
 
+        /// <summary>Sounds recorded for the original game (Resources/Audio) replace the synthesised ones when present.</summary>
+        static AudioClip Recorded(SfxId id)
+        {
+            switch (id)
+            {
+                case SfxId.Win: return Resources.Load<AudioClip>("Audio/Win");
+                case SfxId.Lose: return Resources.Load<AudioClip>("Audio/GameOver");
+                default: return null;
+            }
+        }
+
         public static AudioClip Music(MusicId id)
         {
+            var recorded = Resources.Load<AudioClip>(id == MusicId.Menu ? "Audio/MusicaMenu" : "Audio/SonidoFondo");
+            if (recorded != null) return recorded;
             if (!music.TryGetValue(id, out var clip) || clip == null)
             {
                 clip = BuildMusic(id);
@@ -139,8 +154,15 @@ namespace MixedUp
             }
         }
 
-        static AudioClip ToClip(string name, Buffer b, float peak = 0.9f)
+        static AudioClip ToClip(string name, Buffer b, float peak = 0.9f, float softness = 0f)
         {
+            // Rounds off the harsh top end (two low-pass passes) so nothing sounds shrill or clicky.
+            if (softness > 0f)
+            {
+                var one = new Filter();
+                var two = new Filter();
+                for (int i = 0; i < b.Length; i++) b.data[i] = two.LowPass(one.LowPass(b.data[i], softness), softness);
+            }
             float max = 0.0001f;
             for (int i = 0; i < b.Length; i++) max = Mathf.Max(max, Mathf.Abs(b.data[i]));
             float scale = peak / max;   // every sound is brought to the same peak, quiet or loud
@@ -168,7 +190,7 @@ namespace MixedUp
             {
                 case SfxId.FootGrass:
                     b = new Buffer(0.14f);
-                    AddNoise(b, rng, 0f, 0.12f, 2200f * v, 1400f * v, 0.9f, 1.0f, 0.004f, 0.035f);
+                    AddNoise(b, rng, 0f, 0.12f, 1800f * v, 1000f * v, 0.9f, 1.0f, 0.012f, 0.04f);
                     AddTone(b, 0f, 0.08f, 110f * v, 70f, 0.25f, 0.002f, 0.03f);
                     break;
                 case SfxId.FootDirt:
@@ -184,7 +206,7 @@ namespace MixedUp
                     break;
                 case SfxId.FootStone:
                     b = new Buffer(0.14f);
-                    AddNoise(b, rng, 0f, 0.05f, 3200f * v, 3200f, 0.7f, 0.7f, 0.001f, 0.015f, 2);
+                    AddNoise(b, rng, 0f, 0.05f, 2400f * v, 2400f, 0.7f, 0.5f, 0.004f, 0.02f, 2);
                     AddTone(b, 0f, 0.09f, 140f * v, 100f, 0.45f, 0.001f, 0.03f);
                     break;
                 case SfxId.FootSnow:
@@ -205,7 +227,7 @@ namespace MixedUp
                     break;
                 case SfxId.Jump:
                     b = new Buffer(0.2f);
-                    AddTone(b, 0f, 0.16f, 260f * v, 520f * v, 0.5f, 0.005f, 0.07f, 1);
+                    AddTone(b, 0f, 0.16f, 260f * v, 480f * v, 0.5f, 0.02f, 0.08f, 0);
                     AddNoise(b, rng, 0f, 0.15f, 700f, 1400f, 0.7f, 0.35f, 0.01f, 0.06f);
                     break;
                 case SfxId.Land:
@@ -242,12 +264,12 @@ namespace MixedUp
                     break;
                 case SfxId.Hurt:
                     b = new Buffer(0.3f);
-                    AddTone(b, 0f, 0.25f, 330f * v, 150f, 0.6f, 0.004f, 0.1f, 2, 0.04f, 18f);
+                    AddTone(b, 0f, 0.25f, 300f * v, 150f, 0.6f, 0.01f, 0.1f, 0, 0.04f, 18f);
                     AddNoise(b, rng, 0f, 0.1f, 1200f, 600f, 0.8f, 0.5f, 0.002f, 0.04f);
                     break;
                 case SfxId.Death:
                     b = new Buffer(1.0f);
-                    AddTone(b, 0f, 0.9f, 520f * v, 90f, 0.6f, 0.01f, 0.45f, 2, 0.05f, 9f);
+                    AddTone(b, 0f, 0.9f, 420f * v, 90f, 0.6f, 0.02f, 0.45f, 0, 0.05f, 9f);
                     AddNoise(b, rng, 0.1f, 0.6f, 900f, 200f, 0.7f, 0.3f, 0.02f, 0.3f, 1);
                     break;
                 case SfxId.Zap:
@@ -331,7 +353,18 @@ namespace MixedUp
                     b = new Buffer(0.1f);
                     break;
             }
-            return ToClip(id + "_" + variant, b);
+            float peak, soft;
+            switch (id)
+            {
+                case SfxId.FootGrass: case SfxId.FootDirt: case SfxId.FootWood: case SfxId.FootStone:
+                case SfxId.FootSnow: case SfxId.FootWater: case SfxId.FootMud: peak = 0.3f; soft = 2200f; break;
+                case SfxId.Jump: case SfxId.Crouch: peak = 0.32f; soft = 2600f; break;
+                case SfxId.Land: peak = 0.4f; soft = 1800f; break;
+                case SfxId.IceCrack: case SfxId.Zap: peak = 0.6f; soft = 6500f; break;
+                case SfxId.Bell: case SfxId.Pickup: case SfxId.Deliver: case SfxId.Heal: peak = 0.6f; soft = 5500f; break;
+                default: peak = 0.62f; soft = 3800f; break;
+            }
+            return ToClip(id + "_" + variant, b, peak, soft);
         }
 
         // -------------------------------------------------------------------- music

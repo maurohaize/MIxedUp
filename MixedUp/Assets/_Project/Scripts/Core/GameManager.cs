@@ -37,6 +37,7 @@ namespace MixedUp
 
         PlayerStatus watched;
         bool transitioning;
+        bool spectating;
 
         public GameState State { get; private set; } = GameState.Playing;
         public DeathCause LastDeathCause { get; private set; }
@@ -47,6 +48,8 @@ namespace MixedUp
         public bool HasTimeLimit => timeLimitSeconds > 0f;
         public float TimeLeft => HasTimeLimit ? Mathf.Max(0f, timeLimitSeconds - ElapsedPlaySeconds) : float.PositiveInfinity;
         public bool TimeIsUp { get; private set; }
+        /// <summary>True while the local player is dead but a teammate is still alive: the game goes on and the dead one watches.</summary>
+        public bool IsSpectating => spectating;
 
         void Awake()
         {
@@ -87,6 +90,13 @@ namespace MixedUp
                     SetState(GameState.GameOver);
                 }
             }
+            if (spectating && State == GameState.Playing && !AnotherPlayerAlive())
+            {
+                // The last teammate fell as well.
+                spectating = false;
+                LastDeathCause = watched != null ? watched.LastCause : DeathCause.Burn;
+                StartCoroutine(TransitionAfterDelay(GameState.GameOver));
+            }
             if (GameInput.Pause.WasPressedThisFrame() && !(EscapeInterceptor?.Invoke() ?? false)) TogglePause();
         }
 
@@ -103,7 +113,24 @@ namespace MixedUp
             if (State != GameState.Playing && State != GameState.Paused) return;
 
             LastDeathCause = cause;
+            if (AnotherPlayerAlive())
+            {
+                spectating = true;
+                return;
+            }
             StartCoroutine(TransitionAfterDelay(GameState.GameOver));
+        }
+
+        /// <summary>Is there another real player (not the local one) still alive?</summary>
+        public static bool AnotherPlayerAlive()
+        {
+            foreach (var player in PlayerRegistry.All)
+            {
+                if (player == null || player == PlayerRegistry.Local) continue;
+                var status = player.GetComponent<PlayerStatus>();
+                if (status != null && !status.IsDead) return true;
+            }
+            return false;
         }
 
         void OnOrderCompleted() => StartCoroutine(TransitionAfterDelay(GameState.TruckPuzzle));

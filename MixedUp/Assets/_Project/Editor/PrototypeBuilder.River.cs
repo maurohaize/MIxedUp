@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace MixedUp.EditorTools
@@ -22,12 +23,12 @@ namespace MixedUp.EditorTools
 
         static readonly Vector2[] RiverWest =
         {
-            new Vector2(-45f, 9f), new Vector2(-58f, 12f), new Vector2(-72f, 7f), new Vector2(-86f, 4.5f), new Vector2(-100f, 9.5f), new Vector2(CaveX + 0.5f, 8f)
+            new Vector2(-45f, 9f), new Vector2(-52f, 9f), new Vector2(-60f, 11.5f), new Vector2(-72f, 7f), new Vector2(-86f, 4.5f), new Vector2(-100f, 9.5f), new Vector2(CaveX + 0.5f, 8f)
         };
 
         static readonly Vector2[] RiverEast =
         {
-            new Vector2(45f, 9f), new Vector2(58f, 6.5f), new Vector2(70f, 9.5f), new Vector2(LakeCenter.x - LakeRadius + 4f, LakeCenter.y)
+            new Vector2(45f, 9f), new Vector2(52f, 9f), new Vector2(60f, 7f), new Vector2(70f, 9.5f), new Vector2(LakeCenter.x - LakeRadius + 4f, LakeCenter.y)
         };
 
         static List<Vector2> smoothWest, smoothEast;
@@ -93,7 +94,11 @@ namespace MixedUp.EditorTools
             float river = west ? DistanceToLine(SmoothWest, x, z) : DistanceToLine(SmoothEast, x, z);
 
             // Meadow: low near the water, rising towards the hills the further away it is.
-            float meadow = Mathf.Lerp(0.05f, s, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(7f, 28f, river)));
+            // (a straight ramp, not a curve: curved slopes shade as a row of saw teeth with flat facets)
+            float meadow = Mathf.Lerp(0.05f, s, Mathf.InverseLerp(7f, 28f, river));
+            // Where the valley meets the map the ground is exactly as flat as the map's own edge (no step, no crack).
+            float fromMap = Mathf.Abs(x) - 45f;
+            meadow = Mathf.Lerp(0f, meadow, Mathf.InverseLerp(0f, 12f, fromMap));
             float h = Mathf.Lerp(-0.4f, meadow, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(ChannelHalf, ChannelHalf + 0.8f, river)));
 
             if (!west)
@@ -118,7 +123,7 @@ namespace MixedUp.EditorTools
             // Blend into the hills at the three outer sides of the valley (the side facing the map matches the map's river).
             Rect r = west ? RiverWestRect : RiverEastRect;
             float edge = Mathf.Min(west ? x - r.xMin : r.xMax - x, z - r.yMin, r.yMax - z);
-            float weight = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(edge / 10f));
+            float weight = Mathf.Clamp01(edge / 10f);
             return Mathf.Lerp(s, h, weight);
         }
 
@@ -142,22 +147,24 @@ namespace MixedUp.EditorTools
             }
 
             return LowPoly.Terrain(name, rect.xMin, rect.yMin, rect.xMax, rect.yMax, 1f, LowPoly.Grass, seed,
-                (x, z) => ValleyHeight(hills, x, z), ColourAt);
+                (x, z) => ValleyHeight(hills, x, z), ColourAt, false);
         }
 
         /// <summary>A flat ribbon of water following a river line.</summary>
         static Mesh BuildRiverWater(string name, List<Vector2> line, float halfWidth)
         {
+            // Exactly as wide as the river of the map where they meet, widening a little over the first metres.
+            float WidthAt(Vector2 p) => Mathf.Lerp(ChannelHalf, halfWidth, Mathf.InverseLerp(0f, 8f, Mathf.Abs(p.x) - 45f));
             var b = new LowPoly.MeshBuilder();
             for (int i = 0; i + 1 < line.Count; i++)
             {
                 Vector2 a = line[i], c = line[i + 1], dir = (c - a).normalized, side = new Vector2(-dir.y, dir.x);
                 Vector2 prevDir = i > 0 ? (a - line[i - 1]).normalized : dir, nextDir = i + 2 < line.Count ? (line[i + 2] - c).normalized : dir;
                 Vector2 sideA = new Vector2(-(dir + prevDir).normalized.y, (dir + prevDir).normalized.x), sideC = new Vector2(-(dir + nextDir).normalized.y, (dir + nextDir).normalized.x);
-                Vector3 a0 = new Vector3(a.x + sideA.x * halfWidth, RiverWaterY, a.y + sideA.y * halfWidth);
-                Vector3 a1 = new Vector3(a.x - sideA.x * halfWidth, RiverWaterY, a.y - sideA.y * halfWidth);
-                Vector3 c0 = new Vector3(c.x + sideC.x * halfWidth, RiverWaterY, c.y + sideC.y * halfWidth);
-                Vector3 c1 = new Vector3(c.x - sideC.x * halfWidth, RiverWaterY, c.y - sideC.y * halfWidth);
+                Vector3 a0 = new Vector3(a.x + sideA.x * WidthAt(a), RiverWaterY, a.y + sideA.y * WidthAt(a));
+                Vector3 a1 = new Vector3(a.x - sideA.x * WidthAt(a), RiverWaterY, a.y - sideA.y * WidthAt(a));
+                Vector3 c0 = new Vector3(c.x + sideC.x * WidthAt(c), RiverWaterY, c.y + sideC.y * WidthAt(c));
+                Vector3 c1 = new Vector3(c.x - sideC.x * WidthAt(c), RiverWaterY, c.y - sideC.y * WidthAt(c));
                 int colour = (i % 5 == 0) ? 29 : 16;
                 if (Vector3.Cross(c0 - a0, a1 - a0).y > 0f) { b.Triangle(a0, c0, a1, colour); b.Triangle(a1, c0, c1, colour); }
                 else { b.Triangle(a0, a1, c0, colour); b.Triangle(a1, c1, c0, colour); }
@@ -206,6 +213,82 @@ namespace MixedUp.EditorTools
             return art.hillField.Surface(x, z);
         }
 
+        /// <summary>The mouth of the cave: torches on the banks, glowing crystals deep inside, mossy boulders and a breath of mist.</summary>
+        static void DressCave(Transform group, Transform cave, ArtAssets art)
+        {
+            float GroundAt(float lx, float lz) => OutsideHeight(art, cave.position.x + lx, cave.position.z + lz) - cave.position.y;
+
+            // torches planted on both banks, flanking the mouth
+            foreach (var side in new[] { -1f, 1f })
+                AddTorchPost(cave, new Vector3(2.4f, GroundAt(2.4f, side * 5.4f), side * 5.4f), 1.7f);
+
+            // a glowing crystal garden inside, lit blue
+            var crystals = new[] { SaveInkedMesh(LowPolyProps.IceCrystals(3)), SaveInkedMesh(LowPolyProps.IceCrystals(7)) };
+            var crystalMaterial = fxCrystal != null ? fxCrystal : art.palette;
+            var spots = new[] { new Vector3(-1.6f, 0f, -2.6f), new Vector3(-3.0f, 0f, 1.9f), new Vector3(-0.9f, 0f, 3.1f), new Vector3(-3.6f, 0f, -1.0f) };
+            for (int i = 0; i < spots.Length; i++)
+            {
+                var crystal = MeshObject("CaveCrystals", cave, crystals[i % 2], crystalMaterial);
+                crystal.transform.localPosition = new Vector3(spots[i].x, 0.15f, spots[i].z);
+                crystal.transform.localRotation = Quaternion.Euler(0f, i * 83f, 0f);
+                crystal.transform.localScale = Vector3.one * (1.3f + 0.25f * i);
+            }
+            var glow = new GameObject("CaveGlow");
+            glow.transform.SetParent(cave, false);
+            glow.transform.localPosition = new Vector3(-2.2f, 1.6f, 0f);
+            var light = glow.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.color = new Color(0.45f, 0.8f, 1f);
+            light.range = 10f;
+            light.intensity = 2.2f;
+            light.shadows = LightShadows.None;
+            var flicker = glow.AddComponent<FlickerLight>();
+            flicker.baseIntensity = 2.2f;
+            flicker.amount = 0.12f;
+            flicker.speed = 0.8f;
+            AddHalo(cave, new Vector3(-2.2f, 1.6f, 0f), 5f, new Color(0.5f, 0.85f, 1f, 0.3f));
+
+            // mist rolling out over the water at the mouth
+            var mist = NewParticles("CaveMist", cave, fxSoft);
+            mist.transform.localPosition = new Vector3(0.8f, 0.5f, 0f);
+            var main = mist.main;
+            main.loop = true;
+            main.prewarm = true;
+            main.startLifetime = 6f;
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.25f, 0.5f);
+            main.startSize = new ParticleSystem.MinMaxCurve(2.4f, 4f);
+            main.startColor = new Color(0.85f, 0.93f, 1f, 0.16f);
+            main.maxParticles = 40;
+            var emission = mist.emission;
+            emission.rateOverTime = 6f;
+            var shape = mist.shape;
+            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.scale = new Vector3(1f, 1.4f, 7f);
+            var velocity = mist.velocityOverLifetime;
+            velocity.enabled = true;
+            velocity.space = ParticleSystemSimulationSpace.World;
+            velocity.x = new ParticleSystem.MinMaxCurve(0.4f, 0.9f);
+            velocity.y = new ParticleSystem.MinMaxCurve(0f, 0f);
+            velocity.z = new ParticleSystem.MinMaxCurve(0f, 0f);
+            var fade = mist.colorOverLifetime;
+            fade.enabled = true;
+            var gradient = new Gradient();
+            gradient.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.3f), new GradientAlphaKey(0f, 1f) });
+            fade.color = gradient;
+
+            // boulders round the mouth, big ones at the flanks
+            var rockSpots = new[] { (-1.5f, -8.2f, 1.9f), (-1f, 8.4f, 2.1f), (3.8f, -7.2f, 1.1f), (4.2f, 7.4f, 1.0f), (-4.2f, -7.4f, 2.3f) };
+            for (int i = 0; i < rockSpots.Length; i++)
+            {
+                var (lx, lz, scale) = rockSpots[i];
+                var rock = PrefabUtility.InstantiatePrefab(art.rocks[(i * 2 + 1) % art.rocks.Length], group) as GameObject;
+                rock.transform.position = new Vector3(cave.position.x + lx, OutsideHeight(art, cave.position.x + lx, cave.position.z + lz) - 0.2f, cave.position.z + lz);
+                rock.transform.rotation = Quaternion.Euler(0f, i * 71f, 0f);
+                rock.transform.localScale = Vector3.one * scale;
+            }
+        }
+
         static void BuildRiverExtension(Transform env, Mats m, ArtAssets art)
         {
             var group = new GameObject("RiverBeyond").transform;
@@ -222,8 +305,7 @@ namespace MixedUp.EditorTools
             float caveGround = ValleyHeight(art.hillField, CaveX, 8f);
             var cave = MeshObject("Cave", group, art.cave, art.palette);
             cave.transform.position = new Vector3(CaveX - 0.4f, Mathf.Min(caveGround, -0.4f), 8f);
-            AddLampLight(cave.transform, new Vector3(2.6f, 3.4f, -5.2f), 9f, 2.2f);
-            AddLampLight(cave.transform, new Vector3(2.6f, 3.4f, 5.2f), 9f, 2.2f);
+            DressCave(group, cave.transform, art);
 
             var rng = new System.Random(606);
 

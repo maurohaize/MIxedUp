@@ -188,13 +188,15 @@ namespace MixedUp.EditorTools
             UiFactory.Stretch(signpost);
             menu.signpost = signpost.gameObject;
 
+            // The post is drawn first: it rises behind the logo so the sign looks like it is holding it.
+            var post = UiFactory.NewSprite("Post", signpost, "post");
+            post.preserveAspect = false;
+            At(post.rectTransform, 285f, 250f, 100f, 930f);
+
             var logo = UiFactory.NewSprite("Logo", signpost, "logo");
             At(logo.rectTransform, 70f, 36f, 540f, 442f);
             logo.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -3f);
 
-            var post = UiFactory.NewSprite("Post", signpost, "post");
-            post.preserveAspect = false;
-            At(post.rectTransform, 280f, 470f, 100f, 700f);
 
             menu.playButton = UiFactory.NewButton("Play", signpost, "", "ui.play", new Vector2(560f, 128f));
             At((RectTransform)menu.playButton.transform, 50f, 520f, 560f, 128f);

@@ -79,14 +79,14 @@ namespace MixedUp
                     stepDistance = 0f;
                     var id = SurfaceSound();
                     LastStep = id;
-                    AudioManager.Play(id, transform.position, controller.IsCrouching ? 0.3f : 0.75f);
+                    AudioManager.Play(id, transform.position, controller.IsCrouching ? 0.25f : 0.5f);
                 }
             }
 
             if (controller.IsCrouching != wasCrouching)
             {
                 wasCrouching = controller.IsCrouching;
-                AudioManager.Play(SfxId.Crouch, transform.position, 0.6f);
+                AudioManager.Play(SfxId.Crouch, transform.position, 0.4f);
             }
         }
 
@@ -113,12 +113,12 @@ namespace MixedUp
 
         static SfxId FootIce() => SfxId.FootSnow;
 
-        void OnJumped() => AudioManager.Play(SfxId.Jump, transform.position, 0.8f);
+        void OnJumped() => AudioManager.Play(SfxId.Jump, transform.position, 0.45f);
 
         void OnLanded(float drop)
         {
             if (drop < 0.35f) return;
-            AudioManager.Play(SfxId.Land, transform.position, Mathf.Clamp(0.4f + drop * 0.15f, 0.4f, 1f));
+            AudioManager.Play(SfxId.Land, transform.position, Mathf.Clamp(0.3f + drop * 0.08f, 0.3f, 0.6f));
         }
 
         void OnDamaged(float amount, DeathCause cause)

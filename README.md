@@ -22,9 +22,12 @@ sin que nada explote. Idiomas: euskera, español e inglés.
 | Quitar todas las cajas a un compañero | F | Botón este |
 | Agacharse | C o Ctrl izquierdo | Pulsar stick derecho |
 | Empujar a otro jugador | G o clic izquierdo | Botón superior derecho |
-| Abrazar (cura a los dos) | H | Botón superior izquierdo |
+| Abrazar (cura a los dos; con más jugadores es la única forma de recuperar vida) | H | Botón superior izquierdo |
+| Espectar a otro jugador (estando muerto) | E | Botón oeste |
 | Cambiar de caja | Q, rueda o 1-2 | Botón norte |
 | Pausa y ajustes | Esc | — |
+
+Al morir, las cajas que llevabas caen al suelo para que tu equipo las recoja, y puedes ver jugar a tus compañeros. La partida solo termina cuando caen todos.
 
 ## Modos de partida
 

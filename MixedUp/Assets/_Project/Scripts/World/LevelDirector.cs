@@ -55,6 +55,7 @@ namespace MixedUp
 
             boxesRoot = new GameObject("Boxes").transform;
             PlaceBoxes(rng);
+            foreach (var area in FindObjectsByType<SpawnAreaLights>()) area.Refresh();
 
             if (GameManager.Instance != null) GameManager.Instance.timeLimitSeconds = Mode.timeLimit;
             if (Mode.night && night != null) night.Apply();
@@ -142,9 +143,26 @@ namespace MixedUp
 
         void Spawn(BoxData data, BoxSpawnPoint point)
         {
-            if (boxPickupPrefab == null || data == null) return;
+            point.InUse = true;
+            SpawnAt(data, point.Position);
+        }
 
-            var go = Instantiate(boxPickupPrefab, point.Position, Quaternion.identity, boxesRoot);
+        /// <summary>Puts a box that somebody was carrying back into the world, spread in a small ring round `around`.</summary>
+        public BoxPickup Drop(BoxData data, Vector3 around, int index, int count)
+        {
+            float angle = (index / (float)Mathf.Max(1, count)) * Mathf.PI * 2f;
+            Vector3 spot = around + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * (count > 1 ? 0.8f : 0.4f);
+            if (Physics.Raycast(spot + Vector3.up * 2f, Vector3.down, out var hit, 8f, ~0, QueryTriggerInteraction.Ignore)) spot.y = hit.point.y + 0.6f;
+            else spot = around + Vector3.up * 0.6f;
+            return SpawnAt(data, spot);
+        }
+
+        BoxPickup SpawnAt(BoxData data, Vector3 position)
+        {
+            if (boxPickupPrefab == null || data == null) return null;
+            if (boxesRoot == null) boxesRoot = new GameObject("Boxes").transform;
+
+            var go = Instantiate(boxPickupPrefab, position, Quaternion.identity, boxesRoot);
             go.name = "Box_" + data.id;
             var pickup = go.GetComponent<BoxPickup>();
             pickup.data = data;
@@ -156,6 +174,7 @@ namespace MixedUp
                 beacon.GetComponent<BoxBeacon>()?.Tint(data.color);
             }
             pickups.Add(pickup);
+            return pickup;
         }
     }
 }

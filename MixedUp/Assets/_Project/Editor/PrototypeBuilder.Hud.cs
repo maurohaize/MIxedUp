@@ -44,6 +44,7 @@ namespace MixedUp.EditorTools
             ui.inventoryHud = BuildInventory(hudRoot);
             ui.promptHud = BuildPrompt(hudRoot);
             BuildToast(hudRoot);
+            BuildSpectate(hudRoot);
 
             BuildPausePanel(canvasGo.transform, ui);
             BuildGameOverPanel(canvasGo.transform, ui);
@@ -303,6 +304,18 @@ namespace MixedUp.EditorTools
             hud.container = root.gameObject;
             root.gameObject.SetActive(false);
             return hud;
+        }
+
+        static void BuildSpectate(RectTransform parent)
+        {
+            var inner = UiFactory.Panel("SpectatePanel", parent, new Vector2(1100f, 84f), out var root, false);
+            UiFactory.Place(root, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 120f), new Vector2(1100f, 84f));
+            var label = UiFactory.NewText("Spectate", inner, "", 44f, Ink);
+            UiFactory.Stretch(label.rectTransform, 14f);
+            var hud = root.gameObject.AddComponent<SpectateHud>();
+            hud.label = label;
+            hud.container = root.gameObject;
+            root.gameObject.SetActive(false);
         }
 
         static void BuildToast(RectTransform parent)

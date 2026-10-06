@@ -11,7 +11,7 @@ namespace MixedUp.EditorTools
     /// </summary>
     public static partial class PrototypeBuilder
     {
-        static Material fxSoft, fxGlow, fxRing, fxFlame, fxMist, fxWater, fxBulb, fxHeart, fxWaterFar, fxLake;
+        static Material fxSoft, fxGlow, fxRing, fxFlame, fxMist, fxWater, fxBulb, fxHeart, fxWaterFar, fxLake, fxIron, fxTorchWood, fxIce, fxCrystal;
         static Texture2D glowTexture, ringTexture, heartTexture;
 
         // ------------------------------------------------------------ assets
@@ -139,6 +139,34 @@ namespace MixedUp.EditorTools
                 m.SetFloat("_WaveHeight", 0.05f);
                 m.SetFloat("_DeepMix", 0.62f);
             });
+            fxIce = FxMaterial("IceFloe", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(TexturesDir + "/palette.png"));
+                m.SetColor("_BaseColor", Color.white);
+                m.SetFloat("_Smoothness", 0.92f);
+                m.SetColor("_EmissionColor", new Color(0.05f, 0.14f, 0.18f));
+                m.EnableKeyword("_EMISSION");
+                m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            });
+            fxCrystal = FxMaterial("CaveCrystal", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(TexturesDir + "/palette.png"));
+                m.SetColor("_BaseColor", new Color(0.8f, 0.95f, 1f));
+                m.SetFloat("_Smoothness", 0.9f);
+                m.SetColor("_EmissionColor", new Color(0.25f, 0.8f, 1.1f));
+                m.EnableKeyword("_EMISSION");
+                m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            });
+            fxIron = FxMaterial("FixtureIron", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetColor("_BaseColor", new Color(0.16f, 0.13f, 0.12f));
+                m.SetFloat("_Smoothness", 0.15f);
+            });
+            fxTorchWood = FxMaterial("FixtureWood", "Universal Render Pipeline/Lit", m =>
+            {
+                m.SetColor("_BaseColor", new Color(0.33f, 0.2f, 0.12f));
+                m.SetFloat("_Smoothness", 0.1f);
+            });
             fxBulb = FxMaterial("LampBulb", "Universal Render Pipeline/Lit", m =>
             {
                 m.SetColor("_BaseColor", new Color(1f, 0.86f, 0.55f));
@@ -178,6 +206,67 @@ namespace MixedUp.EditorTools
             flicker.speed = 1.5f;
 
             AddHalo(root.transform, Vector3.zero, 2.4f, new Color(1f, 0.8f, 0.45f, 0.55f));
+            return root;
+        }
+
+        static GameObject FixturePart(Transform parent, string name, Vector3 position, Vector3 size, Material material, Quaternion? rotation = null)
+        {
+            var go = Prim(PrimitiveType.Cube, name, parent, position, size, material, false, rotation);
+            go.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
+            return go;
+        }
+
+        /// <summary>The cage of a lantern around a bulb: a base, a roof and four thin bars.</summary>
+        static void AddLanternCage(Transform parent, Vector3 centre)
+        {
+            FixturePart(parent, "CageBase", centre + new Vector3(0f, -0.2f, 0f), new Vector3(0.3f, 0.05f, 0.3f), fxIron);
+            FixturePart(parent, "CageRoof", centre + new Vector3(0f, 0.22f, 0f), new Vector3(0.36f, 0.05f, 0.36f), fxIron);
+            foreach (var (x, z) in new[] { (-0.13f, -0.13f), (0.13f, -0.13f), (-0.13f, 0.13f), (0.13f, 0.13f) })
+                FixturePart(parent, "CageBar", centre + new Vector3(x, 0f, z), new Vector3(0.03f, 0.4f, 0.03f), fxIron);
+        }
+
+        /// <summary>A lantern on an iron bracket fixed to a wall. `outward` is the direction away from the wall (local, horizontal).</summary>
+        static GameObject AddWallLantern(Transform parent, Vector3 wallPoint, Vector3 outward, float range = 9f, float intensity = 2.2f)
+        {
+            var root = new GameObject("WallLantern");
+            root.transform.SetParent(parent, false);
+            root.transform.localPosition = wallPoint;
+            root.transform.localRotation = Quaternion.LookRotation(outward.normalized, Vector3.up);
+
+            FixturePart(root.transform, "Plate", new Vector3(0f, 0f, 0.02f), new Vector3(0.18f, 0.5f, 0.04f), fxIron);
+            FixturePart(root.transform, "Arm", new Vector3(0f, 0.12f, 0.27f), new Vector3(0.06f, 0.06f, 0.5f), fxIron);
+            FixturePart(root.transform, "Brace", new Vector3(0f, 0.02f, 0.2f), new Vector3(0.04f, 0.04f, 0.38f), fxIron, Quaternion.Euler(-35f, 0f, 0f));
+            var centre = new Vector3(0f, -0.12f, 0.5f);
+            FixturePart(root.transform, "Hook", new Vector3(0f, 0.06f, 0.5f), new Vector3(0.03f, 0.1f, 0.03f), fxIron);
+            AddLanternCage(root.transform, centre);
+            AddLampLight(root.transform, centre, range, intensity);
+            return root;
+        }
+
+        /// <summary>A lantern hanging from a ceiling on a short chain.</summary>
+        static GameObject AddHangingLantern(Transform parent, Vector3 ceilingPoint, float drop = 0.45f, float range = 7f, float intensity = 1.8f)
+        {
+            var root = new GameObject("HangingLantern");
+            root.transform.SetParent(parent, false);
+            root.transform.localPosition = ceilingPoint;
+            FixturePart(root.transform, "Mount", new Vector3(0f, -0.02f, 0f), new Vector3(0.12f, 0.04f, 0.12f), fxIron);
+            FixturePart(root.transform, "Chain", new Vector3(0f, -drop * 0.5f, 0f), new Vector3(0.03f, drop, 0.03f), fxIron);
+            var centre = new Vector3(0f, -drop - 0.22f, 0f);
+            AddLanternCage(root.transform, centre);
+            AddLampLight(root.transform, centre, range, intensity);
+            return root;
+        }
+
+        /// <summary>A wooden torch planted in the ground with a real flame on top. `height` is the length of the stick.</summary>
+        static GameObject AddTorchPost(Transform parent, Vector3 foot, float height = 1.5f, float tilt = 0f)
+        {
+            var root = new GameObject("Torch");
+            root.transform.SetParent(parent, false);
+            root.transform.localPosition = foot;
+            root.transform.localRotation = Quaternion.Euler(tilt, 0f, 0f);
+            FixturePart(root.transform, "Stick", new Vector3(0f, height * 0.5f, 0f), new Vector3(0.09f, height, 0.09f), fxTorchWood);
+            FixturePart(root.transform, "Wrap", new Vector3(0f, height - 0.08f, 0f), new Vector3(0.15f, 0.2f, 0.15f), fxIron);
+            AddFireFx(root.transform, new Vector3(0f, height, 0f), 0.42f);
             return root;
         }
 

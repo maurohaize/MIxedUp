@@ -303,39 +303,40 @@ namespace MixedUp.EditorTools
             var panel = dim.gameObject.AddComponent<ManualPanel>();
             panel.rules = a.rules;
 
-            var inner = UiFactory.Panel("Card", dim, new Vector2(1500f, 960f), out var root);
-            UiFactory.Place(root, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1500f, 960f));
+            var inner = UiFactory.Panel("Card", dim, new Vector2(1800f, 980f), out var root);
+            UiFactory.Place(root, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1800f, 980f));
 
             var title = UiFactory.NewText("Title", inner, "", 64f, Ink, TextAlignmentOptions.Center, "ui.manual_title");
-            UiFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -20f), new Vector2(1400f, 90f));
+            UiFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -20f), new Vector2(1700f, 90f));
 
+            // Two columns of rows with big box drawings, so the whole width of the card is used.
             var rows = UiFactory.NewRect("Rows", inner);
-            UiFactory.Place(rows, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -120f), new Vector2(1400f, 700f));
-            var layout = rows.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = 6f;
-            layout.childControlWidth = true;
-            layout.childControlHeight = false;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
+            UiFactory.Place(rows, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -120f), new Vector2(1700f, 720f));
+            var layout = rows.gameObject.AddComponent<GridLayoutGroup>();
+            layout.cellSize = new Vector2(830f, 112f);
+            layout.spacing = new Vector2(30f, 6f);
+            layout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            layout.constraintCount = 2;
+            layout.childAlignment = TextAnchor.UpperCenter;
 
             var template = UiFactory.NewRect("RowTemplate", rows);
-            template.sizeDelta = new Vector2(0f, 60f);
+            template.sizeDelta = new Vector2(830f, 112f);
             var iconA = UiFactory.NewImage("IconA", template, Color.white);
-            UiFactory.Place(iconA.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(20f, 0f), new Vector2(52f, 52f));
+            UiFactory.Place(iconA.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(10f, 0f), new Vector2(106f, 106f));
             iconA.preserveAspect = true;
-            var plus = UiFactory.NewText("Plus", template, "+", 40f, Ink);
-            UiFactory.Place(plus.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(76f, 0f), new Vector2(40f, 52f));
+            var plus = UiFactory.NewText("Plus", template, "+", 48f, Ink);
+            UiFactory.Place(plus.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(126f, 0f), new Vector2(44f, 60f));
             var iconB = UiFactory.NewImage("IconB", template, Color.white);
-            UiFactory.Place(iconB.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(120f, 0f), new Vector2(52f, 52f));
+            UiFactory.Place(iconB.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(172f, 0f), new Vector2(106f, 106f));
             iconB.preserveAspect = true;
 
             var markerRoot = UiFactory.NewRect("Marker", template);
-            UiFactory.Place(markerRoot, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(210f, 0f), new Vector2(54f, 54f));
+            UiFactory.Place(markerRoot, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(298f, 0f), new Vector2(64f, 64f));
             var ring = UiFactory.NewImage("Ring", markerRoot, Ink);
             UiFactory.Stretch(ring.rectTransform);
             var disc = UiFactory.NewImage("Disc", ring.transform, Color.white);
-            UiFactory.Place(disc.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(44f, 44f));
-            var symbol = UiFactory.NewText("Symbol", disc.transform, "?", 24f, Ink);
+            UiFactory.Place(disc.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(52f, 52f));
+            var symbol = UiFactory.NewText("Symbol", disc.transform, "?", 28f, Ink);
             UiFactory.Stretch(symbol.rectTransform);
             var marker = markerRoot.gameObject.AddComponent<OutcomeMarker>();
             marker.ring = ring;
@@ -345,10 +346,10 @@ namespace MixedUp.EditorTools
             var hint = UiFactory.NewText("Hint", template, "", 30f, Ink, TextAlignmentOptions.MidlineLeft);
             hint.rectTransform.anchorMin = new Vector2(0f, 0f);
             hint.rectTransform.anchorMax = new Vector2(1f, 1f);
-            hint.rectTransform.offsetMin = new Vector2(280f, 0f);
+            hint.rectTransform.offsetMin = new Vector2(380f, 0f);
             hint.rectTransform.offsetMax = new Vector2(-10f, 0f);
             hint.enableAutoSizing = true;
-            hint.fontSizeMin = 18f;
+            hint.fontSizeMin = 16f;
             hint.fontSizeMax = 30f;
 
             var rowView = template.gameObject.AddComponent<ManualRowView>();

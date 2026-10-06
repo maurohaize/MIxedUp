@@ -46,7 +46,12 @@ namespace MixedUp.EditorTools
             var ferry = raft.AddComponent<MovingRaft>();
             ferry.pointA = new Vector3(-8f, 0f, 6.4f);
             ferry.pointB = new Vector3(-8f, 0f, 11.6f);
-            AddLampLight(raft.transform, new Vector3(-1.45f, 1.05f, -1.45f), 8f, 1.8f);
+            // a short lamp post on a corner of the raft
+            var raftLamp = MeshObject("RaftLamp", raft.transform, lampMesh, art.palette);
+            raftLamp.isStatic = false;
+            raftLamp.transform.localPosition = new Vector3(-1.3f, 0.05f, -1.3f);
+            raftLamp.transform.localScale = Vector3.one * 0.7f;
+            AddLampLight(raftLamp.transform, new Vector3(0f, 2.78f, 0f), 9f, 1.8f);
 
             // --- gusts of wind on the trail between the stepping stones and the windmill
             var gust = new GameObject("GustZone");
