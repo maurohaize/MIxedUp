@@ -13,7 +13,7 @@ namespace MixedUp.EditorTools
     {
         static readonly Color Ink = UiFactory.Ink;
 
-        static void BuildHud(GameAssets a, Truck truck)
+        static void BuildHud(GameAssets a, Truck truck, TruckPuzzleController puzzle)
         {
             var canvasGo = new GameObject("UI", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             var canvas = canvasGo.GetComponent<Canvas>();
@@ -46,7 +46,7 @@ namespace MixedUp.EditorTools
 
             BuildPausePanel(canvasGo.transform, ui);
             BuildGameOverPanel(canvasGo.transform, ui);
-            BuildPuzzlePanel(canvasGo.transform, ui);
+            BuildPuzzleUi(canvasGo.transform, ui, a, puzzle);
         }
 
         static void BuildEventSystem()
@@ -328,10 +328,11 @@ namespace MixedUp.EditorTools
         {
             var panel = FullScreenDim("PausePanel", canvas, new Color(0f, 0f, 0f, 0.55f));
             ui.pausePanel = panel.gameObject;
-            var card = CenteredCard(panel, new Vector2(660f, 640f));
+            var card = CenteredCard(panel, new Vector2(660f, 760f));
 
             CardText(card, "", "ui.paused", 80f, 100f, Ink);
             ui.resumeButton = CardButton(card, "", "ui.resume", 90f);
+            ui.manualButton = CardButton(card, "", "ui.manual", 90f);
             CardText(card, "", "ui.language", 40f, 56f, Ink);
 
             var row = UiFactory.NewRect("Languages", card);
@@ -353,25 +354,14 @@ namespace MixedUp.EditorTools
         {
             var panel = FullScreenDim("GameOverPanel", canvas, new Color(0.35f, 0.05f, 0.05f, 0.8f));
             ui.gameOverPanel = panel.gameObject;
-            var card = CenteredCard(panel, new Vector2(900f, 800f));
+            var card = CenteredCard(panel, new Vector2(900f, 900f));
 
             CardText(card, "", "ui.game_over", 130f, 170f, new Color(0.7f, 0.15f, 0.1f));
             CardText(card, "", "ui.death_cause", 48f, 64f, Ink);
             ui.deathCauseLabel = CardText(card, "", null, 46f, 170f, Ink);
+            ui.quipLabel = CardText(card, "", null, 38f, 70f, new Color(Ink.r, Ink.g, Ink.b, 0.65f));
             ui.retryButton = CardButton(card, "", "ui.retry", 90f);
             ui.gameOverQuitButton = CardButton(card, "", "ui.quit", 90f);
-        }
-
-        static void BuildPuzzlePanel(Transform canvas, UIManager ui)
-        {
-            var panel = FullScreenDim("PuzzlePlaceholderPanel", canvas, new Color(0.1f, 0.1f, 0.1f, 0.75f));
-            ui.puzzlePanel = panel.gameObject;
-            var card = CenteredCard(panel, new Vector2(900f, 720f));
-
-            CardText(card, "", "ui.puzzle_title", 64f, 190f, Ink);
-            CardText(card, "", "ui.puzzle_todo", 42f, 150f, Ink);
-            ui.puzzleRetryButton = CardButton(card, "", "ui.retry", 90f);
-            ui.puzzleQuitButton = CardButton(card, "", "ui.quit", 90f);
         }
     }
 }

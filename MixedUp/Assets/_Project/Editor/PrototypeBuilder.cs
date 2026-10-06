@@ -24,6 +24,7 @@ namespace MixedUp.EditorTools
             public BoxDatabase database;
             public OrderData order;
             public PlayerPalette palette;
+            public CombinationRules rules;
         }
 
         sealed class Mats
@@ -34,7 +35,7 @@ namespace MixedUp.EditorTools
 
         sealed class Prefabs
         {
-            public GameObject box, player, teammate, bedCube;
+            public GameObject box, player, teammate, bedCube, loreNote;
         }
 
         [MenuItem("MixedUp/Build Phase 1 Prototype")]
@@ -125,6 +126,8 @@ namespace MixedUp.EditorTools
                     new Color(0.92f, 0.60f, 0.70f), new Color(0.93f, 0.92f, 0.88f), new Color(0.20f, 0.20f, 0.22f)
                 };
             });
+
+            a.rules = CreateRules(a);
             return a;
         }
 

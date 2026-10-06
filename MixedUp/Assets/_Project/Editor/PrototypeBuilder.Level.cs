@@ -32,12 +32,20 @@ namespace MixedUp.EditorTools
             SpawnCharacter(players, p.player, new Vector3(4f, 0.05f, -31f), a.palette, 0, 1);
             SpawnCharacter(players, p.teammate, new Vector3(-4f, 0.05f, -31f), a.palette, 0, 2);
 
+            var notes = new GameObject("Notes").transform;
+            PlaceNote(notes, p.loreNote, a.rules, a.hot, a.frozen, new Vector3(-5.5f, 0f, -30.5f), "Note_HotFrozen");
+            PlaceNote(notes, p.loreNote, a.rules, a.hot, a.electric, new Vector3(-27f, 0f, 2.5f), "Note_HotElectric");
+            PlaceNote(notes, p.loreNote, a.rules, a.toxic, a.electric, new Vector3(-16f, 0f, 40f), "Note_ToxicElectric");
+
             var managers = new GameObject("Managers");
             var game = managers.AddComponent<GameManager>();
             game.truck = truck;
+            var puzzle = managers.AddComponent<TruckPuzzleController>();
+            puzzle.truck = truck;
+            puzzle.rules = a.rules;
 
             ConfigureCamera();
-            BuildHud(a, truck);
+            BuildHud(a, truck, puzzle);
             BuildEventSystem();
 
             EditorSceneManager.SaveScene(scene, ScenePath);

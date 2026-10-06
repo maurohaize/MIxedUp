@@ -13,7 +13,8 @@ namespace MixedUp.EditorTools
                 bedCube = SavePrefab(BuildBedCube(m), "BedCube"),
                 box = SavePrefab(BuildBoxPickup(m), "BoxPickup"),
                 player = SavePrefab(BuildCharacter(m, true), "Player"),
-                teammate = SavePrefab(BuildCharacter(m, false), "Teammate")
+                teammate = SavePrefab(BuildCharacter(m, false), "Teammate"),
+                loreNote = SavePrefab(BuildLoreNote(m), "LoreNote")
             };
         }
 

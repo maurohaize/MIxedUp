@@ -14,124 +14,9 @@ using UnityEngine.TestTools;
 namespace MixedUp.Tests
 {
     /// <summary>Plays the real prototype scene headlessly with simulated keyboard input.</summary>
-    public class PrototypeSceneTests
+    public class PrototypeSceneTests : SceneTestBase
     {
-        const string ScenePath = "Assets/Scenes/Level_Prototype.unity";
-        const string LanguagePref = "settings.language";
-
-        Keyboard keyboard;
-        bool createdKeyboard;
-        InputSettings.BackgroundBehavior savedBackground;
-        InputSettings.EditorInputBehaviorInPlayMode savedEditorBehavior;
-        bool hadLanguagePref;
-        int savedLanguage;
         float measured;
-
-        PlayerController player;
-        PlayerStatus status;
-        PlayerInteractor interactor;
-        Truck truck;
-        BoxPickup[] pickups;
-        UIManager ui;
-
-        // ------------------------------------------------------------ setup
-
-        [UnitySetUp]
-        public IEnumerator SetUp()
-        {
-            if (!File.Exists(ScenePath)) Assert.Ignore("Missing " + ScenePath + ". Run MixedUp > Build Phase 1 Prototype first.");
-
-            hadLanguagePref = PlayerPrefs.HasKey(LanguagePref);
-            savedLanguage = PlayerPrefs.GetInt(LanguagePref, 0);
-
-            savedBackground = InputSystem.settings.backgroundBehavior;
-            savedEditorBehavior = InputSystem.settings.editorInputBehaviorInPlayMode;
-            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
-            InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
-
-            keyboard = Keyboard.current;
-            if (keyboard == null)
-            {
-                keyboard = InputSystem.AddDevice<Keyboard>();
-                createdKeyboard = true;
-            }
-
-#if UNITY_EDITOR
-            yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(ScenePath, new LoadSceneParameters(LoadSceneMode.Single));
-#else
-            Assert.Ignore("These tests load the scene by asset path and only run in the editor.");
-#endif
-            yield return null;
-            yield return null;
-
-            player = PlayerRegistry.Local;
-            Assert.IsNotNull(player, "no local player registered");
-            status = player.GetComponent<PlayerStatus>();
-            interactor = player.GetComponent<PlayerInteractor>();
-            truck = Object.FindAnyObjectByType<Truck>();
-            pickups = Object.FindObjectsByType<BoxPickup>();
-            ui = Object.FindAnyObjectByType<UIManager>();
-
-            yield return new WaitForSeconds(0.6f);
-        }
-
-        [UnityTearDown]
-        public IEnumerator TearDown()
-        {
-            if (keyboard != null) ReleaseAllKeys();
-            yield return null;
-
-            Time.timeScale = 1f;
-            InputSystem.settings.backgroundBehavior = savedBackground;
-            InputSystem.settings.editorInputBehaviorInPlayMode = savedEditorBehavior;
-            if (createdKeyboard && keyboard != null) InputSystem.RemoveDevice(keyboard);
-            createdKeyboard = false;
-
-            if (hadLanguagePref) PlayerPrefs.SetInt(LanguagePref, savedLanguage);
-            else PlayerPrefs.DeleteKey(LanguagePref);
-        }
-
-        // ---------------------------------------------------------- helpers
-
-        readonly System.Collections.Generic.HashSet<Key> held = new System.Collections.Generic.HashSet<Key>();
-
-        /// <summary>Keeps the full set of pressed keys, so several keys can be held at once.</summary>
-        void SetKey(Key key, bool down)
-        {
-            if (down) held.Add(key);
-            else held.Remove(key);
-            InputSystem.QueueStateEvent(keyboard, new KeyboardState(held.ToArray()));
-        }
-
-        void ReleaseAllKeys()
-        {
-            held.Clear();
-            InputSystem.QueueStateEvent(keyboard, new KeyboardState());
-        }
-
-        IEnumerator Tap(Key key)
-        {
-            SetKey(key, true);
-            yield return null;
-            yield return null;
-            SetKey(key, false);
-            yield return null;
-        }
-
-        static IEnumerator Settle()
-        {
-            yield return new WaitForFixedUpdate();
-            yield return new WaitForFixedUpdate();
-            yield return null;
-        }
-
-        BoxData BoxOf(string id) => pickups.First(p => p.data.id == id).data;
-
-        IEnumerator GoTo(Vector3 position)
-        {
-            player.Teleport(position);
-            yield return Settle();
-        }
 
         // ------------------------------------------------------------ wiring
 
@@ -323,9 +208,10 @@ namespace MixedUp.Tests
             Assert.AreEqual(0, status.Inventory.Count);
             Assert.AreEqual(6, truck.bedAnchor.childCount, "one cube per delivered box on the truck bed");
 
-            yield return new WaitForSecondsRealtime(GameManager.Instance.transitionDelay + 0.6f);
+            yield return new WaitForSecondsRealtime(GameManager.Instance.transitionDelay + 1.6f);
             Assert.AreEqual(GameState.TruckPuzzle, GameManager.Instance.State);
-            Assert.IsTrue(ui.puzzlePanel.activeSelf);
+            Assert.IsTrue(ui.puzzlePanel.activeSelf, "the 2D truck screen opens after the paper wipe");
+            Assert.IsFalse(ui.hudRoot.activeSelf, "the 3D HUD is hidden while the puzzle is open");
             Assert.AreEqual(0f, Time.timeScale);
         }
 
