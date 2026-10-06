@@ -14,7 +14,7 @@ Shader "MixedUp/Water"
         _BankMin ("South bank z", Float) = 5
         _BankMax ("North bank z", Float) = 13
         _SkyColor ("Sky reflection", Color) = (0.72, 0.9, 0.95, 1)
-        _Sparkle ("Sun sparkle", Float) = 1.3
+        _Sparkle ("Sun sparkle", Float) = 0.9
         _DeepColor ("Deep colour", Color) = (0.22, 0.45, 0.45, 1)
         _DeepMix ("Share of deep colour", Range(0, 1)) = 0.55
     }
@@ -138,9 +138,9 @@ Shader "MixedUp/Water"
                 float wobble = ValueNoise(float2(wp.x * 0.9 - flow.x * 1.2, wp.z * 0.7)) * 0.55;
                 float shore = 1.0 - smoothstep(0.1, 0.5 + wobble, bank);
                 float streakNoise = ValueNoise(float2(wp.x * 0.45 - flow.x, wp.z * 2.2));
-                float streaks = smoothstep(0.72, 0.9, streakNoise) * 0.75;
+                float streaks = smoothstep(0.78, 0.94, streakNoise) * 0.4;
                 float foam = saturate(shore + streaks);
-                lit = lerp(lit, _FoamColor.rgb, foam * 0.85);
+                lit = lerp(lit, _FoamColor.rgb, foam * 0.7);
 
                 float alpha = saturate(_Opacity + foam * 0.2 + fresnel * 0.1);
                 return half4(lit, alpha);

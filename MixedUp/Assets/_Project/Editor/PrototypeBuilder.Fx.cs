@@ -118,11 +118,13 @@ namespace MixedUp.EditorTools
                 m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(TexturesDir + "/palette.png"));
                 m.SetColor("_Tint", Color.white);
                 m.SetFloat("_Opacity", 0.9f);
+                m.SetFloat("_Sparkle", 0.9f);
             });
             fxWaterFar = FxMaterial("RiverWaterFar", "MixedUp/Water", m =>
             {
                 m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(TexturesDir + "/palette.png"));
                 m.SetFloat("_Opacity", 0.92f);
+                m.SetFloat("_Sparkle", 0.9f);
                 m.SetFloat("_BankMin", -10000f);
                 m.SetFloat("_BankMax", 10000f);
             });
@@ -130,6 +132,7 @@ namespace MixedUp.EditorTools
             {
                 m.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(TexturesDir + "/palette.png"));
                 m.SetFloat("_Opacity", 0.93f);
+                m.SetFloat("_Sparkle", 0.9f);
                 m.SetFloat("_BankMin", -10000f);
                 m.SetFloat("_BankMax", 10000f);
                 m.SetVector("_FlowDirection", new Vector4(0.08f, 0.05f, 0f, 0f));

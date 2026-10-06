@@ -33,7 +33,7 @@ Material:
     - _BankMin: 5
     - _DeepMix: 0.55
     - _Opacity: 0.9
-    - _Sparkle: 1.3
+    - _Sparkle: 0.9
     - _WaveHeight: 0.04
     - _WaveSpeed: 1
     m_Colors:

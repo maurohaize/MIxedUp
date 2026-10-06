@@ -96,7 +96,8 @@ namespace MixedUp.EditorTools
                 var textObject = new GameObject("Text" + i);
                 textObject.transform.SetParent(root.transform, false);
                 textObject.transform.localPosition = new Vector3(0f, 1.75f, z * 1.5f);
-                textObject.transform.localRotation = Quaternion.Euler(0f, i == 0 ? 0f : 180f, 0f);
+                // TextMeshPro text is read from its -Z side, so the text on the front (+Z) face is turned round.
+                textObject.transform.localRotation = Quaternion.Euler(0f, i == 0 ? 180f : 0f, 0f);
                 var text = textObject.AddComponent<TextMeshPro>();
                 if (UiFactory.Font != null) text.font = UiFactory.Font;
                 text.alignment = TextAlignmentOptions.Center;
