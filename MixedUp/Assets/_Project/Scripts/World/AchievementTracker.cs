@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace MixedUp
@@ -20,7 +19,6 @@ namespace MixedUp
         Truck truck;
         TruckPuzzleController puzzle;
         PlayerStatus watched;
-        float lastWalletCheck;
 
         void OnEnable()
         {
