@@ -181,6 +181,9 @@ namespace MixedUp.EditorTools
         /// <summary>A glowing lantern: warm point light, emissive bulb and a halo sprite that always faces the camera.</summary>
         static GameObject AddLampLight(Transform parent, Vector3 localPosition, float range = 11f, float intensity = 2.6f)
         {
+            // Boosted so the lantern really lights up the ground, walls and nearby props, even by day.
+            range *= 1.3f;
+            intensity *= 1.7f;
             var root = new GameObject("LampLight");
             root.transform.SetParent(parent, false);
             root.transform.localPosition = localPosition;
@@ -200,6 +203,10 @@ namespace MixedUp.EditorTools
             light.range = range;
             light.intensity = intensity;
             light.shadows = LightShadows.None;
+            light.renderMode = LightRenderMode.ForcePixel;
+            light.shadowStrength = 0.9f;
+            light.shadowBias = 0.03f;
+            light.shadowNormalBias = 0.3f;
             var flicker = lightObject.AddComponent<FlickerLight>();
             flicker.baseIntensity = intensity;
             flicker.amount = 0.07f;
@@ -323,9 +330,13 @@ namespace MixedUp.EditorTools
             var light = lightObject.AddComponent<Light>();
             light.type = LightType.Point;
             light.color = new Color(1f, 0.52f, 0.2f);
-            light.range = 13f * scale;
-            light.intensity = 3.4f * scale;
+            light.range = 15f * scale;
+            light.intensity = 4.6f * scale;
             light.shadows = LightShadows.None;
+            light.renderMode = LightRenderMode.ForcePixel;
+            light.shadowStrength = 0.9f;
+            light.shadowBias = 0.03f;
+            light.shadowNormalBias = 0.3f;
             var flicker = lightObject.AddComponent<FlickerLight>();
             flicker.baseIntensity = light.intensity;
             flicker.amount = 0.35f;

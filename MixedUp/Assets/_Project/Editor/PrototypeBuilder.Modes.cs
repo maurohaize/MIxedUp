@@ -31,10 +31,11 @@ namespace MixedUp.EditorTools
             lightObject.transform.SetParent(root.transform, false);
             var light = lightObject.AddComponent<Light>();
             light.type = LightType.Point;
-            light.range = 9f;
-            light.intensity = 3.2f;
+            light.range = 10f;
+            light.intensity = 4.2f;
             light.shadows = LightShadows.None;
-            lightObject.AddComponent<FlickerLight>().baseIntensity = 3.2f;
+            light.renderMode = LightRenderMode.ForcePixel;
+            lightObject.AddComponent<FlickerLight>().baseIntensity = 4.2f;
 
             var halo = AddHalo(root.transform, new Vector3(0f, 0.6f, 0f), 4.2f, new Color(1f, 1f, 1f, 0.6f));
             var beacon = root.AddComponent<BoxBeacon>();
@@ -114,6 +115,7 @@ namespace MixedUp.EditorTools
 
             var night = managers.gameObject.AddComponent<NightLighting>();
             director.night = night;
+            managers.gameObject.AddComponent<LightShadowBudget>();
         }
 
         // ----------------------------------------------------------- challenges
