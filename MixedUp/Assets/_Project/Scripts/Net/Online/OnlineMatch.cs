@@ -19,10 +19,20 @@ namespace MixedUp
     {
         public static readonly LevelInfo Prototype = new LevelInfo
         {
-            id = "meadow", scene = "Level_Prototype", nameKey = "map.meadow.name", descriptionKey = "map.meadow.desc"
+            id = "meadow", scene = MainMenu.LevelScene, nameKey = "map.meadow.name", descriptionKey = "map.meadow.desc"
         };
 
-        public static readonly LevelInfo[] All = { Prototype };
+        public static readonly LevelInfo Summit = new LevelInfo
+        {
+            id = "summit", scene = "Level_Summit", nameKey = "map.summit.name", descriptionKey = "map.summit.desc"
+        };
+
+        public static readonly LevelInfo Harbour = new LevelInfo
+        {
+            id = "harbour", scene = "Level_Harbour", nameKey = "map.harbour.name", descriptionKey = "map.harbour.desc"
+        };
+
+        public static readonly LevelInfo[] All = { Prototype, Summit, Harbour };
 
         public static LevelInfo Find(string id)
         {
@@ -37,6 +47,15 @@ namespace MixedUp
         {
             int index = Math.Max(0, IndexOf(from));
             return All[(index + direction + All.Length) % All.Length];
+        }
+
+        const string SelectedPref = "game.map";
+
+        /// <summary>The map chosen in the main menu for a solo game (saved between sessions).</summary>
+        public static LevelInfo Selected
+        {
+            get => Find(UnityEngine.PlayerPrefs.GetString(SelectedPref, Prototype.id)) ?? Prototype;
+            set => UnityEngine.PlayerPrefs.SetString(SelectedPref, (value ?? Prototype).id);
         }
     }
 

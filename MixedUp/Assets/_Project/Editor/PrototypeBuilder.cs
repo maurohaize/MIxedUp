@@ -62,11 +62,15 @@ namespace MixedUp.EditorTools
             BuildScene(assets, mats, art, prefabs);
             BuildMainMenuScene(assets, mats, art, prefabs);
             BuildLobbyScene(assets, mats, art, prefabs);
+            BuildSummitScene(assets, mats, art, prefabs);
+            BuildHarbourScene(assets, mats, art, prefabs);
             EditorBuildSettings.scenes = new[]
             {
                 new EditorBuildSettingsScene(MenuScenePath, true),
                 new EditorBuildSettingsScene(ScenePath, true),
-                new EditorBuildSettingsScene(LobbyScenePath, true)
+                new EditorBuildSettingsScene(LobbyScenePath, true),
+                new EditorBuildSettingsScene(SummitScenePath, true),
+                new EditorBuildSettingsScene(HarbourScenePath, true)
             };
 
             AssetDatabase.SaveAssets();

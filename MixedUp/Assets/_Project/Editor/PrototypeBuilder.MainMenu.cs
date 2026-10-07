@@ -165,6 +165,27 @@ namespace MixedUp.EditorTools
             selector.detailLabel = detail;
         }
 
+        /// <summary>A small card above the mode card where the map of a solo game is chosen.</summary>
+        static void BuildMapSelector(RectTransform parent)
+        {
+            var card = UiFactory.Panel("MapCard", parent, new Vector2(800f, 170f), out var root, true, false);
+            UiFactory.Place(root, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-60f, 356f), new Vector2(800f, 170f));
+
+            var header = UiFactory.NewText("Header", card, "", 34f, Brick, TextAlignmentOptions.Center, "lobby.map");
+            At(header.rectTransform, 200f, 18f, 400f, 42f);
+            var name = UiFactory.NewText("Name", card, "", 54f, UiFactory.Ink, TextAlignmentOptions.Center);
+            At(name.rectTransform, 160f, 66f, 480f, 80f);
+            var previous = UiFactory.NewButton("Previous", card, "<", null, new Vector2(100f, 84f), UiFactory.ButtonStyle.Plank);
+            At((RectTransform)previous.transform, 36f, 44f, 100f, 84f);
+            var next = UiFactory.NewButton("Next", card, ">", null, new Vector2(100f, 84f), UiFactory.ButtonStyle.Plank);
+            At((RectTransform)next.transform, 664f, 44f, 100f, 84f);
+
+            var selector = root.gameObject.AddComponent<MapSelector>();
+            selector.previous = previous;
+            selector.next = next;
+            selector.nameLabel = name;
+        }
+
         static void BuildMainMenuUi(GameAssets a, Prefabs p)
         {
             var canvasGo = new GameObject("UI", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -208,6 +229,7 @@ namespace MixedUp.EditorTools
             At((RectTransform)menu.quitButton.transform, 150f, 884f, 400f, 92f);
 
             BuildModeSelector(signpost);
+            BuildMapSelector(signpost);
 
             menu.achievementsButton = UiFactory.NewButton("Achievements", signpost, "", "ui.achievements", new Vector2(430f, 96f), UiFactory.ButtonStyle.SignLeft);
             UiFactory.Place((RectTransform)menu.achievementsButton.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-60f, -44f), new Vector2(430f, 96f));

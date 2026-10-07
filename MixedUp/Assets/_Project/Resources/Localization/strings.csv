@@ -231,3 +231,9 @@ toast.only_host,Anfitrioiak bakarrik berrabiaraz dezake.,Solo el anfitrión pued
 map.meadow.name,BELARDI ERREPARTUA,PRADERA DEL REPARTO,DELIVERY MEADOW
 map.meadow.desc,"Jatorrizko mapa: ibaia, kobazuloa eta muino izoztua.","El mapa original: río, cueva y colina helada.","The original map: river, cave and icy hill."
 lobby.mouse_mode,SAGU MODUA (TAB itzultzeko),MODO RATÓN (TAB para volver),MOUSE MODE (TAB to go back)
+hintbox.crates,Aholku: pilatu kaxak eta salto egin bakoitzera.,Pista: sube las cajas de una en una saltando.,Tip: climb the crates one by one by jumping.
+hintbox.raft,Aholku: baltsak uhartera eramango zaitu; itxaron bere txanda.,Pista: la balsa te lleva a la isla; espera a que llegue.,Tip: the raft takes you to the island; wait for it to arrive.
+map.summit.name,IZOTZ GAINA,CUMBRE HELADA,FROZEN SUMMIT
+map.summit.desc,"Mendi elurtua: izotz laku erraldoia, pinuak eta irristakorra dena. Maila altuagoa.","Un paso de montaña nevado con un lago helado enorme, pinos y todo resbaladizo. Nivel superior.","A snowy mountain pass with a huge frozen lake, pines and slippery everything. A higher level."
+map.harbour.name,ARRATSALDEKO PORTUA,PUERTO AL ANOCHECER,DUSK HARBOUR
+map.harbour.desc,"Kai bat, badia sakon bat eta zurezko pasarelak. Ura eta elektrizitatea hurbil: gau eta erronka moduetarako.","Un muelle, una bahía poco profunda y pasarelas de madera. Agua y electricidad muy cerca: ideal para el modo nocturno y el desafío.","A quay, a shallow bay and wooden piers. Water and electricity close together: made for the night and challenge modes."

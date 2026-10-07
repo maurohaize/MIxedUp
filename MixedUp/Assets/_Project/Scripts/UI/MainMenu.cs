@@ -78,7 +78,7 @@ namespace MixedUp
             if (signpost != null) signpost.SetActive(true);
         }
 
-        public void Play() => SceneManager.LoadScene(LevelScene);
+        public void Play() => SceneManager.LoadScene(LevelCatalog.Selected.scene);
 
         public void Quit()
         {
