@@ -365,6 +365,69 @@ namespace MixedUp.EditorTools
             return panel;
         }
 
+        static AchievementsPanel BuildAchievementsPanel(Transform canvas)
+        {
+            var dim = FullScreenDim("AchievementsPanel", canvas, new Color(0f, 0f, 0f, 0.6f));
+            var panel = dim.gameObject.AddComponent<AchievementsPanel>();
+
+            var inner = UiFactory.Panel("Card", dim, new Vector2(1800f, 980f), out var root, false, true);
+            UiFactory.Place(root, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1800f, 980f));
+
+            var title = UiFactory.NewText("Title", inner, "", 70f, Ink, TextAlignmentOptions.Center, "ui.achievements_title");
+            UiFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -22f), new Vector2(1500f, 90f));
+            var summary = UiFactory.NewText("Summary", inner, "", 36f, Brick, TextAlignmentOptions.Center);
+            UiFactory.Place(summary.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -108f), new Vector2(900f, 50f));
+
+            var rows = UiFactory.NewRect("Rows", inner);
+            UiFactory.Place(rows, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -170f), new Vector2(1700f, 680f));
+            var layout = rows.gameObject.AddComponent<GridLayoutGroup>();
+            layout.cellSize = new Vector2(830f, 100f);
+            layout.spacing = new Vector2(30f, 6f);
+            layout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            layout.constraintCount = 2;
+            layout.childAlignment = TextAnchor.UpperCenter;
+
+            var template = UiFactory.NewRect("RowTemplate", rows);
+            template.sizeDelta = new Vector2(830f, 100f);
+            var group = template.gameObject.AddComponent<CanvasGroup>();
+
+            var tick = UiFactory.NewSprite("Tick", template, "checkmark");
+            UiFactory.Place(tick.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(8f, 0f), new Vector2(70f, 70f));
+            var box = UiFactory.NewSprite("Box", template, "checkbox");
+            UiFactory.Place(box.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(8f, 0f), new Vector2(70f, 70f));
+            box.transform.SetAsFirstSibling();
+
+            var rowName = UiFactory.NewText("Name", template, "", 38f, Ink, TextAlignmentOptions.MidlineLeft);
+            rowName.rectTransform.anchorMin = new Vector2(0f, 0.5f);
+            rowName.rectTransform.anchorMax = new Vector2(1f, 1f);
+            rowName.rectTransform.offsetMin = new Vector2(96f, 0f);
+            rowName.rectTransform.offsetMax = new Vector2(-170f, -2f);
+            var desc = UiFactory.NewText("Description", template, "", 28f, new Color(Ink.r, Ink.g, Ink.b, 0.8f), TextAlignmentOptions.TopLeft);
+            desc.rectTransform.anchorMin = new Vector2(0f, 0f);
+            desc.rectTransform.anchorMax = new Vector2(1f, 0.5f);
+            desc.rectTransform.offsetMin = new Vector2(96f, 2f);
+            desc.rectTransform.offsetMax = new Vector2(-10f, 0f);
+            var progress = UiFactory.NewText("Progress", template, "", 34f, Brick, TextAlignmentOptions.MidlineRight);
+            progress.rectTransform.anchorMin = new Vector2(1f, 0.5f);
+            progress.rectTransform.anchorMax = new Vector2(1f, 1f);
+            progress.rectTransform.offsetMin = new Vector2(-170f, 0f);
+            progress.rectTransform.offsetMax = new Vector2(-10f, -2f);
+
+            var view = template.gameObject.AddComponent<AchievementRowView>();
+            view.nameLabel = rowName;
+            view.descriptionLabel = desc;
+            view.progressLabel = progress;
+            view.tick = tick;
+            view.group = group;
+
+            panel.rowContainer = rows;
+            panel.rowTemplate = view;
+            panel.summaryLabel = summary;
+            panel.closeButton = UiFactory.NewButton("Close", inner, "", "ui.close", new Vector2(360f, 90f));
+            UiFactory.Place((RectTransform)panel.closeButton.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 24f), new Vector2(360f, 90f));
+            return panel;
+        }
+
         static PaperWipe BuildWipe(Transform canvas)
         {
             var root = UiFactory.NewRect("WipeRoot", canvas);

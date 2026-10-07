@@ -82,10 +82,27 @@ namespace MixedUp.EditorTools
             SpawnPoint(points, "Spawn_Hard_Sweeper", new Vector3(24.4f, GroundHeight(24.4f, 26f), 26f), null, true);
             SpawnPoint(points, "Spawn_Hard_IceRamp", new Vector3(-32f, 2.52f, -18f), null, true);
 
+            // Tips shown when you get close to a hard box.
+            AddHint(points, "Spawn_Hard_Tunnel", "hintbox.tunnel", 9f);
+            AddHint(points, "Spawn_Hard_Tower", "hintbox.tower", 10f);
+            AddHint(points, "Spawn_Hard_Cliff", "hintbox.cliff", 10f);
+            AddHint(points, "Spawn_Hard_Sweeper", "hintbox.sweeper", 11f);
+            AddHint(points, "Spawn_Hard_IceRamp", "hintbox.ice", 9f);
+
             // Lights and flags of the out-of-the-way spots follow the boxes of the game mode.
             LinkArea("Environment/Challenges/ParkourTower", points, "Spawn_Hard_Tower");
             LinkArea("Environment/Challenges/CrawlTunnel", points, "Spawn_Hard_Tunnel");
             LinkArea("Environment/Challenges/MushroomCliff", points, "Spawn_Hard_Cliff");
+        }
+
+        static void AddHint(Transform points, string spawnName, string key, float radius)
+        {
+            var spawn = points.Find(spawnName);
+            if (spawn == null) return;
+            var hint = spawn.gameObject.AddComponent<AreaHint>();
+            hint.hintKey = key;
+            hint.radius = radius;
+            hint.point = spawn.GetComponent<BoxSpawnPoint>();
         }
 
         static void LinkArea(string path, Transform points, params string[] spawnNames)
@@ -116,6 +133,7 @@ namespace MixedUp.EditorTools
             var night = managers.gameObject.AddComponent<NightLighting>();
             director.night = night;
             managers.gameObject.AddComponent<LightShadowBudget>();
+            managers.gameObject.AddComponent<AchievementTracker>();
         }
 
         // ----------------------------------------------------------- challenges

@@ -168,3 +168,48 @@ lobby.start,HASI PARTIDA,EMPEZAR PARTIDA,START GAME
 lobby.leave,IRTEN,SALIR,LEAVE
 lobby.need_ready,Jokalari guztiak prest egon behar dira.,Todos los jugadores tienen que estar listos.,Everyone has to be ready.
 lobby.waiting_host,Anfitrioiak hasiko du partida.,El anfitrión empezará la partida.,The host will start the game.
+# --- Achievements ---
+ui.achievements,LORPENAK,LOGROS,ACHIEVEMENTS
+ui.achievements_title,LORPENAK,LOGROS,ACHIEVEMENTS
+ach.summary,{0} / {1} lortuta,{0} / {1} conseguidos,{0} / {1} unlocked
+ach.unlocked,Lorpena lortuta: {0}!,¡Logro conseguido: {0}!,Achievement unlocked: {0}!
+ach.log.name,Enbor jauzilaria,Saltador de troncos,Log hopper
+ach.log.desc,Jauzi egin biraka dabilen enborraren gainetik 67 aldiz.,Salta el tronco giratorio 67 veces.,Jump over the spinning log 67 times.
+ach.ducks.name,Ahate maitalea,Amigo de los patos,Duck whisperer
+ach.ducks.desc,Laztandu ibaiko ahate guztiak.,Acaricia todos los patos.,Pet every rubber duck in the river.
+ach.combos.name,Zientzialari erotua,Científico loco,Mad scientist
+ach.combos.desc,Probatu konbinazio guztiak.,Prueba todas las combinaciones.,Try every combination.
+ach.snowman.name,Elur-gizonaren etsaia,Enemigo del muñeco,Snowman wrecker
+ach.snowman.desc,Bota elur-gizona.,Derriba el muñeco de nieve.,Knock down the snowman.
+ach.mushrooms.name,Perretxiko errebotea,Rebote de setas,Mushroom bouncer
+ach.mushrooms.desc,Egin salto perretxiko batean 30 aldiz.,Rebota 30 veces en las setas saltarinas.,Bounce on the mushrooms 30 times.
+ach.first_box.name,Lehen entrega,Primera entrega,First delivery
+ach.first_box.desc,Entregatu kutxa bat kamioian.,Entrega una caja en el camión.,Deliver a box to the truck.
+ach.deliveries.name,Banatzaile aditua,Repartidor experto,Seasoned courier
+ach.deliveries.desc,Entregatu 50 kutxa guztira.,Entrega 50 cajas en total.,Deliver 50 boxes in total.
+ach.hugs.name,Besarkada-zalea,Abrazos gratis,Free hugs
+ach.hugs.desc,Besarkatu zure lagunak 10 aldiz.,Abraza a tus compañeros 10 veces.,Hug your teammates 10 times.
+ach.shoves.name,Bultzada adiskidetsua,Empujón amistoso,Friendly shove
+ach.shoves.desc,Bultzatu beste jokalari bat 5 aldiz.,Empuja a otro jugador 5 veces.,Shove another player 5 times.
+ach.splashes.name,Txapuzoia,Chapuzón,Big splash
+ach.splashes.desc,Egin zipriztin bat uretan 15 aldiz.,Salpica en el agua 15 veces.,Splash into the water 15 times.
+ach.victory.name,Lan ona,Trabajo bien hecho,Job well done
+ach.victory.desc,Irabazi partida bat.,Gana una partida.,Win a game.
+ach.all_modes.name,Moduen maisua,Maestro de modos,Mode master
+ach.all_modes.desc,Irabazi partida bana joko modu guztietan.,Gana una partida en cada modo de juego.,Win a game in every game mode.
+ach.deaths.name,Hil modu guztiak,Mil maneras de morir,A thousand ways to go
+ach.deaths.desc,Hil zaitez 6 modu desberdinetan.,Muere de 6 formas distintas.,Die in 6 different ways.
+ach.boom.name,BUM!,¡BUM!,KABOOM!
+ach.boom.desc,Egin ezazu kamioia lehertu.,Haz explotar el camión.,Blow up the truck.
+ach.rich.name,Aberatsa,Hucha llena,Piggy bank
+ach.rich.desc,Bildu 1000 txanpon.,Reúne 1000 monedas.,Collect 1000 coins.
+ach.veteran.name,Besteranoa,Veterano,Veteran
+ach.veteran.desc,Amaitu 10 entrega.,Completa 10 entregas.,Finish 10 deliveries.
+ach.cave.name,Espeleologoa,Espeleólogo,Spelunker
+ach.cave.desc,Hartu tuneleko kutxa.,Recoge la caja del túnel.,Grab the box inside the tunnel.
+# --- Tips near hard boxes ---
+hintbox.tunnel,Aholku: makurtuta toki gehiagotara iristen zara (C).,Pista: agachándote (C) llegas a más sitios.,Tip: crouch (C) to reach more places.
+hintbox.tower,Aholku: hartu lasterra eta jauzi egin ertzean.,Pista: coge carrerilla y salta justo en el borde.,Tip: take a run-up and jump right at the edge.
+hintbox.cliff,Aholku: perretxikoek goiko hegaletara jaurtitzen zaituzte.,Pista: las setas te lanzan hasta las repisas de arriba.,Tip: the mushrooms launch you up to the ledges.
+hintbox.sweeper,Aholku: jauzi egin enborra zure azpitik pasatzean.,Pista: salta justo cuando el tronco pase bajo tus pies.,Tip: jump just as the log sweeps under your feet.
+hintbox.ice,Aholku: izotzak irristatzen du; hartu abiada eta ez gelditu.,Pista: el hielo resbala; coge velocidad y no frenes.,Tip: ice is slippery; build up speed and do not stop.

@@ -209,12 +209,17 @@ namespace MixedUp.EditorTools
 
             BuildModeSelector(signpost);
 
+            menu.achievementsButton = UiFactory.NewButton("Achievements", signpost, "", "ui.achievements", new Vector2(430f, 96f), UiFactory.ButtonStyle.SignLeft);
+            UiFactory.Place((RectTransform)menu.achievementsButton.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-60f, -44f), new Vector2(430f, 96f));
+
             var footer = UiFactory.NewText("Footer", canvasGo.transform, "MIXED UP", 30f, new Color(UiFactory.Ink.r, UiFactory.Ink.g, UiFactory.Ink.b, 0.55f), TextAlignmentOptions.BottomRight);
             UiFactory.Place(footer.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-40f, 28f), new Vector2(500f, 50f));
 
             menu.settings = BuildSettingsPanel(canvasGo.transform, a, p.preview);
             menu.settings.gameObject.SetActive(false);
             menu.lobby = BuildLobbyPanel(canvasGo.transform, a);
+            menu.achievements = BuildAchievementsPanel(canvasGo.transform);
+            menu.achievements.gameObject.SetActive(false);
         }
     }
 }
