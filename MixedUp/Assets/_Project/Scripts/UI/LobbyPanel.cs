@@ -147,7 +147,10 @@ namespace MixedUp
             if (OnlineSession.Enabled && !demo)
             {
                 PlayerName();
-                ShowMessage(OnlineSession.Join(codeInput.text) ? "lobby.connecting" : "lobby.err.bad");
+                // The field means a room code in code mode and an IP address in direct mode.
+                bool direct = OnlineSession.PreferredKind == ConnectionKind.Direct;
+                bool shapeOk = OnlineSession.TryParse(codeInput.text, out var kind, out _, out _) && (kind == ConnectionKind.Direct) == direct;
+                ShowMessage(shapeOk && OnlineSession.Join(codeInput.text) ? "lobby.connecting" : "lobby.err.bad");
                 return;
             }
 
@@ -162,9 +165,25 @@ namespace MixedUp
             }
         }
 
+        /// <summary>Room code mode: six letters and digits. IP mode: digits, dots, colon and letters (host names).</summary>
+        void ApplyCodeFieldMode()
+        {
+            if (codeInput == null) return;
+            bool direct = OnlineSession.PreferredKind == ConnectionKind.Direct;
+            codeInput.characterValidation = direct ? TMP_InputField.CharacterValidation.None : TMP_InputField.CharacterValidation.Alphanumeric;
+            codeInput.characterLimit = direct ? 45 : RoomCode.Length;
+            if (codeInput.placeholder != null)
+            {
+                var hint = codeInput.placeholder.GetComponent<LocalizedText>();
+                string key = direct ? "lobby.code_hint_ip" : "lobby.code_hint";
+                if (hint != null) hint.SetKey(key);
+            }
+        }
+
         void ToggleConnection()
         {
             OnlineSession.PreferredKind = OnlineSession.PreferredKind == ConnectionKind.Relay ? ConnectionKind.Direct : ConnectionKind.Relay;
+            codeInput.text = string.Empty;
             Refresh();
         }
 
@@ -221,6 +240,7 @@ namespace MixedUp
             entryView.SetActive(room == null);
             roomView.SetActive(room != null);
             if (messageLabel != null) messageLabel.text = lastMessageKey == null ? string.Empty : Localization.Get(lastMessageKey);
+            ApplyCodeFieldMode();
             if (connectionLabel != null)
                 connectionLabel.text = Localization.Get(OnlineSession.PreferredKind == ConnectionKind.Relay ? "lobby.connection_relay" : "lobby.connection_direct");
             if (room == null) return;
