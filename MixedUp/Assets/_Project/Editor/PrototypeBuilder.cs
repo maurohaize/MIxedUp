@@ -39,7 +39,7 @@ namespace MixedUp.EditorTools
 
         sealed class Prefabs
         {
-            public GameObject box, player, teammate, preview, loreNote;
+            public GameObject box, player, teammate, preview, loreNote, netAvatar;
         }
 
         [MenuItem("MixedUp/Build Prototype Scene")]
@@ -61,10 +61,12 @@ namespace MixedUp.EditorTools
             var prefabs = CreatePrefabs(assets, mats, art);
             BuildScene(assets, mats, art, prefabs);
             BuildMainMenuScene(assets, mats, art, prefabs);
+            BuildLobbyScene(assets, mats, art, prefabs);
             EditorBuildSettings.scenes = new[]
             {
                 new EditorBuildSettingsScene(MenuScenePath, true),
-                new EditorBuildSettingsScene(ScenePath, true)
+                new EditorBuildSettingsScene(ScenePath, true),
+                new EditorBuildSettingsScene(LobbyScenePath, true)
             };
 
             AssetDatabase.SaveAssets();

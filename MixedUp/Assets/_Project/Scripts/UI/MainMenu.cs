@@ -44,6 +44,14 @@ namespace MixedUp
             quitButton.onClick.AddListener(Quit);
             settings.gameObject.SetActive(false);
             settings.Closed += OnSettingsClosed;
+
+            // Back from an online game that ended on its own (the host left, the connection dropped).
+            string notice = OnlineSession.TakeNotice();
+            if (notice != null && lobby != null)
+            {
+                lobby.Open();
+                lobby.ShowNotice(notice);
+            }
         }
 
         void OnDestroy()

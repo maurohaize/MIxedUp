@@ -26,7 +26,9 @@ namespace MixedUp
         /// Return true when the key was used.
         /// </summary>
         public static Func<bool> EscapeInterceptor;
-        public static bool InputBlocked => Instance != null && Instance.State != GameState.Playing;
+        /// <summary>Set by a screen with its own mouse interface (the online lobby) so the character and camera stop reading input.</summary>
+        public static bool UiBlocksInput;
+        public static bool InputBlocked => UiBlocksInput || (Instance != null && Instance.State != GameState.Playing);
 
         public Truck truck;
         [Tooltip("Seconds between dying / completing the order and the screen appearing.")]
@@ -54,6 +56,7 @@ namespace MixedUp
         void Awake()
         {
             Instance = this;
+            UiBlocksInput = false;
             GameInput.Enable();
             Time.timeScale = 1f;
             ApplyCursor();
@@ -130,6 +133,8 @@ namespace MixedUp
                 var status = player.GetComponent<PlayerStatus>();
                 if (status != null && !status.IsDead) return true;
             }
+            foreach (var avatar in NetAvatar.All)
+                if (avatar != null && avatar.IsSpawned && !avatar.IsOwner && !avatar.CurrentPose.Has(AvatarPose.Dead)) return true;
             return false;
         }
 
@@ -173,6 +178,13 @@ namespace MixedUp
         public void Restart()
         {
             Time.timeScale = 1f;
+            if (OnlineSession.IsOnline)
+            {
+                // Everybody has to be in the same level: only the host can start it again, for all.
+                if (OnlineSession.IsHost) OnlineSession.RestartMatch();
+                else GameEvents.RaiseToast("toast.only_host");
+                return;
+            }
             var scene = SceneManager.GetActiveScene();
             if (scene.buildIndex >= 0)
             {
@@ -194,6 +206,7 @@ namespace MixedUp
             // Going back to the menu also leaves the room.
             RoomSession.End();
             RoomServices.Current.Leave();
+            OnlineSession.Leave();
             if (Application.CanStreamedLevelBeLoaded(MainMenuScene)) SceneManager.LoadScene(MainMenuScene);
             else Quit();
         }

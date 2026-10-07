@@ -18,6 +18,7 @@ namespace MixedUp.Tests
         [UnitySetUp]
         public IEnumerator FindMenu()
         {
+            OnlineSession.Enabled = false;   // these tests use the offline rooms with stand-in friends
             RoomServices.Use(new LocalRoomService { BotDelay = 0.2f });
             menu = Object.FindAnyObjectByType<MainMenu>();
             lobby = menu.lobby;
@@ -27,6 +28,7 @@ namespace MixedUp.Tests
         [UnityTearDown]
         public IEnumerator CleanUp()
         {
+            OnlineSession.Enabled = true;
             RoomSession.End();
             RoomServices.Use(null);
             yield break;
