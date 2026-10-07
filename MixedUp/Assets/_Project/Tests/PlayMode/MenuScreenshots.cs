@@ -64,6 +64,7 @@ namespace MixedUp.Tests
         [UnityTest, Explicit("Needs a GPU; writes PNGs")]
         public IEnumerator LobbyGallery()
         {
+            OnlineSession.Enabled = false;
             RoomServices.Use(new LocalRoomService { BotDelay = 0.3f });
             var menu = Object.FindAnyObjectByType<MainMenu>();
             Localization.SetLanguage(Language.Spanish);
@@ -84,6 +85,7 @@ namespace MixedUp.Tests
             yield return new WaitForSecondsRealtime(0.4f);
             yield return Capture("56_lobby_room_guest");
             menu.lobby.Close();
+            OnlineSession.Enabled = true;
             RoomServices.Use(null);
         }
 

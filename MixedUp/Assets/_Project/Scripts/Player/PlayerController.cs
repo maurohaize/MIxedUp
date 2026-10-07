@@ -52,6 +52,8 @@ namespace MixedUp
         public float safeFallHeight = 4f;
         public float fallDamagePerMeter = 15f;
         public float killHeight = -30f;
+        [Tooltip("Seconds of fall immunity kept after landing from a bounce pad.")]
+        public float bounceImmunityGrace = 1.2f;
 
         [Header("Visual")]
         public Transform visual;
@@ -73,6 +75,7 @@ namespace MixedUp
         float crouchAmount;
         bool crouching;
         float lockedUntil;
+        float fallImmuneUntil;
         readonly Collider[] headroom = new Collider[8];
 
         public event System.Action Jumped;
@@ -85,6 +88,7 @@ namespace MixedUp
         public bool IsCrouching => crouching;
         /// <summary>0 = upright, 1 = fully crouched (smoothed).</summary>
         public float CrouchAmount => crouchAmount;
+        public bool FallImmune => Time.time < fallImmuneUntil;
         public bool MovementLocked => Time.time < lockedUntil;
         public Transform PushTransform => transform;
         public bool CanBePushed => status != null && !status.IsDead;
@@ -126,6 +130,9 @@ namespace MixedUp
             if (controller != null && controller.enabled) controller.Move(delta);
         }
 
+        /// <summary>No fall damage until the player lands, plus a short grace afterwards (a bounce pad launch).</summary>
+        public void GrantBounceImmunity() => fallImmuneUntil = float.PositiveInfinity;
+
         public void ReceivePush(Vector3 horizontalImpulse, float upSpeed) => AddImpulse(horizontalImpulse, upSpeed);
 
         /// <summary>Holds the player still (a hug, for example): no walking, jumping or crouching for a while.</summary>
@@ -161,6 +168,7 @@ namespace MixedUp
             horizontalVelocity = Vector3.zero;
             verticalVelocity = 0f;
             peakY = position.y;
+            fallImmuneUntil = 0f;
         }
 
         void Update()
@@ -296,7 +304,9 @@ namespace MixedUp
         {
             float drop = peakY - transform.position.y;
             Landed?.Invoke(Mathf.Max(0f, drop));
-            if (drop > safeFallHeight && !status.Hazards.InWater)
+            bool immune = FallImmune;
+            if (float.IsPositiveInfinity(fallImmuneUntil)) fallImmuneUntil = Time.time + bounceImmunityGrace;
+            if (!immune && drop > safeFallHeight && !status.Hazards.InWater)
                 status.Damage((drop - safeFallHeight) * fallDamagePerMeter, DeathCause.Fall);
         }
 

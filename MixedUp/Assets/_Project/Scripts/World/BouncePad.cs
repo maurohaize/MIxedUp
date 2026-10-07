@@ -48,6 +48,7 @@ namespace MixedUp
                 lastBounce = Time.time;
                 squash = 1f;
                 player.AddImpulse(Vector3.zero, launchSpeed);
+                player.GrantBounceImmunity();
                 Bounced?.Invoke(this);
             }
 

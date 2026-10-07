@@ -1,6 +1,6 @@
 namespace MixedUp
 {
-    /// <summary>What a player has earned over many games: money and the combinations they have learned.</summary>
+    /// <summary>What a player has earned over many games: money and the combinations they have learned (and their achievements).</summary>
     public static class GameProgress
     {
         /// <summary>Forgets every learned combination and empties the wallet, so a new player can start from scratch.</summary>
@@ -8,6 +8,7 @@ namespace MixedUp
         {
             CombinationManual.ForgetAll();
             Wallet.Reset();
+            Achievements.ResetAll();
         }
     }
 }

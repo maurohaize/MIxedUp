@@ -20,6 +20,9 @@ namespace MixedUp
         public Button joinButton;
         public Button backButton;
         public TMP_Text messageLabel;
+        [Tooltip("Switches between rooms with a code (internet relay) and direct connection by IP.")]
+        public Button connectionButton;
+        public TMP_Text connectionLabel;
 
         [Header("Room view")]
         public GameObject roomView;
@@ -55,7 +58,7 @@ namespace MixedUp
 
             nameInput.characterLimit = PlayerProfile.MaxNameLength;
             nameInput.onEndEdit.AddListener(text => PlayerProfile.Name = text);
-            codeInput.characterLimit = RoomCode.Length;
+            codeInput.characterLimit = 24;
             codeInput.onValueChanged.AddListener(text =>
             {
                 string upper = text.ToUpperInvariant();
@@ -65,6 +68,7 @@ namespace MixedUp
             createButton.onClick.AddListener(Create);
             joinButton.onClick.AddListener(Join);
             backButton.onClick.AddListener(Close);
+            if (connectionButton != null) connectionButton.onClick.AddListener(ToggleConnection);
             leaveButton.onClick.AddListener(Leave);
             readyButton.onClick.AddListener(ToggleReady);
             startButton.onClick.AddListener(() => Rooms.StartGame());
@@ -79,6 +83,7 @@ namespace MixedUp
             Rooms.Started += OnStarted;
             Rooms.Closed += OnClosed;
             Localization.LanguageChanged += Refresh;
+            OnlineSession.Failed += OnOnlineFailed;
             nameInput.SetTextWithoutNotify(PlayerProfile.Name);
             ShowMessage(null);
             Refresh();
@@ -90,11 +95,16 @@ namespace MixedUp
             Rooms.Started -= OnStarted;
             Rooms.Closed -= OnClosed;
             Localization.LanguageChanged -= Refresh;
+            OnlineSession.Failed -= OnOnlineFailed;
         }
 
         void Update()
         {
             if (Rooms is LocalRoomService local) local.Tick(Time.unscaledDeltaTime);
+
+            bool busy = OnlineSession.IsBusy;
+            createButton.interactable = !busy;
+            joinButton.interactable = !busy;
         }
 
         public void Open() => gameObject.SetActive(true);
@@ -119,12 +129,31 @@ namespace MixedUp
 
         void Create()
         {
+            if (OnlineSession.Enabled)
+            {
+                PlayerName();
+                ShowMessage("lobby.connecting");
+                OnlineSession.Host(OnlineSession.PreferredKind);
+                return;
+            }
             Rooms.CreateRoom(PlayerName(), RoomInfo.MaxPlayersLimit, CharacterCustomization.SkinIndex, CharacterCustomization.ClothesIndex);
             ShowMessage(null);
         }
 
         void Join()
         {
+            // The demo room (offline, with stand-in friends) keeps working; anything else is a real online room.
+            bool demo = string.Equals(codeInput.text.Trim(), LocalRoomService.DemoCode, StringComparison.OrdinalIgnoreCase);
+            if (OnlineSession.Enabled && !demo)
+            {
+                PlayerName();
+                // The field means a room code in code mode and an IP address in direct mode.
+                bool direct = OnlineSession.PreferredKind == ConnectionKind.Direct;
+                bool shapeOk = OnlineSession.TryParse(codeInput.text, out var kind, out _, out _) && (kind == ConnectionKind.Direct) == direct;
+                ShowMessage(shapeOk && OnlineSession.Join(codeInput.text) ? "lobby.connecting" : "lobby.err.bad");
+                return;
+            }
+
             var result = Rooms.JoinRoom(codeInput.text, PlayerName(), CharacterCustomization.SkinIndex, CharacterCustomization.ClothesIndex);
             switch (result)
             {
@@ -135,6 +164,37 @@ namespace MixedUp
                 case JoinResult.AlreadyStarted: ShowMessage("lobby.err.started"); break;
             }
         }
+
+        /// <summary>Room code mode: six letters and digits. IP mode: digits, dots, colon and letters (host names).</summary>
+        void ApplyCodeFieldMode()
+        {
+            if (codeInput == null) return;
+            bool direct = OnlineSession.PreferredKind == ConnectionKind.Direct;
+            codeInput.characterValidation = direct ? TMP_InputField.CharacterValidation.None : TMP_InputField.CharacterValidation.Alphanumeric;
+            codeInput.characterLimit = direct ? 45 : RoomCode.Length;
+            if (codeInput.placeholder != null)
+            {
+                var hint = codeInput.placeholder.GetComponent<LocalizedText>();
+                string key = direct ? "lobby.code_hint_ip" : "lobby.code_hint";
+                if (hint != null) hint.SetKey(key);
+            }
+        }
+
+        void ToggleConnection()
+        {
+            OnlineSession.PreferredKind = OnlineSession.PreferredKind == ConnectionKind.Relay ? ConnectionKind.Direct : ConnectionKind.Relay;
+            codeInput.text = string.Empty;
+            Refresh();
+        }
+
+        void OnOnlineFailed(string key)
+        {
+            ShowMessage(key);
+            Refresh();
+        }
+
+        /// <summary>Shows a message coming from outside (for example that the host closed the room).</summary>
+        public void ShowNotice(string key) => ShowMessage(key);
 
         void Leave()
         {
@@ -180,6 +240,9 @@ namespace MixedUp
             entryView.SetActive(room == null);
             roomView.SetActive(room != null);
             if (messageLabel != null) messageLabel.text = lastMessageKey == null ? string.Empty : Localization.Get(lastMessageKey);
+            ApplyCodeFieldMode();
+            if (connectionLabel != null)
+                connectionLabel.text = Localization.Get(OnlineSession.PreferredKind == ConnectionKind.Relay ? "lobby.connection_relay" : "lobby.connection_direct");
             if (room == null) return;
 
             codeLabel.text = Localization.Get("lobby.code") + ": " + room.code;

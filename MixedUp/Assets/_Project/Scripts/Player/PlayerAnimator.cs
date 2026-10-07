@@ -18,6 +18,10 @@ namespace MixedUp
         public float swingSpeed = 11f;
         public PlayerPush push;
         public PlayerHug hug;
+        [Header("Remote players (no controller): fed by the network")]
+        public float externalSpeed;
+        public bool externalAirborne;
+        public float externalCrouch;
 
         Vector3 handLeftRest, handRightRest, bootLeftRest, bootRightRest;
         bool captured;
@@ -47,8 +51,8 @@ namespace MixedUp
             if (hug == null) hug = GetComponent<PlayerHug>();
 
             float dt = Time.deltaTime;
-            float speed = controller != null ? controller.HorizontalVelocity.magnitude : 0f;
-            bool airborne = controller != null && !controller.IsGrounded;
+            float speed = controller != null ? controller.HorizontalVelocity.magnitude : externalSpeed;
+            bool airborne = controller != null ? !controller.IsGrounded : externalAirborne;
             float move01 = Mathf.Clamp01(speed / 4.5f);
 
             phase += dt * swingSpeed * Mathf.Lerp(0.6f, 1.5f, Mathf.Clamp01(speed / 7.5f));
@@ -105,7 +109,7 @@ namespace MixedUp
             wasAirTimeBonus = Mathf.Min(0.55f, airTime * 0.4f);
             squash = Mathf.MoveTowards(squash, 0f, dt * 3.5f);
             float bounce = Mathf.Sin(squash * Mathf.PI * 0.5f);
-            float crouch = controller != null ? controller.CrouchAmount : 0f;
+            float crouch = controller != null ? controller.CrouchAmount : externalCrouch;
             if (!status.IsDead)
                 body.localScale = new Vector3((1f + 0.16f * bounce) * (1f + 0.1f * crouch), (1f - 0.2f * bounce + (airborne ? 0.04f : 0f)) * (1f - 0.3f * crouch), (1f + 0.16f * bounce) * (1f + 0.1f * crouch));
 

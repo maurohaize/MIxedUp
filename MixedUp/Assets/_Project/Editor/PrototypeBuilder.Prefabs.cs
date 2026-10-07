@@ -15,7 +15,8 @@ namespace MixedUp.EditorTools
                 player = SavePrefab(BuildCharacter(m, a.palette, true), "Player"),
                 teammate = SavePrefab(BuildCharacter(m, a.palette, false), "Teammate"),
                 preview = SavePrefab(BuildCharacterPreview(m, a.palette), "CharacterPreview"),
-                loreNote = SavePrefab(BuildLoreNote(art), "LoreNote")
+                loreNote = SavePrefab(BuildLoreNote(art), "LoreNote"),
+                netAvatar = BuildNetAvatarPrefab(m, a.palette)
             };
         }
 
