@@ -149,7 +149,8 @@ namespace MixedUp.EditorTools
             return b.ToMesh(name);
         }
 
-        public static Mesh Water(string name, float x0, float x1, float z0, float z1, float y)
+        /// <param name="accent">Palette index of the odd lighter facets (a darker teal gives a calmer sea, as at dusk).</param>
+        public static Mesh Water(string name, float x0, float x1, float z0, float z1, float y, int accent = LightTeal)
         {
             var b = new MeshBuilder();
             const float tile = 2.5f;
@@ -166,8 +167,8 @@ namespace MixedUp.EditorTools
                     var p01 = new Vector3(ax, H(i, j + 1), bz);
                     var p11 = new Vector3(bx, H(i + 1, j + 1), bz);
                     var p10 = new Vector3(bx, H(i + 1, j), az);
-                    b.Triangle(p00, p01, p11, (i * 5 + j * 3) % 7 == 0 ? LightTeal : Teal);
-                    b.Triangle(p00, p11, p10, (i * 3 + j * 5) % 9 == 0 ? LightTeal : Teal);
+                    b.Triangle(p00, p01, p11, (i * 5 + j * 3) % 7 == 0 ? accent : Teal);
+                    b.Triangle(p00, p11, p10, (i * 3 + j * 5) % 9 == 0 ? accent : Teal);
                 }
             }
             return b.ToMesh(name);
@@ -253,8 +254,23 @@ namespace MixedUp.EditorTools
             }
         }
 
+        /// <summary>Which palette colours the hills use at each height (null = the olive meadow colours).</summary>
+        public sealed class HillColors
+        {
+            public int[] low, mid, high, rock;
+        }
+
+        [System.ThreadStatic] static HillColors hillColors;
+
         /// <summary>Faceted mountains around a flat rectangular hole (the play area). Heights start at 0 at the hole's edge.</summary>
-        public static Mesh Hills(string name, HillField field)
+        public static Mesh Hills(string name, HillField field, HillColors colors = null)
+        {
+            hillColors = colors;
+            try { return BuildHills(name, field); }
+            finally { hillColors = null; }
+        }
+
+        static Mesh BuildHills(string name, HillField field)
         {
             var b = new MeshBuilder();
             int n = field.n;
@@ -292,12 +308,13 @@ namespace MixedUp.EditorTools
             float steep = 1f - Mathf.Abs(Vector3.Cross(c - a, d - a).normalized.y);
             const int seed = 7;   // colour is chosen per 10 m block so facets read as big flat patches
 
+            var colors = hillColors;
             int[] set;
-            if (steep > 0.4f && height > 10f) set = Rock;
-            else if (height < 12f) set = Grass;
-            else if (height < 28f) set = Meadow;
-            else if (height < 44f) set = Earth;
-            else set = Rock;
+            if (steep > 0.4f && height > 10f) set = colors != null ? colors.rock : Rock;
+            else if (height < 12f) set = colors != null ? colors.low : Grass;
+            else if (height < 28f) set = colors != null ? colors.mid : Meadow;
+            else if (height < 44f) set = colors != null ? colors.high : Earth;
+            else set = colors != null ? colors.rock : Rock;
 
             // Keep the winding facing up regardless of the diagonal used.
             int color = Pick(set, i / 2, j / 2, seed);

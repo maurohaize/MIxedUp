@@ -185,6 +185,27 @@ namespace MixedUp.Tests
             Assert.AreEqual(100f, status.Health, 0.001f);
         }
 
+        // ------------------------------------------------------------ jumps over the log, shared
+
+        [Test]
+        public void AStreakReportedByAnotherMachineShowsAndEnds()
+        {
+            var board = new JumpScoreboard(false);
+
+            board.SetStreak("Ane", 3);
+            Assert.AreEqual(3, board.Streak("Ane"));
+            Assert.AreEqual("Ane", board.Top[0].name);
+            Assert.AreEqual(3, board.Top[0].score);
+
+            Assert.IsTrue(board.Hit("Ane"));
+            Assert.IsFalse(board.Hit("Ane"), "nothing left to end");
+
+            board.SetStreak("Ane", 5);
+            board.SetStreak("Ane", 0);
+            Assert.AreEqual(0, board.Streak("Ane"));
+            Assert.AreEqual(5, board.Top[0].score, "the best score stays on the board");
+        }
+
         // ------------------------------------------------------------ the shared clock
 
         [Test]

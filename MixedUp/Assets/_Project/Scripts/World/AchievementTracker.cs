@@ -117,7 +117,8 @@ namespace MixedUp
 
         void OnPush(PlayerPush push, IPushable target)
         {
-            if (target is PlayerController && IsLocal(push.GetComponent<PlayerController>())) Achievements.Add(Achievements.Shoves);
+            bool aPlayer = target is PlayerController || target is NetGhost;
+            if (aPlayer && IsLocal(push.GetComponent<PlayerController>())) Achievements.Add(Achievements.Shoves);
         }
 
         void OnSplash(Vector3 position, float strength)

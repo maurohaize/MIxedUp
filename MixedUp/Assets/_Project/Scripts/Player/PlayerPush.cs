@@ -13,6 +13,9 @@ namespace MixedUp
         public float cooldown = 0.9f;
         [Tooltip("Cosine of the half-angle of the cone in front of the player that can be shoved.")]
         [Range(-1f, 1f)] public float frontCone = 0.2f;
+        [Tooltip("A shove hurts a little: this many points of health, at least and at most.")]
+        public int minDamage = 2;
+        public int maxDamage = 5;
 
         readonly Collider[] buffer = new Collider[24];
         PlayerController controller;
@@ -75,8 +78,20 @@ namespace MixedUp
             direction.y = 0f;
             direction = direction.sqrMagnitude < 0.0001f ? forward : direction.normalized;
             best.ReceivePush(direction * force, upSpeed);
+            ShoveDamage(best);
             Pushed?.Invoke(this, best);
             return best;
+        }
+
+        /// <summary>The shove costs the other player a few points of health. Online, their own machine takes the points off.</summary>
+        void ShoveDamage(IPushable target)
+        {
+            var status = target.PushTransform != null ? target.PushTransform.GetComponent<PlayerStatus>() : null;
+            if (status == null || status.IsDead) return;
+
+            float damage = UnityEngine.Random.Range(minDamage, maxDamage + 1);
+            if (status.IsMirror) NetAvatar.OfGhost(status.gameObject)?.SendPushDamage(damage);
+            else status.Damage(damage, DeathCause.Push);
         }
     }
 }

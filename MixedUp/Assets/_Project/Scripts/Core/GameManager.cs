@@ -181,9 +181,13 @@ namespace MixedUp
             Time.timeScale = 1f;
             if (OnlineSession.IsOnline)
             {
-                // Everybody has to be in the same level: only the host can start it again, for all.
+                // Everybody has to be in the same level: the host starts it again for all, and anybody can ask for it.
                 if (OnlineSession.IsHost) OnlineSession.RestartMatch();
-                else GameEvents.RaiseToast("toast.only_host");
+                else if (NetAvatar.Local != null)
+                {
+                    NetAvatar.Local.RestartRpc();
+                    GameEvents.RaiseToast("toast.restart_asked");
+                }
                 return;
             }
             var scene = SceneManager.GetActiveScene();

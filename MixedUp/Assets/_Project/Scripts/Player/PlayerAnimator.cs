@@ -22,6 +22,7 @@ namespace MixedUp
         public float externalSpeed;
         public bool externalAirborne;
         public float externalCrouch;
+        public bool externalHugging;
 
         Vector3 handLeftRest, handRightRest, bootLeftRest, bootRightRest;
         bool captured;
@@ -32,6 +33,12 @@ namespace MixedUp
         float squash;
         float airTime;
         float wasAirTimeBonus;
+        float hugBlend;
+        float hugTime;
+        float embraceUntil;
+
+        /// <summary>The character is being hugged for a while (a stand-in or an online player's ghost has no PlayerHug to ask).</summary>
+        public void Embrace(float seconds) => embraceUntil = Time.time + seconds;
 
         void Capture()
         {
@@ -74,7 +81,9 @@ namespace MixedUp
             Vector3 freeRight = handRightRest + new Vector3(0f, airLift, swing * handSwing) - shakeOffset;
             // Pushing thrusts both hands forward; hugging opens the arms wide in front.
             float punch = push != null ? push.PunchAmount : 0f;
-            float hugBlend = hug != null && hug.IsHugging ? 1f : 0f;
+            bool hugging = (hug != null && hug.IsHugging) || Time.time < embraceUntil || externalHugging;
+            hugTime = hugging ? hugTime + dt : 0f;
+            hugBlend = Mathf.MoveTowards(hugBlend, hugging ? 1f : 0f, dt * 6f);
             if (punch > 0f)
             {
                 freeLeft = Vector3.Lerp(freeLeft, new Vector3(-0.2f, 0.75f, 0.95f), punch);
@@ -82,8 +91,13 @@ namespace MixedUp
             }
             if (hugBlend > 0f)
             {
-                freeLeft = Vector3.Lerp(freeLeft, new Vector3(-0.62f, 0.85f, 0.5f), hugBlend);
-                freeRight = Vector3.Lerp(freeRight, new Vector3(0.62f, 0.85f, 0.5f), hugBlend);
+                // The arms open wide, close round the other character and pat their back, one hand then the other.
+                float close = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(hugTime / 0.45f));
+                float pat = Mathf.Sin(hugTime * 8f) * 0.07f * close;
+                Vector3 handL = Vector3.Lerp(new Vector3(-0.78f, 1.0f, 0.38f), new Vector3(-0.3f, 0.9f, 0.72f), close) + new Vector3(0f, pat, 0f);
+                Vector3 handR = Vector3.Lerp(new Vector3(0.78f, 1.0f, 0.38f), new Vector3(0.3f, 0.9f, 0.72f), close) + new Vector3(0f, -pat, 0f);
+                freeLeft = Vector3.Lerp(freeLeft, handL, hugBlend);
+                freeRight = Vector3.Lerp(freeRight, handR, hugBlend);
             }
 
             if (carry != null && hugBlend <= 0f)
@@ -113,8 +127,13 @@ namespace MixedUp
             if (!status.IsDead)
                 body.localScale = new Vector3((1f + 0.16f * bounce) * (1f + 0.1f * crouch), (1f - 0.2f * bounce + (airborne ? 0.04f : 0f)) * (1f - 0.3f * crouch), (1f + 0.16f * bounce) * (1f + 0.1f * crouch));
 
+            // A hug: the body leans in, sways gently and swells a little with every "heartbeat".
+            if (!status.IsDead && hugBlend > 0f) body.localScale *= 1f + 0.035f * Mathf.Sin(hugTime * 6f) * hugBlend;
+            float lean = hugBlend * (10f + Mathf.Sin(hugTime * 3f) * 4f);
+            float hugSway = hugBlend * Mathf.Sin(hugTime * 2.2f) * 4f;
+
             deathBlend = Mathf.MoveTowards(deathBlend, status.IsDead ? 1f : 0f, dt * 3f);
-            body.localRotation = Quaternion.Euler(0f, 0f, sway) * Quaternion.Euler(-90f * deathBlend, 0f, 0f);
+            body.localRotation = Quaternion.Euler(lean, 0f, sway + hugSway) * Quaternion.Euler(-90f * deathBlend, 0f, 0f);
         }
 
         bool HasEffect<T>() where T : BoxEffect

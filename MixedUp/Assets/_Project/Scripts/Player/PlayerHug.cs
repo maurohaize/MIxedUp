@@ -47,11 +47,38 @@ namespace MixedUp
         {
             if (IsHugging)
             {
+                HugAvailable = false;
                 TickHug(Time.deltaTime);
                 return;
             }
+            UpdateAvailability(Time.deltaTime);
             if (!controller.CanControl || controller.MovementLocked || Time.time < nextHug) return;
             if (GameInput.Hug.WasPressedThisFrame()) TryHug();
+        }
+
+        /// <summary>True while somebody is close enough to be hugged right now (the prompt on screen follows it).</summary>
+        public bool HugAvailable { get; private set; }
+        /// <summary>The local player is hurt, so a hug would heal them.</summary>
+        public bool WantsHealing => !status.IsDead && status.Health01 < 0.95f;
+
+        float scanTimer;
+        float nextHint;
+
+        void UpdateAvailability(float dt)
+        {
+            scanTimer -= dt;
+            if (scanTimer > 0f) return;
+            scanTimer = 0.2f;
+
+            HugAvailable = controller.CanControl && !controller.MovementLocked && Time.time >= nextHug && FindPartner() != null;
+
+            // A reminder, now and then, that a hug is how to heal when there are teammates (health no longer comes back by itself).
+            if (controller.isLocal && !status.IsDead && PlayerStatus.HugsRequired && status.Health01 < 0.6f
+                && Time.time >= nextHint && GameManager.AnotherPlayerAlive())
+            {
+                nextHint = Time.time + 45f;
+                GameEvents.RaiseToast("hint.hug", GameInput.Label(GameInput.Hug));
+            }
         }
 
         /// <summary>Starts hugging the closest living player in range. Returns false when nobody is near.</summary>
@@ -59,6 +86,15 @@ namespace MixedUp
         {
             if (IsHugging || status.IsDead) return false;
 
+            var best = FindPartner();
+            if (best == null) return false;
+
+            partner = best;
+            return BeginHug();
+        }
+
+        PlayerStatus FindPartner()
+        {
             PlayerStatus best = null;
             float bestDistance = float.MaxValue;
             int count = Physics.OverlapSphereNonAlloc(transform.position + Vector3.up * 0.8f, range, buffer, ~0, QueryTriggerInteraction.Ignore);
@@ -71,15 +107,29 @@ namespace MixedUp
                 best = other;
                 bestDistance = distance;
             }
-            if (best == null) return false;
+            return best;
+        }
 
-            partner = best;
+        bool BeginHug()
+        {
             IsHugging = true;
             until = Time.time + duration;
             nextHeart = 0f;
             HealedTotal = 0f;
             controller.LockMovement(duration);
-            if (partner.TryGetComponent(out PlayerController otherController)) otherController.LockMovement(duration);
+            if (partner.TryGetComponent(out PlayerController otherController))
+            {
+                otherController.LockMovement(duration);
+                // The one being hugged turns towards the one hugging.
+                if (otherController.visual != null)
+                {
+                    Vector3 toMe = transform.position - otherController.transform.position;
+                    toMe.y = 0f;
+                    if (toMe.sqrMagnitude > 0.01f) otherController.visual.rotation = Quaternion.LookRotation(toMe);
+                }
+            }
+            // Their arms go round us too (a stand-in teammate or the ghost of an online player has no controller to ask).
+            partner.GetComponent<PlayerAnimator>()?.Embrace(duration);
             // An online player: their machine holds them still and heals them (their health is theirs to change).
             NetAvatar.OfGhost(partner.gameObject)?.SendHug(duration, healPerSecond);
 

@@ -44,11 +44,25 @@ namespace MixedUp
             return streak;
         }
 
-        /// <summary>The log hit the player: their streak is over.</summary>
-        public void Hit(string player)
+        /// <summary>The log hit the player: their streak is over. Returns true when there was a streak to end.</summary>
+        public bool Hit(string player)
         {
-            if (Streak(player) == 0) return;
+            if (Streak(player) == 0) return false;
             streaks[player] = 0;
+            Changed?.Invoke();
+            return true;
+        }
+
+        /// <summary>A streak reported by another machine of an online game (0 = it ended).</summary>
+        public void SetStreak(string player, int streak)
+        {
+            if (streak <= 0)
+            {
+                Hit(player);
+                return;
+            }
+            streaks[player] = streak;
+            if (Submit(player, streak)) Save();
             Changed?.Invoke();
         }
 

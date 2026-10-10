@@ -21,8 +21,8 @@ sin que nada explote. Idiomas: euskera, español e inglés.
 | Interactuar (coger, entregar, pasar caja) | E | Botón oeste |
 | Quitar todas las cajas a un compañero | F | Botón este |
 | Agacharse | C o Ctrl izquierdo | Pulsar stick derecho |
-| Empujar a otro jugador | G o clic izquierdo | Botón superior derecho |
-| Abrazar (cura a los dos; con más jugadores es la única forma de recuperar vida) | H | Botón superior izquierdo |
+| Empujar a otro jugador (le quita entre 2 y 5 de vida) | G o clic izquierdo | Botón superior derecho |
+| Abrazar (cura a los dos; con más jugadores es la única forma de recuperar vida) | **Clic derecho** (o H) | Botón superior izquierdo |
 | Espectar a otro jugador (estando muerto) | E | Botón oeste |
 | Cambiar de caja | Q, rueda o 1-2 | Botón norte |
 | Pausa y ajustes | Esc | — |
@@ -90,7 +90,7 @@ Todos construyen el mismo nivel (mismo mapa, modo y semilla) y el anfitrión hac
 lo mismo a la vez. Está sincronizado:
 
 * **Jugadores**: posición, animación, nombre y colores, cajas en las manos, muerte (con su causa) y espectar. Los demás se ven como
-  "fantasmas" sólidos: se les puede empujar (G), abrazar (H, cura a los dos), pasar cajas (E) o quitárselas (F), y ese efecto ocurre
+  "fantasmas" sólidos: se les puede empujar (G), abrazar (clic derecho, cura a los dos), pasar cajas (E) o quitárselas (F), y ese efecto ocurre
   en la máquina del jugador real.
 * **Cajas del mapa**: la que coge un jugador desaparece para todos; si dos la cogen a la vez gana el primero que llega al anfitrión
   y el otro la devuelve. Las que suelta un jugador al morir aparecen para todos.
@@ -101,6 +101,8 @@ lo mismo a la vez. Está sincronizado:
 * **Mundo**: el tronco giratorio, la balsa, las ráfagas de viento y los objetos que flotan siguen un reloj compartido. Al empezar,
   nadie se mueve hasta que todos han cargado el nivel. La pausa no detiene el mundo (los demás siguen jugando).
 
+* **Tronco**: las rachas de saltos limpios se comparten y el cartel muestra a cada jugador con su nombre. Un salto cuenta si lo
+  das en el momento justo y no te toca; funciona igual con pocos fotogramas por segundo.
 * **Dinero**: el anfitrión calcula lo que paga la entrega (con la bonificación de tiempo) y todos cobran exactamente lo mismo.
   La cartera sigue siendo de cada jugador, pero todo el equipo gana lo mismo.
 * **Huevos de pascua y hielo**: si un jugador derriba el muñeco de nieve, cae en todas las pantallas; y el rastro de hielo

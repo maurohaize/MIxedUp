@@ -238,3 +238,10 @@ map.summit.desc,"Mendi elurtua: izotz laku erraldoia, pinuak eta irristakorra de
 map.harbour.name,ARRATSALDEKO PORTUA,PUERTO AL ANOCHECER,DUSK HARBOUR
 map.harbour.desc,"Kai bat, badia sakon bat eta zurezko pasarelak. Ura eta elektrizitatea hurbil: gau eta erronka moduetarako.","Un muelle, una bahía poco profunda y pasarelas de madera. Agua y electricidad muy cerca: ideal para el modo nocturno y el desafío.","A quay, a shallow bay and wooden piers. Water and electricity close together: made for the night and challenge modes."
 toast.out_of_sync,Mapa ez dator bat anfitrioiarenarekin. Berrabiarazi partida.,El mapa no coincide con el del anfitrión. Reinicia la partida.,The map does not match the host's. Restart the match.
+prompt.hug,besarkatu,abrazar,hug
+prompt.hug_heal,besarkatu (sendatzeko),abrazar (curarse),hug (heal)
+hint.hug,"{0}: besarkatu lagun bat sendatzeko.","{0}: abraza a un compañero para curarte.","{0}: hug a teammate to heal."
+death.push,Bultzada batek azken tantan utzi zuen.,Un empujón fue la gota que colmó el vaso.,One shove too many.
+input.right_click,Eskuineko klika,Click derecho,Right click
+input.left_click,Ezkerreko klika,Click izquierdo,Left click
+toast.restart_asked,Anfitrioiari berrabiaraztea eskatu zaio...,Pidiendo al anfitrión que reinicie...,Asking the host to restart...

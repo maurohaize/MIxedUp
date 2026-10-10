@@ -263,6 +263,22 @@ namespace MixedUp
             if (index >= 0 && index < Snowman.All.Count && Snowman.All[index] != null) Snowman.All[index].CollapseFromNetwork(from);
         }
 
+        /// <summary>The local player's streak of jumps over the spinning log changed (0 = it ended): the others' boards follow.</summary>
+        public static void AnnounceStreak(Sweeper sweeper, int streak)
+        {
+            if (!Active || sweeper == null) return;
+            int index = Sweeper.All.IndexOf(sweeper);
+            if (index >= 0) NetAvatar.Local.JumpRpc(index, streak, MyId);
+        }
+
+        internal static void OnStreak(int index, int streak, ulong from)
+        {
+            var avatar = NetAvatar.OfClient(from);
+            if (avatar == null || index < 0 || index >= Sweeper.All.Count || Sweeper.All[index] == null) return;
+            string name = avatar.DisplayName;
+            if (!string.IsNullOrEmpty(name)) Sweeper.All[index].Board.SetStreak(name, streak);
+        }
+
         /// <summary>The local player left a slab of ice in the river: it appears on the other machines too.</summary>
         public static void AnnounceIce(Vector3 position)
         {

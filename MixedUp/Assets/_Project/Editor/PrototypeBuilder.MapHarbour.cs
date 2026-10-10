@@ -9,7 +9,8 @@ namespace MixedUp.EditorTools
     /// </summary>
     public static partial class PrototypeBuilder
     {
-        static readonly int[] QuayTiles = { 19, 26, 19, 1, 19, 20 };
+        // Warm sandy flagstones of nearly one tone: the dusk light does the rest (the old mix of olive and grey made a chessboard).
+        static readonly int[] QuayTiles = { 20, 20, 2, 20, 1, 20, 20, 2 };
         static readonly int[] SeaBedTiles = { 13, 19, 11, 19 };
 
         static void BuildHarbourScene(GameAssets a, Mats m, ArtAssets art, Prefabs p) =>
@@ -39,13 +40,14 @@ namespace MixedUp.EditorTools
 
             // ------------------------------------------------------ quay and bay
             FlatGround(env, "Quay", -45f, -36f, 45f, -8f, 0f, 3f, QuayTiles, 8, art);
-            ColliderBox("SeaBedCollider", env, new Vector3(0f, -0.9f, 23f), new Vector3(90f, 1f, 62f));
-            MeshObject("SeaBed", env, SaveMesh(LowPoly.Patchwork("Map_SeaBed", -45f, -8f, 45f, 54f, -0.4f, 5f, SeaBedTiles, 3)), art.palette, false);
+            ColliderBox("SeaBedCollider", env, new Vector3(0f, -0.9f, 23.5f), new Vector3(90f, 1f, 63f));
+            MeshObject("SeaBed", env, SaveMesh(LowPoly.Patchwork("Map_SeaBed", -45f, -8f, 45f, 55f, -0.4f, 5f, SeaBedTiles, 3)), art.palette, false);
             Prim(PrimitiveType.Cube, "QuayWall", env, new Vector3(0f, -0.2f, -8.05f), new Vector3(90f, 0.4f, 0.3f), m.stone, false);
-            MeshObject("Water", env, SaveMesh(LowPoly.Water("Map_HarbourWater", -45f, 45f, -8f, 54f, -0.3f)),
+            MeshObject("Water", env, SaveMesh(LowPoly.Water("Map_HarbourWater", -45f, 45f, -8f, 55f, -0.3f, 17)),
                 fxLake != null ? fxLake : fxWater != null ? fxWater : art.paletteWater, false);
-            HazardVolume("WaterVolume", env, new Vector3(0f, -0.3f, 23f), new Vector3(90f, 0.5f, 62f), Quaternion.identity, HazardType.Water);
-            MeshObject("Hills", env, art.hills, art.palette);
+            HazardVolume("WaterVolume", env, new Vector3(0f, -0.3f, 23.5f), new Vector3(90f, 0.5f, 63f), Quaternion.identity, HazardType.Water);
+            // Their own mountains: the meadow's have river valleys cut into them, which showed up here as a floating arch.
+            MeshObject("Hills", env, MapHills("Map_HarbourHills", 9), art.palette);
 
             var life = new GameObject("WaterLife").transform;
             life.SetParent(env, false);

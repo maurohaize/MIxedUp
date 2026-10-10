@@ -15,7 +15,7 @@ namespace MixedUp
         public float speed;
         public byte flags;
 
-        public const byte Grounded = 1, Crouching = 2, Dead = 4;
+        public const byte Grounded = 1, Crouching = 2, Dead = 4, Hugging = 8;
 
         public bool Has(byte flag) => (flags & flag) != 0;
 
@@ -261,7 +261,8 @@ namespace MixedUp
                 yaw = local.visual != null ? local.visual.eulerAngles.y : local.transform.eulerAngles.y,
                 speed = local.HorizontalVelocity.magnitude,
                 flags = (byte)((local.IsGrounded ? AvatarPose.Grounded : 0) | (local.IsCrouching ? AvatarPose.Crouching : 0)
-                               | (local.Status != null && local.Status.IsDead ? AvatarPose.Dead : 0))
+                               | (local.Status != null && local.Status.IsDead ? AvatarPose.Dead : 0)
+                               | (IsHugging(local) ? AvatarPose.Hugging : 0))
             };
 
             bool moved = (next.position - lastSent.position).sqrMagnitude > 0.0004f
@@ -297,6 +298,7 @@ namespace MixedUp
                 animator.externalSpeed = target.speed;
                 animator.externalAirborne = !target.Has(AvatarPose.Grounded);
                 animator.externalCrouch = target.Has(AvatarPose.Crouching) ? 1f : 0f;
+                animator.externalHugging = target.Has(AvatarPose.Hugging);
             }
             if (status != null)
             {

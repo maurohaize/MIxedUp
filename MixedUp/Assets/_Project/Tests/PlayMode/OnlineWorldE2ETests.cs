@@ -102,12 +102,16 @@ namespace MixedUp.Tests
             dir = Environment.GetEnvironmentVariable("MIXEDUP_E2E_DIR");
             if (string.IsNullOrEmpty(role) || string.IsNullOrEmpty(dir)) Assert.Ignore("needs two processes (see the class comment)");
             bool host = role == "host";
+            var progress = new PrefsGuard();   // the match pays money and unlocks achievements: put the player's own progress back
 
             // ------------------------------------------------------------ connect and start
             if (host)
             {
                 OnlineSession.Host(ConnectionKind.Direct, Port);
                 yield return WaitFor(() => OnlineSession.IsHost, "hosting");
+                // A client that arrives while the host is still in the test runner's own scene could not be synchronised.
+                yield return WaitFor(() => SceneManager.GetActiveScene().name == OnlineSession.LobbyScene, "the lobby scene");
+                Put("host_in_lobby", "1");
                 yield return WaitFor(() => NetAvatar.Sorted().Count >= 2, "the client to arrive");
                 yield return WaitFor(() => NetAvatar.Host != null, "the host avatar");
                 yield return new WaitForSecondsRealtime(1f);
@@ -118,6 +122,7 @@ namespace MixedUp.Tests
             }
             else
             {
+                yield return WaitFor(() => Get("host_in_lobby") != null, "the host to reach its lobby");
                 // Retry until the host is listening.
                 float t = 0f;
                 while (!OnlineSession.IsOnline && t < Patience)
@@ -144,6 +149,57 @@ namespace MixedUp.Tests
             Assert.AreEqual(Get("host_layout.txt"), Get("client_layout.txt"), "both machines built the same boxes");
 
             int idA = start[0].NetId, idB = start[1].NetId, idC = start[2].NetId;
+
+            // ------------------------------------------------------------ the spinning log notices jumps online too
+            var sweeper = UnityEngine.Object.FindAnyObjectByType<Sweeper>();
+            Assert.IsNotNull(sweeper, "[" + role + "] the level has a spinning log");
+            int cleanJumps = -1, logHits = -1;
+            var side = host ? new Vector3(0f, 0f, 3.2f) : new Vector3(0f, 0f, -3.2f);
+            yield return SweeperJumpTests.JumpOverTheLog(sweeper, PlayerRegistry.Local, side, 5, (c, h) => { cleanJumps = c; logHits = h; });
+            Put(role + "_jumps", cleanJumps.ToString());
+            Assert.GreaterOrEqual(cleanJumps, 2, "[" + role + "] jumps over the log are counted online (hit " + logHits + " times)");
+            yield return WaitFor(() => Get("host_jumps") != null && Get("client_jumps") != null, "both jump tests");
+            Assert.IsFalse(PlayerRegistry.Local.Status.IsDead, "[" + role + "] still alive after the log");
+            PlayerRegistry.Local.Status.Heal(1000f);   // the log may have hurt: start the shove test from full health
+
+            // ------------------------------------------------------------ a shove hurts a little and a hug heals
+            var yard = new Vector3(4f, 0.05f, -31f);
+            if (!host)
+            {
+                PlayerRegistry.Local.Teleport(yard);
+                Put("client_at_yard", "1");
+                yield return WaitFor(() => Get("shoved") != null, "the host's shove");
+                var health = PlayerRegistry.Local.Status;
+                yield return WaitFor(() => health.Health < 100f, "the shove to hurt");
+                float damage = 100f - health.Health;
+                Assert.GreaterOrEqual(damage, 2f - 0.01f, "[client] a shove costs at least 2");
+                Assert.LessOrEqual(damage, 5f + 0.01f, "[client] a shove costs at most 5");
+                PlayerRegistry.Local.Teleport(yard);
+                Put("client_hurt", damage.ToString());
+                yield return WaitFor(() => health.Health01 >= 0.999f, "the hug to heal", 15f);
+                Put("client_healed", "1");
+            }
+            else
+            {
+                yield return WaitFor(() => Get("client_at_yard") != null, "the client at the yard");
+                var theirGhost = NetAvatar.Sorted().First(a => !a.IsOwner).ghost;
+                yield return WaitFor(() => (theirGhost.transform.position - yard).sqrMagnitude < 1f, "the client's ghost to arrive");
+                var me = PlayerRegistry.Local;
+                me.Teleport(yard + new Vector3(1.3f, 0f, 0f));
+                me.visual.rotation = Quaternion.LookRotation(Vector3.left);
+                yield return new WaitForSecondsRealtime(0.3f);
+                Physics.SyncTransforms();
+                Assert.IsNotNull(me.GetComponent<PlayerPush>().TryPush(), "[host] the shove reached the client");
+                Put("shoved", "1");
+
+                yield return WaitFor(() => Get("client_hurt") != null, "the client to be hurt");
+                yield return WaitFor(() => (theirGhost.transform.position - yard).sqrMagnitude < 1f, "the client back at the yard");
+                me.Teleport(yard + new Vector3(1.3f, 0f, 0f));
+                yield return new WaitForSecondsRealtime(0.3f);
+                Physics.SyncTransforms();
+                Assert.IsTrue(me.GetComponent<PlayerHug>().TryHug(), "[host] the hug started");
+                yield return WaitFor(() => Get("client_healed") != null, "the client to be healed");
+            }
 
             // ------------------------------------------------------------ a box taken on one machine disappears on the other
             if (host)
@@ -275,8 +331,21 @@ namespace MixedUp.Tests
             Assert.AreEqual(CombinationOutcome.Safe, state.Resolution.Outcome, "[" + role + "] the safe arrangement was delivered safely");
             Assert.Greater(controller.LastResult.Reward, 0, "[" + role + "] a safe delivery pays something");
 
+            // ------------------------------------------------------------ the retry button restarts the match for everybody
+            var oldLevel = LevelDirector.Instance;
+            yield return new WaitForSecondsRealtime(1.5f);
+            if (!host) GameManager.Instance.Restart();   // a client asks, the host does it for both
+            yield return WaitFor(() => LevelDirector.Instance != null && !ReferenceEquals(LevelDirector.Instance, oldLevel), "the level to restart", 60f);
+            yield return WaitFor(() => !NetWorld.Waiting && PlayerRegistry.Local != null, "the new level to start");
+            Assert.AreEqual(GameState.Playing, GameManager.Instance.State, "[" + role + "] playing again");
+            Assert.AreEqual(0, LevelDirector.Instance.truck.TotalDelivered, "[" + role + "] a fresh, empty truck");
+            Assert.IsTrue(LevelDirector.Instance.FindPickup(idA).IsAvailable, "[" + role + "] the boxes are back");
+            Put(role + "_restarted", "1");
+            yield return WaitFor(() => Get("host_restarted") != null && Get("client_restarted") != null, "both restarted");
+
             Put(role + "_result", "PASS");
             yield return new WaitForSecondsRealtime(2f);
+            progress.Restore();
             OnlineSession.Leave();
         }
     }

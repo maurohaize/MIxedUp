@@ -34,6 +34,7 @@ namespace MixedUp.Tests
         int savedLanguage;
         string savedCombos;
         int savedWallet;
+        PrefsGuard progressGuard;
         readonly HashSet<Key> held = new HashSet<Key>();
 
         protected PlayerController player;
@@ -57,6 +58,7 @@ namespace MixedUp.Tests
             savedLanguage = PlayerPrefs.GetInt(LanguagePref, 0);
             savedCombos = PlayerPrefs.GetString(ComboPref, string.Empty);
             savedWallet = PlayerPrefs.GetInt(WalletPref, 0);
+            progressGuard = new PrefsGuard();
             PlayerPrefs.DeleteKey(ComboPref);
             CombinationManual.Reload();
 
@@ -172,6 +174,7 @@ namespace MixedUp.Tests
             else PlayerPrefs.SetString(ComboPref, savedCombos);
             CombinationManual.Reload();
             PlayerPrefs.SetInt(WalletPref, savedWallet);
+            progressGuard?.Restore();
         }
 
         /// <summary>Keeps the full set of pressed keys, so several keys can be held at once.</summary>

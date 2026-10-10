@@ -132,6 +132,16 @@ namespace MixedUp.EditorTools
             }
         }
 
+        /// <summary>
+        /// Mountains all round the play area (-45..45 by -36..56), starting at ground level at its edge so nothing floats and no
+        /// sky shows between the map and the hills. Unlike the meadow's, they have no river valleys cut into them.
+        /// </summary>
+        static Mesh MapHills(string name, int seed, LowPoly.HillColors colors = null)
+        {
+            var field = new LowPoly.HillField(new Rect(-45f, -36f, 90f, 92f), 5f, 300f, seed);
+            return SaveMesh(LowPoly.Hills(name, field, colors));
+        }
+
         /// <summary>A flat tiled floor with a collider: `top` is the walking height.</summary>
         static void FlatGround(Transform parent, string name, float x0, float z0, float x1, float z1, float top, float tile, int[] palette, int seed, ArtAssets art)
         {

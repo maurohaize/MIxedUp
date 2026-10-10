@@ -21,5 +21,6 @@ namespace MixedUp
         public static DeathCause Burn => new DeathCause("death.burn");
         public static DeathCause Sweeper => new DeathCause("death.sweeper");
         public static DeathCause Timeout => new DeathCause("death.timeout");
+        public static DeathCause Push => new DeathCause("death.push");
     }
 }

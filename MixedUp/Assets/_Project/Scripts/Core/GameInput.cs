@@ -5,7 +5,7 @@ namespace MixedUp
 {
     /// <summary>
     /// All gameplay actions, defined in code so bindings can be remapped and persisted later.
-    /// Defaults: WASD move, Shift run, Space jump, E interact, F take boxes from a teammate, C crouch, G push, H hug, Q/scroll/1-4 inventory slot, Esc pause.
+    /// Defaults: WASD move, Shift run, Space jump, E interact, F take boxes from a teammate, C crouch, G or left click push, right click (or H) hug, Q/scroll/1-4 inventory slot, Esc pause.
     /// </summary>
     public static class GameInput
     {
@@ -88,7 +88,9 @@ namespace MixedUp
             Push.AddBinding("<Mouse>/leftButton");
             Push.AddBinding("<Gamepad>/rightShoulder");
 
+            // Right click first: it is the one shown on screen. H still works for keyboards without a mouse.
             Hug = map.AddAction("Hug", InputActionType.Button);
+            Hug.AddBinding("<Mouse>/rightButton");
             Hug.AddBinding("<Keyboard>/h");
             Hug.AddBinding("<Gamepad>/leftShoulder");
 
@@ -147,6 +149,10 @@ namespace MixedUp
         {
             EnsureCreated();
             // Index 0 is always the keyboard binding; showing every binding would print "E | X" for keyboard and gamepad.
+            if (action.bindings.Count > 0 && action.bindings[0].effectivePath == "<Mouse>/rightButton")
+                return Localization.Get("input.right_click");
+            if (action.bindings.Count > 0 && action.bindings[0].effectivePath == "<Mouse>/leftButton")
+                return Localization.Get("input.left_click");
             string label = action.GetBindingDisplayString(0);
             return string.IsNullOrEmpty(label) ? "?" : label;
         }

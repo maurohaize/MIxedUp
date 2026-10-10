@@ -23,6 +23,8 @@ namespace MixedUp
         public float cooldown = 1.2f;
         [Tooltip("Players further than this from the post stop counting their streak of jumps.")]
         public float streakRadius = 8f;
+        [Tooltip("Extra height (metres) above the log's top that the body has to reach to clear it. The lower, the easier the jump.")]
+        public float verticalMargin = 0.2f;
 
         public float AngleDegrees { get; private set; }
         JumpScoreboard board;
@@ -33,13 +35,36 @@ namespace MixedUp
 
         readonly string cooldownKey = "sweeper-" + System.Guid.NewGuid();
         readonly Dictionary<PlayerController, float> lastSide = new Dictionary<PlayerController, float>();
+        readonly Dictionary<PlayerController, float> lastFeet = new Dictionary<PlayerController, float>();
+        readonly Dictionary<PlayerController, float> lastHitTime = new Dictionary<PlayerController, float>();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() { CleanJump = null; Hit = null; }
 
         /// <summary>The name shown on the scoreboard for a player.</summary>
-        public static string NameOf(PlayerController player) =>
-            player != null && player.isLocal ? Localization.Get("ui.you") : Localization.Get("ui.teammate");
+        public static string NameOf(PlayerController player)
+        {
+            if (player == null || !player.isLocal) return Localization.Get("ui.teammate");
+            // Online, everybody's jumps share one board, so each player goes by their real name.
+            if (NetWorld.Active && NetAvatar.Local != null && !string.IsNullOrEmpty(NetAvatar.Local.DisplayName)) return NetAvatar.Local.DisplayName;
+            return Localization.Get("ui.you");
+        }
+
+        /// <summary>Every spinning log of the level, in a fixed order (the same on every machine of an online game).</summary>
+        public static readonly System.Collections.Generic.List<Sweeper> All = new System.Collections.Generic.List<Sweeper>();
+
+        void OnEnable()
+        {
+            if (!All.Contains(this)) All.Add(this);
+            All.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+        }
+
+        void OnDisable() => All.Remove(this);
+
+        void EndStreak(PlayerController player)
+        {
+            if (Board.Hit(NameOf(player)) && player.isLocal) NetWorld.AnnounceStreak(this, 0);
+        }
 
         void Update()
         {
@@ -53,14 +78,14 @@ namespace MixedUp
                 if (player == null) continue;
                 if (player.Status.IsDead)
                 {
-                    Board.Hit(NameOf(player));
+                    EndStreak(player);
                     lastSide.Remove(player);
                     continue;
                 }
 
                 Vector3 body = player.transform.position + Vector3.up * 0.8f;
                 bool touching = Touches(body, 0.38f);
-                TrackPass(player, touching);
+                TrackPass(player);
 
                 if (!touching) continue;
                 if (!player.Status.TryUseCooldown(cooldownKey, cooldown)) continue;
@@ -74,25 +99,31 @@ namespace MixedUp
                 Vector3 direction = (push.normalized * 0.6f + sideways * 0.4f).normalized;
                 player.AddImpulse(direction * knockback, knockUp);
                 player.Status.Damage(damage, DeathCause.Sweeper);
-                Board.Hit(NameOf(player));
+                lastHitTime[player] = Time.time;
+                EndStreak(player);
                 Hit?.Invoke(this, player);
             }
         }
 
         /// <summary>
         /// Watches on which side of the log's line a player stands: when the log sweeps past them without touching and they
-        /// are in the air, that was a clean jump.
+        /// are in the air, that was a clean jump. The height is judged by the higher of the last two frames, so on a slow
+        /// computer (where the log can pass between two frames) a good jump still counts.
         /// </summary>
-        void TrackPass(PlayerController player, bool touching)
+        void TrackPass(PlayerController player)
         {
             if (arm == null) return;
+
+            float feet = player.transform.position.y;
+            float highest = lastFeet.TryGetValue(player, out float previousFeet) ? Mathf.Max(feet, previousFeet) : feet;
+            lastFeet[player] = feet;
 
             Vector3 offset = player.transform.position - transform.position;
             offset.y = 0f;
             float distance = offset.magnitude;
             if (distance > streakRadius)
             {
-                Board.Hit(NameOf(player));
+                EndStreak(player);
                 lastSide.Remove(player);
                 return;
             }
@@ -101,10 +132,12 @@ namespace MixedUp
             Vector3 along = arm.right;
             along.y = 0f;
             float side = Vector3.Dot(Vector3.Cross(along.normalized, offset.normalized), Vector3.up);
+            bool recentlyHit = lastHitTime.TryGetValue(player, out float hitAt) && Time.time - hitAt < 0.6f;
             if (lastSide.TryGetValue(player, out float previous) && Mathf.Sign(previous) != Mathf.Sign(side) && Mathf.Abs(previous) + Mathf.Abs(side) < 1.2f
-                && !touching && !player.IsGrounded)
+                && !player.IsGrounded && !recentlyHit)
             {
-                RegisterCleanJump(player);
+                var clearing = new Vector3(player.transform.position.x, highest + 0.8f, player.transform.position.z);
+                if (!Touches(clearing, 0.38f)) RegisterCleanJump(player);
             }
             lastSide[player] = side;
         }
@@ -113,6 +146,7 @@ namespace MixedUp
         public int RegisterCleanJump(PlayerController player)
         {
             int streak = Board.Clean(NameOf(player));
+            if (player != null && player.isLocal) NetWorld.AnnounceStreak(this, streak);
             CleanJump?.Invoke(this, player, streak);
             return streak;
         }
@@ -123,7 +157,7 @@ namespace MixedUp
             if (arm == null) return false;
             Vector3 local = arm.InverseTransformPoint(worldPoint) - new Vector3(0f, height, 0f);
             Vector3 limit = halfExtents + Vector3.one * radius;
-            return Mathf.Abs(local.x) <= limit.x && Mathf.Abs(local.y) <= limit.y + 0.6f && Mathf.Abs(local.z) <= limit.z;
+            return Mathf.Abs(local.x) <= limit.x && Mathf.Abs(local.y) <= limit.y + verticalMargin && Mathf.Abs(local.z) <= limit.z;
         }
     }
 }

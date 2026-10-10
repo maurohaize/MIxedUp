@@ -9,7 +9,13 @@ namespace MixedUp.EditorTools
     /// </summary>
     public static partial class PrototypeBuilder
     {
-        static readonly int[] SnowTiles = { 25, 25, 25, 29, 25, 25, 2 };
+        // Almost all white snow, with a few pale-teal patches of shade (no tan squares: they read as a chessboard).
+        static readonly int[] SnowTiles = { 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 29 };
+        // White slopes with bare grey rock only where they are steep (one rock colour, so the cliffs are not a patchwork).
+        static readonly LowPoly.HillColors SnowHills = new LowPoly.HillColors
+        {
+            low = new[] { 25 }, mid = new[] { 25 }, high = new[] { 25, 25, 25, 26 }, rock = new[] { 26 }
+        };
 
         static void BuildSummitScene(GameAssets a, Mats m, ArtAssets art, Prefabs p) =>
             BuildMapScene(SummitScenePath, a, m, art, p, ctx => FillSummit(ctx));
@@ -27,6 +33,7 @@ namespace MixedUp.EditorTools
 
             // ---------------------------------------------------------- ground
             FlatGround(env, "SnowField", -45f, -36f, 45f, 56f, 0f, 3f, SnowTiles, 4, art);
+            MeshObject("Hills", env, MapHills("Map_SummitHills", 5, SnowHills), art.palette);
             c.truckPosition = new Vector3(-26f, 0f, -26f);
             c.noteSpots = new[]
             {
@@ -153,17 +160,6 @@ namespace MixedUp.EditorTools
 
             foreach (var (x, z, yaw) in new[] { (-22f, -14f, 20f), (-8f, 18f, 200f), (14f, 30f, 120f), (-40f, 12f, 90f) })
                 BuildSnowman(scenery, art.palette, new Vector3(x, 0f, z), yaw);
-
-            // Tall, far mountains beyond the walls.
-            var far = new GameObject("FarMountains").transform;
-            far.SetParent(env, false);
-            var rngFar = new System.Random(77);
-            for (int i = 0; i < 16; i++)
-            {
-                float angle = i / 16f * Mathf.PI * 2f;
-                var position = new Vector3(Mathf.Cos(angle) * 105f, 0f, 10f + Mathf.Sin(angle) * 95f);
-                PlaceDecor(far, art.rocks[rngFar.Next(art.rocks.Length)], position, (float)rngFar.NextDouble() * 360f, 16f + (float)rngFar.NextDouble() * 12f, art.palette, 0f);
-            }
 
             AddSnowfall(env, new Vector3(0f, 14f, 10f), new Vector3(90f, 2f, 92f));
             AddTorchPost(env, c.truckPosition + new Vector3(-6f, 0f, -2f), 1.6f);

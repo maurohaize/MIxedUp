@@ -78,6 +78,33 @@ namespace MixedUp.EditorTools
             Debug.Log("[MixedUp] Phase 1 prototype built: " + ScenePath);
         }
 
+        /// <summary>Rebuilds only the two extra maps (Frozen Summit and Dusk Harbour) and what they need, leaving the other scenes alone.</summary>
+        [MenuItem("MixedUp/Build Extra Maps Only")]
+        public static void BuildExtraMaps()
+        {
+            AssetDatabase.Refresh();
+            EnsureFolder(DataDir + "/Effects");
+            EnsureFolder(DataDir + "/Boxes");
+            EnsureFolder(MaterialsDir);
+            EnsureFolder(PrefabsDir);
+            EnsureFolder("Assets/Scenes");
+
+            ImportArt();
+            ImportUi();
+            UiFactory.Font = CreateUiFont();
+            var assets = CreateData();
+            var mats = CreateMaterials();
+            var art = CreateArt(assets, mats);
+            var prefabs = CreatePrefabs(assets, mats, art);
+            CreateIceMeshes();   // the props the meadow's builder prepares (flags, lamps, pines, drifts, crystals)
+            BuildSummitScene(assets, mats, art, prefabs);
+            BuildHarbourScene(assets, mats, art, prefabs);
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("[MixedUp] Extra maps rebuilt.");
+        }
+
         // ---------------------------------------------------------------- data
 
         static GameAssets CreateData()

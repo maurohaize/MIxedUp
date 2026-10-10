@@ -214,6 +214,10 @@ namespace MixedUp
         [Rpc(SendTo.NotMe)]
         public void SnowmanRpc(int index, Vector3 from) => NetWorld.OnSnowman(index, from);
 
+        /// <summary>A player's streak of clean jumps over the spinning log (its number among the level's logs).</summary>
+        [Rpc(SendTo.NotMe)]
+        public void JumpRpc(int index, int streak, ulong from) => NetWorld.OnStreak(index, streak, from);
+
         /// <summary>A player left a slab of ice in the river.</summary>
         [Rpc(SendTo.NotMe)]
         public void IceRpc(Vector3 position) => NetWorld.OnIce(position);
@@ -261,15 +265,36 @@ namespace MixedUp
             if (local != null && !local.Status.IsDead) local.AddImpulse(impulse, upSpeed);
         }
 
-        /// <summary>Somebody hugs this player: they hold still and recover health for a while.</summary>
+        /// <summary>Somebody hugs this player: they hold still, turn to the hugger and recover health for a while.</summary>
         [Rpc(SendTo.Owner)]
-        void HugRpc(float seconds, float healPerSecond)
+        void HugRpc(float seconds, float healPerSecond, ulong from)
         {
             var local = PlayerRegistry.Local;
             if (local == null || local.Status.IsDead) return;
             local.LockMovement(seconds);
+            local.GetComponent<PlayerAnimator>()?.Embrace(seconds);
+
+            var hugger = OfClient(from);
+            if (hugger != null && hugger.ghost != null && local.visual != null)
+            {
+                Vector3 toHugger = hugger.ghost.transform.position - local.transform.position;
+                toHugger.y = 0f;
+                if (toHugger.sqrMagnitude > 0.01f) local.visual.rotation = Quaternion.LookRotation(toHugger);
+            }
             StartCoroutine(HealOverTime(local.Status, seconds, healPerSecond));
         }
+
+        /// <summary>This player was shoved by somebody: the few points of health come off here, on their own machine.</summary>
+        [Rpc(SendTo.Owner)]
+        void PushDamageRpc(float damage)
+        {
+            var local = PlayerRegistry.Local;
+            if (local != null && !local.Status.IsDead) local.Status.Damage(damage, DeathCause.Push);
+        }
+
+        /// <summary>A player asks the host to start the level again (the retry button).</summary>
+        [Rpc(SendTo.Server)]
+        public void RestartRpc() => OnlineSession.RestartMatch();
 
         static IEnumerator HealOverTime(PlayerStatus target, float seconds, float perSecond)
         {
@@ -298,6 +323,14 @@ namespace MixedUp
 
         public void SendPush(Vector3 impulse, float upSpeed) => PushRpc(impulse, upSpeed);
 
-        public void SendHug(float seconds, float healPerSecond) => HugRpc(seconds, healPerSecond);
+        public void SendHug(float seconds, float healPerSecond) => HugRpc(seconds, healPerSecond, Local != null ? Local.OwnerClientId : 0UL);
+
+        public void SendPushDamage(float damage) => PushDamageRpc(damage);
+
+        static bool IsHugging(PlayerController local)
+        {
+            var hug = local != null ? local.GetComponent<PlayerHug>() : null;
+            return hug != null && hug.IsHugging;
+        }
     }
 }
