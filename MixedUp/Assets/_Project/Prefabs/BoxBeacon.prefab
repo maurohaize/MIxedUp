@@ -147,8 +147,8 @@ Light:
   serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 3.2
-  m_Range: 9
+  m_Intensity: 4.2
+  m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -181,7 +181,7 @@ Light:
   m_Cookie: {fileID: 0}
   m_DrawHalo: 0
   m_Flare: {fileID: 0}
-  m_RenderMode: 0
+  m_RenderMode: 1
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -213,7 +213,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed964b6507594334ba5af6f376f3cbb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MixedUp.Runtime::MixedUp.FlickerLight
-  baseIntensity: 3.2
+  baseIntensity: 4.2
   amount: 0.25
   speed: 9
 --- !u!1 &8017349003370894770

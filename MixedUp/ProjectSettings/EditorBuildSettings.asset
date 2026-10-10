@@ -11,5 +11,14 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Level_Prototype.unity
     guid: 0630675253d1311408b523ad42210e22
+  - enabled: 1
+    path: Assets/Scenes/Lobby.unity
+    guid: 893436d1ed1e7f646b492b720f2c3edc
+  - enabled: 1
+    path: Assets/Scenes/Level_Summit.unity
+    guid: e1ae4de230608ce4b9716a66d72c6916
+  - enabled: 1
+    path: Assets/Scenes/Level_Harbour.unity
+    guid: 4e9b2ca703a0d864d94ce45b2279a64e
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
