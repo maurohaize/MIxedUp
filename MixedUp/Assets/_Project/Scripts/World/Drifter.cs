@@ -13,19 +13,32 @@ namespace MixedUp
 
         float baseY;
         float phase;
+        Vector3 startPosition;
 
         void Awake()
         {
             baseY = transform.position.y;
+            startPosition = transform.position;
             phase = Random.value * 6.28f;
         }
 
         void Update()
         {
             var p = transform.position;
-            p += velocity * Time.deltaTime;
-            if (p.x > maxX) p.x = minX;
-            else if (p.x < minX) p.x = maxX;
+            if (NetWorld.SharedClock)
+            {
+                // Online: where it floats is a function of the shared clock (wrapping round the river like the offline movement).
+                float span = Mathf.Max(0.01f, maxX - minX);
+                float t = (float)LevelClock.Seconds;
+                p.x = minX + Mathf.Repeat(startPosition.x + velocity.x * t - minX, span);
+                p.z = startPosition.z + velocity.z * t;
+            }
+            else
+            {
+                p += velocity * Time.deltaTime;
+                if (p.x > maxX) p.x = minX;
+                else if (p.x < minX) p.x = maxX;
+            }
             p.y = baseY + Mathf.Sin(Time.time * 1.6f + phase) * bobHeight;
             transform.position = p;
             transform.Rotate(0f, spinDegrees * Time.deltaTime, 0f, Space.World);

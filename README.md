@@ -78,12 +78,33 @@ La sala demo sin red sigue disponible escribiendo el código `AMETSA`.
 2. *Project Settings > Services*: enlaza el proyecto con tu cuenta de Unity y activa Relay.
 3. Listo: el assembly `Scripts/Net/Relay` solo se compila cuando existe el paquete de Relay y registra el servicio por sí solo.
 
-### Estado de la red (primera fase)
+### Qué se comparte en una partida online
 
-Ya sincronizado: conexión, lobby (nombres, colores, listo), mapa/modo/semilla elegidos por el anfitrión, cambio de escena para todos,
-posición y animación de cada jugador (los demás se ven como "fantasmas" con su nombre), jugadores muertos que pueden espectar.
-Todavía local en cada máquina: las cajas del mapa, el camión, el pedido y el puzle (cada jugador ve y mueve su propia copia).
-Es lo siguiente a sincronizar.
+Todos construyen el mismo nivel (mismo mapa, modo y semilla) y el anfitrión hace de árbitro cuando dos jugadores pueden hacer
+lo mismo a la vez. Está sincronizado:
+
+* **Jugadores**: posición, animación, nombre y colores, cajas en las manos, muerte (con su causa) y espectar. Los demás se ven como
+  "fantasmas" sólidos: se les puede empujar (G), abrazar (H, cura a los dos), pasar cajas (E) o quitárselas (F), y ese efecto ocurre
+  en la máquina del jugador real.
+* **Cajas del mapa**: la que coge un jugador desaparece para todos; si dos la cogen a la vez gana el primero que llega al anfitrión
+  y el otro la devuelve. Las que suelta un jugador al morir aparecen para todos.
+* **Camión y pedido**: las entregas las valida el anfitrión, así que todos los camiones tienen las mismas cajas y el puzle se abre
+  a la vez en todas las pantallas.
+* **Puzle del camión**: el orden de las cajas, la salida del viaje y el final (explosión, mezcla mortal o éxito) los decide el anfitrión
+  y se ven igual en todos.
+* **Mundo**: el tronco giratorio, la balsa, las ráfagas de viento y los objetos que flotan siguen un reloj compartido. Al empezar,
+  nadie se mueve hasta que todos han cargado el nivel. La pausa no detiene el mundo (los demás siguen jugando).
+
+Sigue siendo local en cada máquina: dinero y manual (cada jugador cobra la entrega), el muñeco de nieve y los patos de goma.
+Las cajas heladas no dejan rastro de hielo visible para los demás.
+
+### Probar la red sin salir de Unity
+
+* Tests de edición (`OnlineTests`, `OnlineWorldTests`): lógica del puzle en red, fantasmas, formato de direcciones.
+* Partida real entre **dos procesos de Unity** (`OnlineWorldE2ETests`, se salta sola si no se le pide): abre dos copias del proyecto,
+  elige una carpeta vacía `E2E` y lanza en cada una el test con `MIXEDUP_E2E_DIR=<carpeta>` y `MIXEDUP_E2E_ROLE=host` / `client`.
+  Comprueba que ambos construyen las mismas cajas, que lo que coge uno desaparece en el otro, que una caja disputada acaba con un
+  solo jugador, que las entregas llegan a los dos camiones y que el puzle acaba igual en ambos.
 
 ## Logros y pistas
 

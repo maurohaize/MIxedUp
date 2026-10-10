@@ -56,6 +56,16 @@ namespace MixedUp
         {
             if (!CanTakeFrom(who)) return 0;
 
+            // The ghost of an online player: ask their machine to hand the boxes over.
+            var remote = NetAvatar.OfGhost(gameObject);
+            if (remote != null)
+            {
+                int space = who.Inventory.Capacity - who.Inventory.Count;
+                remote.TakeAllFrom(Mathf.Min(space, inventory.Count));
+                who.MarkPassed();
+                return Mathf.Min(space, inventory.Count);
+            }
+
             int moved = 0;
             while (who.Inventory.HasSpace && inventory.Count > 0)
             {
@@ -75,6 +85,19 @@ namespace MixedUp
             {
                 if (!who.PassReady) return;
                 var box = give.box;
+
+                var remote = NetAvatar.OfGhost(gameObject);
+                if (remote != null)
+                {
+                    // An online player: the box leaves our hands now and arrives in theirs (or comes back if they have no room).
+                    if (!inventory.HasSpace) return;
+                    who.Inventory.RemoveAt(who.Inventory.SelectedIndex);
+                    remote.GiveBoxTo(box);
+                    who.MarkPassed();
+                    GameEvents.RaiseToast("toast.passed", box.DisplayName);
+                    return;
+                }
+
                 if (!who.Inventory.TryTransfer(who.Inventory.SelectedIndex, inventory)) return;
 
                 who.MarkPassed();
@@ -84,7 +107,15 @@ namespace MixedUp
             }
 
             if (allowTakeBack && inventory.Count > 0)
+            {
+                var remote = NetAvatar.OfGhost(gameObject);
+                if (remote != null)
+                {
+                    if (who.Inventory.HasSpace) remote.TakeAllFrom(1);
+                    return;
+                }
                 inventory.TryTransfer(inventory.FirstOccupiedIndex(), who.Inventory);
+            }
         }
     }
 }

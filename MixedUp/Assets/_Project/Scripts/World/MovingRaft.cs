@@ -29,6 +29,12 @@ namespace MixedUp
 
         void Update()
         {
+            if (NetWorld.SharedClock)
+            {
+                FollowSharedClock();
+                return;
+            }
+
             float dt = Time.deltaTime;
             if (waiting > 0f)
             {
@@ -49,6 +55,34 @@ namespace MixedUp
                 Arrived?.Invoke(this);
             }
         }
+
+        /// <summary>
+        /// Online: the raft is always where the cycle says it is at this moment of the shared clock
+        /// (A to B, wait, B to A, wait), so every player sees it at the same place.
+        /// </summary>
+        void FollowSharedClock()
+        {
+            float travel = speed > 0f ? Vector3.Distance(pointA, pointB) / speed : 0f;
+            float period = 2f * (travel + pause);
+            if (period <= 0f) return;
+
+            float t = (float)(LevelClock.Seconds % period);
+            Vector3 target;
+            bool moving;
+            if (t < travel) { target = Vector3.Lerp(pointA, pointB, travel > 0f ? t / travel : 1f); moving = true; towardsB = true; }
+            else if (t < travel + pause) { target = pointB; moving = false; }
+            else if (t < 2f * travel + pause) { target = Vector3.Lerp(pointB, pointA, (t - travel - pause) / travel); moving = true; towardsB = false; }
+            else { target = pointA; moving = false; }
+
+            Vector3 previous = transform.position;
+            transform.position = target;
+            waiting = moving ? 0f : 1f;
+            if (moving) CarryRiders(previous, target - previous);
+            else if (sharedWasMoving) Arrived?.Invoke(this);
+            sharedWasMoving = moving;
+        }
+
+        bool sharedWasMoving;
 
         void CarryRiders(Vector3 previousCentre, Vector3 delta)
         {

@@ -43,8 +43,9 @@ namespace MixedUp
 
         void Update()
         {
-            float step = degreesPerSecond * Time.deltaTime;
-            AngleDegrees = Mathf.Repeat(AngleDegrees + step, 360f);
+            // Online, every machine shows the log at the same angle (a function of the shared clock).
+            if (NetWorld.SharedClock) AngleDegrees = Mathf.Repeat((float)(LevelClock.Seconds * degreesPerSecond), 360f);
+            else AngleDegrees = Mathf.Repeat(AngleDegrees + degreesPerSecond * Time.deltaTime, 360f);
             if (arm != null) arm.localRotation = Quaternion.Euler(0f, AngleDegrees, 0f);
 
             foreach (var player in PlayerRegistry.All)

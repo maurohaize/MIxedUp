@@ -22,6 +22,9 @@ namespace MixedUp
 
         void OnDied(DeathCause cause)
         {
+            // The ghost of a player on another machine: that machine drops their boxes and tells everybody.
+            if (status.IsMirror) return;
+
             var director = LevelDirector.Instance;
             if (director == null) return;
 

@@ -54,7 +54,9 @@ namespace MixedUp
             if (selected.IsEmpty || !Accepts(selected.box)) return;
 
             var box = who.Inventory.RemoveAt(who.Inventory.SelectedIndex);
-            Deliver(box);
+            // Online, the host decides who got there first and tells everybody (so every truck holds the same boxes).
+            if (NetWorld.Active) NetWorld.RequestDeliver(box);
+            else Deliver(box);
         }
 
         public void Deliver(BoxData box)

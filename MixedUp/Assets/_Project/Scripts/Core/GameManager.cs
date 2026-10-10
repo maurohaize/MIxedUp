@@ -28,7 +28,7 @@ namespace MixedUp
         public static Func<bool> EscapeInterceptor;
         /// <summary>Set by a screen with its own mouse interface (the online lobby) so the character and camera stop reading input.</summary>
         public static bool UiBlocksInput;
-        public static bool InputBlocked => UiBlocksInput || (Instance != null && Instance.State != GameState.Playing);
+        public static bool InputBlocked => UiBlocksInput || NetWorld.Waiting || (Instance != null && Instance.State != GameState.Playing);
 
         public Truck truck;
         [Tooltip("Seconds between dying / completing the order and the screen appearing.")]
@@ -82,7 +82,8 @@ namespace MixedUp
 
         void Update()
         {
-            if (State == GameState.Playing)
+            // Online, the clock starts when every player has loaded the level (the host says so).
+            if (State == GameState.Playing && !NetWorld.Waiting)
             {
                 ElapsedPlaySeconds += Time.deltaTime;
                 if (HasTimeLimit && ElapsedPlaySeconds >= timeLimitSeconds && !TimeIsUp)
@@ -224,7 +225,9 @@ namespace MixedUp
         {
             if (State == next) return;
             State = next;
-            Time.timeScale = next == GameState.Playing ? 1f : 0f;
+            // Online, the pause menu does not stop the world: the others keep playing.
+            bool worldGoesOn = next == GameState.Playing || (next == GameState.Paused && OnlineSession.IsOnline);
+            Time.timeScale = worldGoesOn ? 1f : 0f;
             ApplyCursor();
             StateChanged?.Invoke(next);
         }

@@ -61,11 +61,26 @@ namespace MixedUp
             var boxes = new List<BoxData>(truck.DeliveredBoxes);
             State = new TruckPuzzleState(rules, boxes, travelSeconds, explosionFuseSeconds, gameOverFuseSeconds);
             State.Resolved += OnResolved;
+            NetWorld.AttachPuzzle(State, this);
             Opened?.Invoke(State);
         }
 
         /// <summary>Leaves the garage: from now on bad neighbours light their fuse. Reactions become visible.</summary>
         public void StartTravel()
+        {
+            if (State == null || State.Phase != PuzzlePhase.Arranging) return;
+
+            // Online, the host starts the trip for everybody.
+            if (State.Networked)
+            {
+                NetWorld.RequestTravel();
+                return;
+            }
+            BeginTravelNow();
+        }
+
+        /// <summary>Starts the trip on this machine right away (offline, or when the host has said so).</summary>
+        public void BeginTravelNow()
         {
             if (State == null || State.Phase != PuzzlePhase.Arranging) return;
 

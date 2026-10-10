@@ -20,6 +20,8 @@ namespace MixedUp
         public int DangerCount;
         /// <summary>True when a lit fuse ran out; false when the trip simply ended.</summary>
         public bool FuseExpired;
+        /// <summary>The pair (slot i with slot i + 1) that decided the outcome, or -1 when everything was safe.</summary>
+        public int Pair = -1;
     }
 
     /// <summary>
@@ -92,7 +94,60 @@ namespace MixedUp
             return false;
         }
 
+        // ---------------------------------------------------------- online play
+
+        /// <summary>
+        /// Online, the host owns the arrangement: Swap only asks (SwapRequested) and the swap is applied when the host's answer
+        /// arrives, so every player's screen shows the same cargo hold.
+        /// </summary>
+        public bool Networked;
+        /// <summary>
+        /// False on the machines that are not the host: the trip still counts down on screen, but only the host decides when
+        /// it ends (and tells the others how), so nobody resolves it a moment earlier or later than the rest.
+        /// </summary>
+        public bool Authoritative = true;
+        public event Action<int, int> SwapRequested;
+
+        /// <summary>Puts the boxes in the order the host says (same boxes, different places).</summary>
+        public void SetArrangement(IReadOnlyList<BoxData> boxes)
+        {
+            if (boxes == null || boxes.Count != slots.Length || Phase == PuzzlePhase.Resolved) return;
+            for (int i = 0; i < slots.Length; i++) slots[i] = boxes[i];
+            RefreshFuses(0f);
+            Changed?.Invoke();
+        }
+
+        /// <summary>The host resolved the trip: end it here the same way (`pair` is the pair that decided, or -1).</summary>
+        public void ForceResolve(int pair, bool fuseExpired)
+        {
+            if (Phase == PuzzlePhase.Resolved) return;
+            if (fuseExpired && pair >= 0 && pair < PairCount)
+            {
+                var res = Describe(pair, PairOutcome(pair));
+                res.FuseExpired = true;
+                Resolve(res);
+            }
+            else
+            {
+                Resolve(Evaluate());
+            }
+        }
+
         public bool Swap(int i, int j)
+        {
+            if (Phase == PuzzlePhase.Resolved) return false;
+            if (i == j || i < 0 || j < 0 || i >= slots.Length || j >= slots.Length) return false;
+
+            if (Networked)
+            {
+                SwapRequested?.Invoke(i, j);
+                return true;
+            }
+            return ApplySwap(i, j);
+        }
+
+        /// <summary>Swaps two slots right now (what Swap does offline, and what the host's order does online).</summary>
+        public bool ApplySwap(int i, int j)
         {
             if (Phase == PuzzlePhase.Resolved) return false;
             if (i == j || i < 0 || j < 0 || i >= slots.Length || j >= slots.Length) return false;
@@ -120,6 +175,13 @@ namespace MixedUp
 
             TravelElapsed += deltaTime;
             RefreshFuses(deltaTime);
+
+            // Not the host: show the countdown and wait for the host to say how the trip ended.
+            if (!Authoritative)
+            {
+                Changed?.Invoke();
+                return;
+            }
 
             int expired = -1;
             for (int i = 0; i < fuseKey.Length; i++)
@@ -172,7 +234,8 @@ namespace MixedUp
                 Culprit = PairRule(pair),
                 A = slots[pair],
                 B = slots[pair + 1],
-                DangerCount = dangers
+                DangerCount = dangers,
+                Pair = pair
             };
         }
 

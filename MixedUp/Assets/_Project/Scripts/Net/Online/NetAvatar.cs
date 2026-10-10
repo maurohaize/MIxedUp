@@ -37,7 +37,7 @@ namespace MixedUp
     /// The avatar of the host also carries the match settings (map, mode, seed), so every machine builds the same level.
     /// It survives the move from the lobby to the level.
     /// </summary>
-    public class NetAvatar : NetworkBehaviour
+    public partial class NetAvatar : NetworkBehaviour
     {
         public static readonly List<NetAvatar> All = new List<NetAvatar>();
         public static NetAvatar Local { get; private set; }
@@ -69,6 +69,11 @@ namespace MixedUp
         readonly NetworkVariable<int> clothes = new NetworkVariable<int>(0, Everyone, NetworkVariableWritePermission.Owner);
         readonly NetworkVariable<bool> ready = new NetworkVariable<bool>(false, Everyone, NetworkVariableWritePermission.Owner);
         readonly NetworkVariable<AvatarPose> pose = new NetworkVariable<AvatarPose>(default, Everyone, NetworkVariableWritePermission.Owner);
+        // What the player carries ("box,box") and why they died: shown on their ghost on every other machine.
+        readonly NetworkVariable<FixedString64Bytes> carried =
+            new NetworkVariable<FixedString64Bytes>(default, Everyone, NetworkVariableWritePermission.Owner);
+        readonly NetworkVariable<FixedString64Bytes> deathKey =
+            new NetworkVariable<FixedString64Bytes>(default, Everyone, NetworkVariableWritePermission.Owner);
 
         // Match settings: only the host's avatar ever writes them.
         readonly NetworkVariable<FixedString32Bytes> mapId =
@@ -79,6 +84,9 @@ namespace MixedUp
         readonly NetworkVariable<bool> started = new NetworkVariable<bool>(false, Everyone, NetworkVariableWritePermission.Server);
 
         AvatarPose lastSent;
+        string lastCarried = string.Empty;
+        string lastDeathKey = string.Empty;
+        string appliedCarried = string.Empty;
         bool remoteInitialised;
         Vector3 smoothedVelocity;
         Camera cam;
@@ -86,6 +94,13 @@ namespace MixedUp
         static FixedString32Bytes Fixed(string text)
         {
             var value = new FixedString32Bytes();
+            value.CopyFromTruncated(text ?? string.Empty);
+            return value;
+        }
+
+        static FixedString64Bytes Fixed64(string text)
+        {
+            var value = new FixedString64Bytes();
             value.CopyFromTruncated(text ?? string.Empty);
             return value;
         }
@@ -140,6 +155,8 @@ namespace MixedUp
             }
 
             if (ghost != null) ghost.SetActive(!IsOwner);
+            if (!IsOwner) SetUpGhost();
+            if (IsServer && IsOwnedByServer) HookLevelLoaded();
             ApplyLook();
             name = "Avatar_" + DisplayName;
             Changed?.Invoke();
@@ -156,6 +173,7 @@ namespace MixedUp
             started.OnValueChanged -= OnReadyChanged;
 
             if (IsOwner) CharacterCustomization.Changed -= PushLook;
+            UnhookLevelLoaded();
             if (Local == this) Local = null;
             All.Remove(this);
             Changed?.Invoke();
@@ -234,6 +252,8 @@ namespace MixedUp
         {
             var local = PlayerRegistry.Local;
             if (local == null) return;
+            NetWorld.Tick();
+            PublishCarried(local);
 
             var next = new AvatarPose
             {
@@ -281,8 +301,9 @@ namespace MixedUp
             if (status != null)
             {
                 bool dead = target.Has(AvatarPose.Dead);
-                if (dead && !status.IsDead) status.Kill(DeathCause.Void);
+                if (dead && !status.IsDead) status.MirrorDie(GhostDeathCause());
                 else if (!dead && status.IsDead) status.Revive();
+                ApplyCarried(carried.Value.ToString());
             }
 
             if (label != null)

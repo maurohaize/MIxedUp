@@ -30,6 +30,8 @@ namespace MixedUp
         public static GameModeInfo Override;
 
         readonly List<BoxPickup> pickups = new List<BoxPickup>();
+        readonly Dictionary<int, BoxPickup> byId = new Dictionary<int, BoxPickup>();
+        int nextStaticId;
         Transform boxesRoot;
 
         public GameModeInfo Mode { get; private set; }
@@ -51,6 +53,7 @@ namespace MixedUp
             Mode = Override ?? (online ? OnlineMatch.Mode : null) ?? (room != null ? GameModes.Find(room.modeId) : null) ?? GameModes.Selected;
             Seed = online && OnlineMatch.Seed != 0 ? OnlineMatch.Seed : Random.Range(1, int.MaxValue);
             var rng = new System.Random(Seed);
+            NetWorld.BeginLevel();
 
             if (truck != null) truck.order = OrderFactory.Create(Mode, boxKinds, rules, truck.order, rng);
 
@@ -63,6 +66,7 @@ namespace MixedUp
 
             if (GameManager.Instance != null) GameManager.Instance.timeLimitSeconds = Mode.timeLimit;
             if (Mode.night && night != null) night.Apply();
+            NetWorld.ReportLayout(LayoutSignature());
         }
 
         void Start()
@@ -164,7 +168,7 @@ namespace MixedUp
         void Spawn(BoxData data, BoxSpawnPoint point)
         {
             point.InUse = true;
-            SpawnAt(data, point.Position);
+            SpawnAt(data, point.Position, nextStaticId++);
         }
 
         /// <summary>Puts a box that somebody was carrying back into the world, spread in a small ring round `around`.</summary>
@@ -174,10 +178,58 @@ namespace MixedUp
             Vector3 spot = around + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * (count > 1 ? 0.8f : 0.4f);
             if (Physics.Raycast(spot + Vector3.up * 2f, Vector3.down, out var hit, 8f, ~0, QueryTriggerInteraction.Ignore)) spot.y = hit.point.y + 0.6f;
             else spot = around + Vector3.up * 0.6f;
-            return SpawnAt(data, spot);
+
+            // In an online game the other machines put the same box on the same spot.
+            int id = NetWorld.Active ? NetWorld.NewDropId() : nextStaticId++;
+            var pickup = SpawnAt(data, spot, id);
+            if (pickup != null) NetWorld.AnnounceDrop(id, data, spot);
+            return pickup;
         }
 
-        BoxPickup SpawnAt(BoxData data, Vector3 position)
+        // ------------------------------------------------------------ online
+
+        /// <summary>The kind of box with this id (every kind the level can contain), or null.</summary>
+        public BoxData FindBox(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            foreach (var kind in boxKinds)
+                if (kind != null && kind.id == id) return kind;
+            if (truck != null && truck.order != null)
+                foreach (var line in truck.order.lines)
+                    if (line.box != null && line.box.id == id) return line.box;
+            foreach (var kind in Resources.FindObjectsOfTypeAll<BoxData>())
+                if (kind != null && kind.id == id) return kind;
+            return null;
+        }
+
+        /// <summary>The box lying in the world with this online number, or null.</summary>
+        public BoxPickup FindPickup(int netId) => byId.TryGetValue(netId, out var pickup) ? pickup : null;
+
+        /// <summary>A box dropped on another machine appears here too.</summary>
+        public BoxPickup SpawnRemote(int netId, BoxData data, Vector3 position)
+        {
+            if (byId.ContainsKey(netId)) return byId[netId];
+            return SpawnAt(data, position, netId);
+        }
+
+        /// <summary>
+        /// A short text that describes where every starting box lies. Machines that built the same level give the same text;
+        /// the online game compares them to notice a machine whose level came out different.
+        /// </summary>
+        public string LayoutSignature()
+        {
+            var text = new System.Text.StringBuilder();
+            foreach (var pickup in pickups)
+            {
+                if (pickup == null || pickup.NetId >= NetWorld.DropIdBase) continue;
+                var p = pickup.transform.position;
+                text.Append(pickup.NetId).Append(':').Append(pickup.data != null ? pickup.data.id : "?").Append('@')
+                    .Append(Mathf.RoundToInt(p.x * 10f)).Append(',').Append(Mathf.RoundToInt(p.z * 10f)).Append(';');
+            }
+            return text.ToString();
+        }
+
+        BoxPickup SpawnAt(BoxData data, Vector3 position, int netId)
         {
             if (boxPickupPrefab == null || data == null) return null;
             if (boxesRoot == null) boxesRoot = new GameObject("Boxes").transform;
@@ -186,6 +238,8 @@ namespace MixedUp
             go.name = "Box_" + data.id;
             var pickup = go.GetComponent<BoxPickup>();
             pickup.data = data;
+            pickup.NetId = netId;
+            byId[netId] = pickup;
             if (data.worldPrefab != null && pickup.visual != null) Instantiate(data.worldPrefab, pickup.visual);
             if (Mode.night && beaconPrefab != null)
             {

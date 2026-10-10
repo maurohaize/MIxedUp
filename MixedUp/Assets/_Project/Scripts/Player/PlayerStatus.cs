@@ -41,6 +41,12 @@ namespace MixedUp
         /// <summary>True when there is more than one player: health no longer regenerates by itself, a hug is needed.</summary>
         public static bool HugsRequired => RoomSession.IsMultiplayer || PlayerRegistry.All.Count > 1 || NetAvatar.All.Count > 1;
 
+        /// <summary>
+        /// True on the ghost of a player on another machine: their health, deaths and boxes are decided there and only shown
+        /// here, so nothing in this copy damages, heals or drops anything by itself.
+        /// </summary>
+        public bool IsMirror { get; set; }
+
         public HazardState Hazards { get; set; }
         public MovementModifiers Modifiers { get; private set; } = MovementModifiers.Default;
         public float VisionObstruction { get; private set; }
@@ -75,6 +81,7 @@ namespace MixedUp
 
             SimTime += deltaTime;
             inventory.Tick(deltaTime);
+            if (IsMirror) return;
 
             // Flames hurt in small, regular bites instead of every frame.
             if (Hazards.OnFire && TryUseCooldown("fire", 0.25f)) Damage(fireDamagePerSecond * 0.25f, DeathCause.Burn);
@@ -114,7 +121,7 @@ namespace MixedUp
         public void Damage(float amount, DeathCause cause)
         {
             EnsureInit();
-            if (IsDead || amount <= 0f) return;
+            if (IsMirror || IsDead || amount <= 0f) return;
 
             health -= amount;
             lastDamageTime = SimTime;
@@ -127,7 +134,7 @@ namespace MixedUp
         public void Heal(float amount)
         {
             EnsureInit();
-            if (IsDead || amount <= 0f || health >= maxHealth) return;
+            if (IsMirror || IsDead || amount <= 0f || health >= maxHealth) return;
             health = Mathf.Min(maxHealth, health + amount);
             Healed?.Invoke(amount);
         }
@@ -135,7 +142,16 @@ namespace MixedUp
         public void Kill(DeathCause cause)
         {
             EnsureInit();
-            if (IsDead) return;
+            if (IsMirror || IsDead) return;
+            health = 0f;
+            Die(cause);
+        }
+
+        /// <summary>The network says the player this ghost shows has died (only the ghost of a remote player takes this).</summary>
+        public void MirrorDie(DeathCause cause)
+        {
+            EnsureInit();
+            if (!IsMirror || IsDead) return;
             health = 0f;
             Die(cause);
         }

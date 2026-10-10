@@ -20,6 +20,12 @@ namespace MixedUp
 
         public static event Action<BoxPickup> Collected;
 
+        /// <summary>
+        /// Identifies this box on every machine of an online game (the same level gives the same numbers; boxes dropped by a
+        /// dead player get theirs from the machine that dropped them). -1 = not numbered.
+        /// </summary>
+        [NonSerialized] public int NetId = -1;
+
         public bool IsAvailable => available;
         public Transform InteractionTransform => transform;
 
@@ -57,6 +63,15 @@ namespace MixedUp
 
             available = false;
             Collected?.Invoke(this);
+            gameObject.SetActive(false);
+            NetWorld.PickedUp(this);
+        }
+
+        /// <summary>Somebody else (in an online game) took this box: it disappears without going into any local inventory.</summary>
+        public void RemoteTake()
+        {
+            if (!available) return;
+            available = false;
             gameObject.SetActive(false);
         }
     }

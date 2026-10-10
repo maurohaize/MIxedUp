@@ -80,6 +80,8 @@ namespace MixedUp
             HealedTotal = 0f;
             controller.LockMovement(duration);
             if (partner.TryGetComponent(out PlayerController otherController)) otherController.LockMovement(duration);
+            // An online player: their machine holds them still and heals them (their health is theirs to change).
+            NetAvatar.OfGhost(partner.gameObject)?.SendHug(duration, healPerSecond);
 
             Face(partner.transform.position);
             Started?.Invoke(this, partner);

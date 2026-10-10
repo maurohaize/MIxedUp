@@ -28,12 +28,23 @@ namespace MixedUp
 
         void Update()
         {
-            timer += Time.deltaTime;
-            switch (Current)
+            if (NetWorld.SharedClock)
             {
-                case Phase.Calm when timer >= calmSeconds: Set(Phase.Warning); break;
-                case Phase.Warning when timer >= warningSeconds: Set(Phase.Blowing); break;
-                case Phase.Blowing when timer >= gustSeconds: Set(Phase.Calm); break;
+                // Online: the phase is read off the shared clock, so the gust arrives for everybody at once.
+                float cycle = calmSeconds + warningSeconds + gustSeconds;
+                float t = cycle > 0f ? (float)(LevelClock.Seconds % cycle) : 0f;
+                var wanted = t < calmSeconds ? Phase.Calm : t < calmSeconds + warningSeconds ? Phase.Warning : Phase.Blowing;
+                if (wanted != Current) Set(wanted);
+            }
+            else
+            {
+                timer += Time.deltaTime;
+                switch (Current)
+                {
+                    case Phase.Calm when timer >= calmSeconds: Set(Phase.Warning); break;
+                    case Phase.Warning when timer >= warningSeconds: Set(Phase.Blowing); break;
+                    case Phase.Blowing when timer >= gustSeconds: Set(Phase.Calm); break;
+                }
             }
             if (Current != Phase.Blowing) return;
 
