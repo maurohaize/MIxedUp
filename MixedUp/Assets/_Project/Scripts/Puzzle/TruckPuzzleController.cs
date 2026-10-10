@@ -143,6 +143,13 @@ namespace MixedUp
                 }
             }
 
+            // Online, the whole team is paid the same: the host's figures replace the ones worked out here.
+            if (NetWorld.TryTakeAgreedReward(out int agreedReward, out int agreedBonus))
+            {
+                result.Reward = agreedReward;
+                result.TimeBonus = agreedBonus;
+            }
+
             Wallet.Add(result.Reward);
             LastResult = result;
             Finished?.Invoke(result);

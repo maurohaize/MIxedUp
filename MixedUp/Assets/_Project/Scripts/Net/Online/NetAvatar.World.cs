@@ -207,7 +207,16 @@ namespace MixedUp
 
         /// <summary>Host to clients: the trip is over, and which pair of boxes decided it (-1 = all safe).</summary>
         [Rpc(SendTo.NotServer)]
-        public void PuzzleResolvedRpc(string arrangement, int pair, bool fuseExpired) => NetWorld.OnPuzzleResolved(arrangement, pair, fuseExpired);
+        public void PuzzleResolvedRpc(string arrangement, int pair, bool fuseExpired, int reward, int bonus) =>
+            NetWorld.OnPuzzleResolved(arrangement, pair, fuseExpired, reward, bonus);
+
+        /// <summary>A player knocked the snowman down (its number among the level's snowmen, and from where).</summary>
+        [Rpc(SendTo.NotMe)]
+        public void SnowmanRpc(int index, Vector3 from) => NetWorld.OnSnowman(index, from);
+
+        /// <summary>A player left a slab of ice in the river.</summary>
+        [Rpc(SendTo.NotMe)]
+        public void IceRpc(Vector3 position) => NetWorld.OnIce(position);
 
         // ============================================================ remote calls: between players
         // These are called on the avatar of the player they are meant for and run on that player's machine (SendTo.Owner).

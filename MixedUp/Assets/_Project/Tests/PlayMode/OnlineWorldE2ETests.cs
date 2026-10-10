@@ -44,6 +44,46 @@ namespace MixedUp.Tests
 
         static PlayerInteractor Hands => PlayerRegistry.Local.GetComponent<PlayerInteractor>();
 
+        /// <summary>Rearranges the cargo (through the normal swap requests) so that no neighbours react.</summary>
+        static void ArrangeSafely(TruckPuzzleState state, CombinationRules rules)
+        {
+            int n = state.Count;
+            var boxes = new BoxData[n];
+            for (int i = 0; i < n; i++) boxes[i] = state[i];
+
+            var order = new int[n];
+            var used = new bool[n];
+            bool Search(int depth)
+            {
+                if (depth == n) return true;
+                for (int i = 0; i < n; i++)
+                {
+                    if (used[i]) continue;
+                    if (depth > 0 && rules.OutcomeOf(boxes[order[depth - 1]], boxes[i]) != CombinationOutcome.Safe) continue;
+                    used[i] = true;
+                    order[depth] = i;
+                    if (Search(depth + 1)) return true;
+                    used[i] = false;
+                }
+                return false;
+            }
+            Assert.IsTrue(Search(0), "a safe arrangement exists for this order");
+
+            // Selection sort into the wanted order using swaps.
+            var wanted = new BoxData[n];
+            for (int i = 0; i < n; i++) wanted[i] = boxes[order[i]];
+            for (int i = 0; i < n; i++)
+            {
+                if (state[i] == wanted[i]) continue;
+                for (int j = i + 1; j < n; j++)
+                {
+                    if (state[j] != wanted[i]) continue;
+                    state.Swap(i, j);
+                    break;
+                }
+            }
+        }
+
         static void DeliverEverythingHeld()
         {
             var truck = LevelDirector.Instance.truck;
@@ -133,6 +173,26 @@ namespace MixedUp.Tests
             Assert.AreEqual(3, total, "[" + role + "] the contested box ended up with exactly one player");
             Assert.IsFalse(contested.IsAvailable, "[" + role + "] the contested box is gone for both");
 
+            // ------------------------------------------------------------ the snowman falls and the ice appears for everybody
+            Assert.GreaterOrEqual(Snowman.All.Count, 1, "[" + role + "] the level has a snowman");
+            Vector3? iceSeen = null;
+            IceTrailEmitter.Placed += position => iceSeen = position;
+            if (host)
+            {
+                Snowman.All[0].Collapse(Hands.transform.position);
+                var emitter = PlayerRegistry.Local.GetComponent<IceTrailEmitter>();
+                Assert.IsNotNull(emitter.slabPrefab, "[host] the player can leave ice");
+                emitter.Place(new Vector3(7f, 0f, 9f));
+                Put("snowman_ice", "1");
+            }
+            else
+            {
+                yield return WaitFor(() => Get("snowman_ice") != null, "the host's snowman and ice");
+                yield return WaitFor(() => Snowman.All[0].IsCollapsed, "the snowman to fall here too");
+                yield return WaitFor(() => iceSeen.HasValue, "the host's ice to appear here");
+                Assert.AreEqual(7f, iceSeen.Value.x, 0.01f, "[client] the slab is where the host put it");
+            }
+
             // ------------------------------------------------------------ deliveries reach both trucks
             var truck = director.truck;
             DeliverEverythingHeld();
@@ -173,7 +233,7 @@ namespace MixedUp.Tests
             if (host)
             {
                 Put("arrangement_before", before);
-                state.Swap(0, state.Count - 1);
+                ArrangeSafely(state, controller.rules);
                 yield return new WaitForSecondsRealtime(1f);
                 Put("arrangement_after", string.Join(",", Enumerable.Range(0, state.Count).Select(i => state[i].id)));
             }
@@ -185,7 +245,12 @@ namespace MixedUp.Tests
             // The client rearranges too: the host (the referee) applies it for both.
             if (!host)
             {
-                state.Swap(0, 1);
+                // Two boxes of the same kind trade places: the request travels to the host and back, and changes nothing.
+                int a = 0, b = 1;
+                for (int i = 0; i < state.Count; i++)
+                    for (int j = i + 1; j < state.Count; j++)
+                        if (state[i] == state[j]) { a = i; b = j; }
+                state.Swap(a, b);
                 yield return new WaitForSecondsRealtime(1f);
             }
             yield return new WaitForSecondsRealtime(1.5f);
@@ -201,6 +266,14 @@ namespace MixedUp.Tests
             Put(role + "_outcome", outcome);
             yield return WaitFor(() => Get("host_outcome") != null && Get("client_outcome") != null, "both outcomes");
             Assert.AreEqual(Get("host_outcome"), Get("client_outcome"), "the trip ended the same way for both players");
+
+            // The whole team is paid the same amount.
+            yield return WaitFor(() => controller.LastResult != null, "the delivery result");
+            Put(role + "_pay", controller.LastResult.Reward + "/" + controller.LastResult.TimeBonus);
+            yield return WaitFor(() => Get("host_pay") != null && Get("client_pay") != null, "both payments");
+            Assert.AreEqual(Get("host_pay"), Get("client_pay"), "both players were paid the same");
+            Assert.AreEqual(CombinationOutcome.Safe, state.Resolution.Outcome, "[" + role + "] the safe arrangement was delivered safely");
+            Assert.Greater(controller.LastResult.Reward, 0, "[" + role + "] a safe delivery pays something");
 
             Put(role + "_result", "PASS");
             yield return new WaitForSecondsRealtime(2f);

@@ -248,6 +248,34 @@ namespace MixedUp
             if (!local.Status.Inventory.TryAdd(box, out _)) Director.Drop(box, local.transform.position, 0, 1);
         }
 
+        // ------------------------------------------------------------ easter eggs and ice
+
+        /// <summary>The local player knocked the snowman down: it falls on the other machines too.</summary>
+        public static void AnnounceSnowman(Snowman snowman, Vector3 from)
+        {
+            if (!Active || snowman == null) return;
+            int index = Snowman.All.IndexOf(snowman);
+            if (index >= 0) NetAvatar.Local.SnowmanRpc(index, from);
+        }
+
+        internal static void OnSnowman(int index, Vector3 from)
+        {
+            if (index >= 0 && index < Snowman.All.Count && Snowman.All[index] != null) Snowman.All[index].CollapseFromNetwork(from);
+        }
+
+        /// <summary>The local player left a slab of ice in the river: it appears on the other machines too.</summary>
+        public static void AnnounceIce(Vector3 position)
+        {
+            if (Active) NetAvatar.Local.IceRpc(position);
+        }
+
+        internal static void OnIce(Vector3 position)
+        {
+            var local = PlayerRegistry.Local;
+            var emitter = local != null ? local.GetComponent<IceTrailEmitter>() : null;
+            if (emitter != null) emitter.PlaceRemote(position);
+        }
+
         // ------------------------------------------------------------ puzzle
 
         /// <summary>The truck puzzle opened on this machine: from now on the host's arrangement rules it.</summary>
@@ -299,7 +327,29 @@ namespace MixedUp
         static void HostResolved(PuzzleResolution resolution)
         {
             if (puzzle == null || !Active) return;
-            NetAvatar.Local.PuzzleResolvedRpc(Encode(puzzle), resolution.Pair, resolution.FuseExpired);
+            var paid = puzzleController != null ? puzzleController.LastResult : null;
+            int reward = paid != null ? paid.Reward : 0;
+            int bonus = paid != null ? paid.TimeBonus : 0;
+            NetAvatar.Local.PuzzleResolvedRpc(Encode(puzzle), resolution.Pair, resolution.FuseExpired, reward, bonus);
+        }
+
+        // ------------------------------------------------------------ money
+
+        static bool hasAgreedReward;
+        static int agreedReward;
+        static int agreedBonus;
+
+        /// <summary>
+        /// Online, the host works out what the delivery pays and everybody receives exactly that, so the whole team earns the
+        /// same. Returns false offline and on the host (which uses its own figures).
+        /// </summary>
+        public static bool TryTakeAgreedReward(out int reward, out int bonus)
+        {
+            reward = agreedReward;
+            bonus = agreedBonus;
+            bool had = hasAgreedReward;
+            hasAgreedReward = false;
+            return had;
         }
 
         /// <summary>Client: the host changed the cargo hold (new order of boxes, or the trip has begun).</summary>
@@ -316,8 +366,11 @@ namespace MixedUp
         }
 
         /// <summary>Client: the host says the trip ended.</summary>
-        internal static void OnPuzzleResolved(string arrangement, int pair, bool fuseExpired)
+        internal static void OnPuzzleResolved(string arrangement, int pair, bool fuseExpired, int reward, int bonus)
         {
+            hasAgreedReward = true;
+            agreedReward = reward;
+            agreedBonus = bonus;
             if (puzzle == null)
             {
                 pendingArrangement = arrangement;

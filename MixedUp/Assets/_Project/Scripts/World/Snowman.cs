@@ -32,6 +32,10 @@ namespace MixedUp
         readonly List<Rest> rest = new List<Rest>();
         readonly Dictionary<PlayerController, float> recentSpeed = new Dictionary<PlayerController, float>();
         float respawnAt;
+        bool fromNetwork;
+
+        /// <summary>Every snowman of the level, in a fixed order (the same on every machine of an online game).</summary>
+        public static readonly List<Snowman> All = new List<Snowman>();
 
         public bool IsCollapsed { get; private set; }
         public static event System.Action<Snowman> Collapsed;
@@ -39,6 +43,22 @@ namespace MixedUp
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() { Collapsed = null; Rebuilt = null; }
+
+        void OnEnable()
+        {
+            if (!All.Contains(this)) All.Add(this);
+            All.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+        }
+
+        void OnDisable() => All.Remove(this);
+
+        /// <summary>Another player of an online game knocked it down: the same happens here, without telling anyone again.</summary>
+        public void CollapseFromNetwork(Vector3 from)
+        {
+            fromNetwork = true;
+            Collapse(from);
+            fromNetwork = false;
+        }
 
         void Awake()
         {
@@ -95,6 +115,7 @@ namespace MixedUp
                 }, away * 4.5f + Vector3.up * 5f, 0.2f);
             if (body != null) StartCoroutine(Slump(body));
             if (puff != null) puff.Emit(40);
+            if (!fromNetwork) NetWorld.AnnounceSnowman(this, from);
             Collapsed?.Invoke(this);
         }
 

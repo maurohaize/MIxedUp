@@ -68,7 +68,12 @@ namespace MixedUp
         }
 
         /// <summary>Puts a slab of ice at the water surface (the top is flush with the river banks).</summary>
-        public IceSlab Place(Vector3 position)
+        public IceSlab Place(Vector3 position) => Place(position, true);
+
+        /// <summary>A slab that another player of an online game made: it appears here too (and nobody is told again).</summary>
+        public IceSlab PlaceRemote(Vector3 position) => Place(position, false);
+
+        IceSlab Place(Vector3 position, bool own)
         {
             // Melted slabs are recycled, so a long wade does not keep creating and destroying objects.
             IceSlab slab = null;
@@ -84,7 +89,7 @@ namespace MixedUp
                 frost.transform.position = position + Vector3.up * 0.1f;
                 frost.Emit(7);
             }
-            if (body != null) slab.IgnoreFor(body, ownerPassSeconds);
+            if (own && body != null) slab.IgnoreFor(body, ownerPassSeconds);
 
             slabs.Add(slab);
             // Too many: the oldest start melting now (they leave the list once they are gone).
@@ -96,8 +101,13 @@ namespace MixedUp
                 melting++;
             }
 
-            lastSlab = position;
-            PlacedCount++;
+            if (own)
+            {
+                lastSlab = position;
+                PlacedCount++;
+                // Only the ice of the player on this machine is sent to the others.
+                if (TryGetComponent(out PlayerController owner) && owner.isLocal) NetWorld.AnnounceIce(position);
+            }
             Placed?.Invoke(position);
             return slab;
         }

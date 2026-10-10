@@ -95,8 +95,10 @@ lo mismo a la vez. Está sincronizado:
 * **Mundo**: el tronco giratorio, la balsa, las ráfagas de viento y los objetos que flotan siguen un reloj compartido. Al empezar,
   nadie se mueve hasta que todos han cargado el nivel. La pausa no detiene el mundo (los demás siguen jugando).
 
-Sigue siendo local en cada máquina: dinero y manual (cada jugador cobra la entrega), el muñeco de nieve y los patos de goma.
-Las cajas heladas no dejan rastro de hielo visible para los demás.
+* **Dinero**: el anfitrión calcula lo que paga la entrega (con la bonificación de tiempo) y todos cobran exactamente lo mismo.
+  La cartera sigue siendo de cada jugador, pero todo el equipo gana lo mismo.
+* **Huevos de pascua y hielo**: si un jugador derriba el muñeco de nieve, cae en todas las pantallas; y el rastro de hielo
+  de las cajas heladas aparece para todos.
 
 ### Probar la red sin salir de Unity
 
