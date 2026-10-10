@@ -225,12 +225,12 @@ lobby.err.relay_failed,Ezin izan da Relay bidezko sala sortu.,No se pudo crear l
 lobby.err.connect,Ezin izan da konektatu.,No se pudo conectar.,Could not connect.
 lobby.err.host,Ezin izan da sala sortu.,No se pudo crear la sala.,Could not create the room.
 lobby.err.avatar,Falta sareko pertsonaia (exekutatu MixedUp > Build Prototype Scene).,Falta el avatar de red (ejecuta MixedUp > Build Prototype Scene).,The network avatar is missing (run MixedUp > Build Prototype Scene).
-lobby.tab_hint,TAB: sagua erabili / mugitu,TAB: usar el ratón / moverse,TAB: use the mouse / move
+lobby.tab_hint,TAB edo ESC: sagua erabili / mugitu,TAB o ESC: usar el ratón / moverse,TAB or ESC: use the mouse / move
 lobby.map,MAPA,MAPA,MAP
 toast.only_host,Anfitrioiak bakarrik berrabiaraz dezake.,Solo el anfitrión puede reiniciar.,Only the host can restart.
 map.meadow.name,BELARDI ERREPARTUA,PRADERA DEL REPARTO,DELIVERY MEADOW
 map.meadow.desc,"Jatorrizko mapa: ibaia, kobazuloa eta muino izoztua.","El mapa original: río, cueva y colina helada.","The original map: river, cave and icy hill."
-lobby.mouse_mode,SAGU MODUA (TAB itzultzeko),MODO RATÓN (TAB para volver),MOUSE MODE (TAB to go back)
+lobby.mouse_mode,SAGU MODUA (TAB edo ESC mugitzeko),MODO RATÓN (TAB o ESC para moverte),MOUSE MODE (TAB or ESC to walk)
 hintbox.crates,Aholku: pilatu kaxak eta salto egin bakoitzera.,Pista: sube las cajas de una en una saltando.,Tip: climb the crates one by one by jumping.
 hintbox.raft,Aholku: baltsak uhartera eramango zaitu; itxaron bere txanda.,Pista: la balsa te lleva a la isla; espera a que llegue.,Tip: the raft takes you to the island; wait for it to arrive.
 map.summit.name,IZOTZ GAINA,CUMBRE HELADA,FROZEN SUMMIT

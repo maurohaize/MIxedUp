@@ -53,7 +53,8 @@ namespace MixedUp
         {
             GameInput.Enable();
             Time.timeScale = 1f;
-            SetUiMode(false);
+            // The lobby is all buttons, so it opens with the mouse free; Tab lets you walk about the plaza.
+            SetUiMode(true);
         }
 
         void OnEnable()
@@ -98,8 +99,15 @@ namespace MixedUp
         void Update()
         {
             var keyboard = Keyboard.current;
-            if (keyboard != null && (keyboard.tabKey.wasPressedThisFrame || (uiMode && keyboard.escapeKey.wasPressedThisFrame)))
+            if (keyboard != null && (keyboard.tabKey.wasPressedThisFrame || keyboard.escapeKey.wasPressedThisFrame))
                 SetUiMode(!uiMode);
+
+            // Something else (the editor after Esc, a focus change) may have locked the cursor again: the buttons must stay usable.
+            if (uiMode && (Cursor.lockState != CursorLockMode.None || !Cursor.visible))
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
 
             PlaceLocalPlayer();
 
