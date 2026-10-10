@@ -69,7 +69,8 @@ namespace MixedUp
         /// <summary>The connection kind the player last chose (saved).</summary>
         public static ConnectionKind PreferredKind
         {
-            get => (ConnectionKind)PlayerPrefs.GetInt(KindPref, RelayProviders.Available ? 0 : 1);
+            // Relay needs the project linked to a Unity project (Project Settings > Services): until then, direct is the default.
+            get => (ConnectionKind)PlayerPrefs.GetInt(KindPref, RelayProviders.Available && !string.IsNullOrEmpty(Application.cloudProjectId) ? 0 : 1);
             set => PlayerPrefs.SetInt(KindPref, (int)value);
         }
 

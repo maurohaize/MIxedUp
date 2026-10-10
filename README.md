@@ -72,11 +72,17 @@ uniendo los demás. Se ve el código o la IP, quién está listo, y el anfitrió
 teletransportados al mapa elegido, con la misma semilla (mismas cajas en los mismos sitios). Pulsa **TAB** en el lobby para usar el ratón.
 La sala demo sin red sigue disponible escribiendo el código `AMETSA`.
 
-### Activar el modo "Código" (Unity Relay)
+### Modo "Código" (Unity Relay)
 
-1. En Unity: *Window > Package Manager > + > Add package by name*: `com.unity.services.relay` y `com.unity.services.authentication`.
-2. *Project Settings > Services*: enlaza el proyecto con tu cuenta de Unity y activa Relay.
-3. Listo: el assembly `Scripts/Net/Relay` solo se compila cuando existe el paquete de Relay y registra el servicio por sí solo.
+Los paquetes `com.unity.services.relay` y `com.unity.services.authentication` ya están en el proyecto, y el assembly
+`Scripts/Net/Relay` se compila con ellos. Falta un único paso que depende de tu cuenta de Unity:
+
+1. En Unity: *Edit > Project Settings > Services*: inicia sesión, crea o enlaza el proyecto con tu organización.
+2. En el panel de Unity Cloud (cloud.unity.com) abre ese proyecto y activa **Relay**.
+3. Listo: al crear sala, la opción "Código" da un código de 6 caracteres que sirve por internet, sin abrir puertos.
+
+Mientras el proyecto no esté enlazado, la conexión por defecto es IP directa. Nota: Unity marca el paquete Relay como obsoleto en
+favor de `com.unity.services.multiplayer`, pero sigue funcionando.
 
 ### Qué se comparte en una partida online
 
