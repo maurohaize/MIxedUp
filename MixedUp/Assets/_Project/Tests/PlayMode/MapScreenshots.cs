@@ -70,13 +70,20 @@ namespace MixedUp.Tests
         [UnityTest, Explicit("Needs a GPU; writes PNGs")]
         public IEnumerator SummitDetails()
         {
-            yield return Shot("summit_d1_cabin", new Vector3(-13f, 4.5f, 37f), new Vector3(-20f, 1.5f, 46f));
-            yield return Shot("summit_d1b_cabin_front", new Vector3(-20f, 3.2f, 37f), new Vector3(-20f, 1.6f, 46f));
-            yield return Shot("summit_d1c_cabin_side", new Vector3(-27f, 3.5f, 40f), new Vector3(-20f, 1.6f, 46f));
-            yield return Shot("summit_d2_camp", new Vector3(-21f, 5f, 5f), new Vector3(-30f, 1f, 15f));
-            yield return Shot("summit_d3_yeti", new Vector3(-31f, 4f, 42f), new Vector3(-40.5f, 1.8f, 52.5f));
-            yield return Shot("summit_d4_fishing", new Vector3(8f, 4f, -21f), new Vector3(13f, 0f, -13f));
-            yield return Shot("summit_d5_signpost", new Vector3(-11f, 3.2f, -3f), new Vector3(-17f, 2f, -12f));
+            yield return Shot("summit_d01_hut", new Vector3(-14f, 3.2f, 36f), new Vector3(-20f, 1.6f, 46f));
+            yield return Shot("summit_d02_camp", new Vector3(-21f, 3.4f, 7f), new Vector3(-30f, 1f, 15f));
+            yield return Shot("summit_d03_yeti", new Vector3(-31f, 4f, 42f), new Vector3(-40.5f, 1.8f, 52.5f));
+            yield return Shot("summit_d04_lake", new Vector3(-10f, 3.5f, -22f), new Vector3(8f, 0f, -6f));
+            yield return Shot("summit_d05_signpost", new Vector3(-12f, 2.8f, -15f), new Vector3(-18.6f, 2.4f, -9.6f));
+            yield return Shot("summit_d06_mine", new Vector3(-33f, 3f, 21f), new Vector3(-37f, 1.5f, 30f));
+            yield return Shot("summit_d07_pylon", new Vector3(19f, 3.5f, 6f), new Vector3(31f, 4f, 16f));
+            yield return Shot("summit_d08_dump", new Vector3(6f, 3f, 33f), new Vector3(0f, 1f, 43f));
+            yield return Shot("summit_d09_tower", new Vector3(31f, 4.5f, 2f), new Vector3(38f, 4f, -7f));
+            yield return Shot("summit_d10_lift", new Vector3(8f, 3f, 40f), new Vector3(12f, 5f, 58f));
+            yield return Shot("summit_d11_igloo", new Vector3(-32f, 3f, -3f), new Vector3(-40.5f, 1f, -7f));
+            yield return Shot("summit_d12_arch", new Vector3(-26f, 3f, -17f), new Vector3(-26f, 2f, -40f));
+            yield return Shot("summit_d13_glacier", new Vector3(-22f, 3.4f, -16f), new Vector3(-30f, 2f, -2f));
+            yield return Shot("summit_d14_cliff", new Vector3(22f, 4f, 38f), new Vector3(33f, 3f, 50f));
         }
     }
 
@@ -90,12 +97,34 @@ namespace MixedUp.Tests
         [UnityTest, Explicit("Needs a GPU; writes PNGs")]
         public IEnumerator HarbourDetails()
         {
-            yield return Shot("harbour_d1_warehouse", new Vector3(29f, 5f, -20f), new Vector3(40f, 1.5f, -30f));
-            yield return Shot("harbour_d2_crane_market", new Vector3(18f, 5.5f, -1f), new Vector3(28f, 3f, -11f));
-            yield return Shot("harbour_d3_kraken", new Vector3(24f, 4f, 34f), new Vector3(33f, 1f, 45f));
-            yield return Shot("harbour_d4_lighthouse", new Vector3(30f, 6f, -8f), new Vector3(38f, 6f, -19f));
-            yield return Shot("harbour_d5_hut", new Vector3(-7f, 4f, -5f), new Vector3(-14f, 1.5f, -13f));
-            yield return Shot("harbour_d6_gull_pier", new Vector3(-1f, 3.2f, 11.5f), new Vector3(2.5f, 1f, 17.5f));
+            yield return Shot("harbour_d01_warehouse", new Vector3(30f, 4f, -22f), new Vector3(40f, 1.5f, -30f));
+            yield return Shot("harbour_d02_crane_market", new Vector3(18f, 4f, -21f), new Vector3(30f, 2f, -12f));
+            yield return Shot("harbour_d03_kraken", new Vector3(24f, 4f, 34f), new Vector3(33f, 1f, 45f));
+            yield return Shot("harbour_d04_lighthouse", new Vector3(26f, 4.5f, -27f), new Vector3(38f, 6f, -19f));
+            yield return Shot("harbour_d05_office", new Vector3(-6f, 3.5f, -20f), new Vector3(-14f, 1.5f, -13f));
+            yield return Shot("harbour_d06_gull_pier", new Vector3(-1f, 3.2f, 11.5f), new Vector3(2.5f, 1f, 17.5f));
+            yield return Shot("harbour_d07_tavern", new Vector3(-16f, 3.2f, -20f), new Vector3(-24f, 1.5f, -28f));
+            yield return Shot("harbour_d08_containers", new Vector3(-26f, 4f, -21f), new Vector3(-38f, 3f, -12f));
+            yield return Shot("harbour_d09_promenade", new Vector3(-22f, 3f, -15f), new Vector3(10f, 2f, -9f));
+            yield return Shot("harbour_d10_bay", new Vector3(0f, 4f, 20f), new Vector3(0f, 2f, 60f));
+            yield return Shot("harbour_d11_barge", new Vector3(-6f, 4f, 22f), new Vector3(-18f, 1f, 36f));
+            yield return Shot("harbour_d12_drydock", new Vector3(-33f, 3f, -23f), new Vector3(-40f, 1.5f, -30f));
+            yield return Shot("harbour_d13_island", new Vector3(22f, 4f, 14f), new Vector3(32f, 1f, 22f));
+            yield return Shot("harbour_d14_arch", new Vector3(0f, 3f, -17f), new Vector3(0f, 2f, -40f));
+        }
+    }
+
+    public class MeadowGallery : MapGalleryBase
+    {
+        [UnityTest, Explicit("Needs a GPU; writes PNGs")]
+        public IEnumerator MeadowChallenges()
+        {
+            yield return Shot("meadow_c1_tower", new Vector3(28f, 4f, -14f), new Vector3(38f, 4f, -7f));
+            yield return Shot("meadow_c2_cliff", new Vector3(22f, 4f, 38f), new Vector3(33f, 3f, 50f));
+            yield return Shot("meadow_c3_stump", new Vector3(-10f, 4f, 34f), new Vector3(-18f, 1.5f, 43f));
+            yield return Shot("meadow_c4_tunnel", new Vector3(-31f, 3f, 23f), new Vector3(-37f, 1.5f, 32f));
+            yield return Shot("meadow_c5_swamp", new Vector3(-8f, 4f, 14f), new Vector3(-17f, 0.5f, 23f));
+            yield return Shot("meadow_c6_walls", new Vector3(20f, 3.5f, 24f), new Vector3(30f, 1f, 33f));
         }
     }
 }

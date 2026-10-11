@@ -334,15 +334,27 @@ namespace MixedUp.EditorTools
             PlaceProp(world, art.rocks[5], new Vector3(x + 5.5f, GroundHeight(x + 5.5f, z - 3.8f), z - 3.8f), 200f, 1.4f);
         }
 
-        /// <summary>A stone platform that holds the toxic box, reached by a springy mushroom or by a ramp round the back.</summary>
+        /// <summary>
+        /// The stump of a giant tree that holds the toxic box (it fits the forest of toadstools round it), reached by a springy
+        /// mushroom or by a ramp round the back.
+        /// </summary>
         static void BuildMushroomPlatform(Transform world, WorldMeshes wm, Material mat, Mats m)
         {
             var group = new GameObject("MushroomPlatform").transform;
             group.SetParent(world, false);
 
-            const float top = 2.4f;
-            Prim(PrimitiveType.Cube, "Platform", group, new Vector3(-18f, top * 0.5f, 43f), new Vector3(5f, top, 5f), m.stone, true, null, true);
-            Prim(PrimitiveType.Cube, "PlatformCap", group, new Vector3(-18f, top + 0.06f, 43f), new Vector3(5.3f, 0.12f, 5.3f), m.woodDark, false);
+            const float top = 2.4f, radius = 2.62f;
+            var stump = MeshObject("Platform", group, Kit("Kit_GiantStump", () => LowPolyKit.Stump("s", radius, top, 3)), mat);
+            stump.transform.position = new Vector3(-18f, 0f, 43f);
+            var ring = new List<Vector2>();
+            for (int i = 0; i < 12; i++)
+            {
+                float a = i / 12f * Mathf.PI * 2f + 3f;
+                ring.Add(new Vector2(Mathf.Cos(a) * radius, Mathf.Sin(a) * radius));
+            }
+            var solid = stump.AddComponent<MeshCollider>();
+            solid.sharedMesh = PrismMesh("Collider_GiantStump", ring, 0f, top);
+            solid.convex = true;
 
             // The walk-up ramp on the north side.
             var low = new Vector3(-18f, 0f, 50.6f);
@@ -450,6 +462,8 @@ namespace MixedUp.EditorTools
                         if (p.y > -8f && p.y < 1f && p.x < -3f) continue;           // the ice hill
                         if (p.x < -40f || p.x > 40f || p.y < -32f || p.y > 52f) continue;
                         if (Vector2.Distance(p, V(22f, 26f)) < 5f) continue;        // keep the sweeper's gate clear
+                        if (Vector2.Distance(p, V(-17.2f, 22.4f)) < 4.2f || Vector2.Distance(p, V(-13.4f, 25.2f)) < 3.6f
+                            || Vector2.Distance(p, V(-21.2f, 19.4f)) < 3.2f) continue;  // and the mud swamp
                         var lamp = Prop(props, "Lamp", wm.lamp, mat, p.x, p.y, 0f, 1f, Solid.Capsule, new Vector3(0f, 1.5f, 0f), new Vector3(0.12f, 3f, 0f));
                         AddLampLight(lamp.transform, new Vector3(0f, 2.78f, 0f));
                     }

@@ -357,3 +357,12 @@ notice.summit.start,"ONGI ETORRI GAILURRERA
 Bidea hemen amaitzen da. Eskaera, ez.","BIENVENIDO A LA CUMBRE
 La carretera acaba aquí. El pedido, no.","WELCOME TO THE SUMMIT
 The road ends here. The order does not."
+secret.igloo,Igluaren barruan pinguino bat. Inork ez daki nola iritsi den mendira.,"Dentro del iglú hay un pingüino. Nadie sabe cómo ha llegado a la montaña.","Inside the igloo, a penguin. Nobody knows how it got up the mountain."
+sign.tavern,KAIO TABERNA,TABERNA LA GAVIOTA,THE SEAGULL TAVERN
+notice.harbour.tavern,"KAIO TABERNA
+Gaur: arrain zopa. Atzo ere bai.","TABERNA LA GAVIOTA
+Hoy: sopa de pescado. Ayer también.","THE SEAGULL TAVERN
+Today: fish soup. Yesterday too."
+secret.tavern,Deitu duzu. Barrutik: «Itxita! Itzuli eskaera entregatzen duzunean».,Llamas. Desde dentro: «¡Cerrado! Vuelve cuando entregues el pedido».,"You knock. From inside: ""Closed! Come back once the order is delivered."""
+secret.boat,"Kaskoan «HONDAEZINA» dio. Azpian, arkatzez: «ia».","En el casco pone «INSUMERGIBLE». Debajo, a lápiz: «casi».","The hull says ""UNSINKABLE"". Below, in pencil: ""almost""."
+hintbox.containers,Aholku: buia puzgarriek edukiontzien gainera jaurtitzen zaituzte.,Pista: las boyas hinchables te lanzan a lo alto de los contenedores.,Tip: the inflatable buoys launch you onto the containers.

@@ -90,6 +90,7 @@ namespace MixedUp.EditorTools
             var paletteTex = AssetDatabase.LoadAssetAtPath<Texture2D>(TexturesDir + "/palette.png");
 
             art.palette = TexMat("Palette", paletteTex, Color.white, 0.03f);
+            paletteMaterial = art.palette;
             art.paletteWater = TexMat("PaletteWater", paletteTex, Color.white, 0.55f);
             art.tintAutumn = TexMat("PaletteAutumn", paletteTex, new Color(1.3f, 0.85f, 0.72f), 0.03f);
             art.tintGold = TexMat("PaletteGold", paletteTex, new Color(1.32f, 1.18f, 0.7f), 0.03f);

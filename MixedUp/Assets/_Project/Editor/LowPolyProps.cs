@@ -218,18 +218,26 @@ namespace MixedUp.EditorTools
         {
             var b = new LowPoly.MeshBuilder();
             var rng = new System.Random(seed);
-            const int segments = 16;
+            const int segments = 18;
+            // A smooth, blobby outline (not a star): the radius wanders slowly round the patch.
+            float phase = (float)rng.NextDouble() * 10f;
             var rim = new Vector3[segments];
+            var inner = new Vector3[segments];
             for (int i = 0; i < segments; i++)
             {
                 float a = i / (float)segments * Mathf.PI * 2f;
-                float r = radius * (0.72f + (float)rng.NextDouble() * 0.38f);
+                float r = radius * (0.84f + 0.16f * Mathf.Sin(a * 2f + phase) + 0.06f * Mathf.Sin(a * 5f + phase * 2f));
                 rim[i] = new Vector3(Mathf.Cos(a) * r, 0.03f, Mathf.Sin(a) * r);
+                inner[i] = new Vector3(Mathf.Cos(a) * r * 0.55f, 0.035f, Mathf.Sin(a) * r * 0.55f);
             }
+            // One shared centre, so the triangles close up with no cracks of grass between them; a wetter, darker middle.
+            var centre = new Vector3(0f, 0.035f, 0f);
             for (int i = 0; i < segments; i++)
             {
-                var c = new Vector3((float)(rng.NextDouble() - 0.5) * 0.4f, 0.03f, (float)(rng.NextDouble() - 0.5) * 0.4f);
-                b.Triangle(c, rim[(i + 1) % segments], rim[i], i % 4 == 0 ? MudB : MudA);
+                int n = (i + 1) % segments;
+                b.Triangle(centre, inner[n], inner[i], MudA);
+                b.Triangle(inner[i], inner[n], rim[n], i % 3 == 0 ? MudB : MudA);
+                b.Triangle(inner[i], rim[n], rim[i], MudB);
             }
             for (int i = 0; i < 6; i++)
             {

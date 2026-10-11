@@ -81,6 +81,8 @@ namespace MixedUp
         {
             // Burning and fumes tick away in tiny bites: those show on the face as heat or sickness, not as pain.
             if (amount < 2.5f) return;
+            // A shove stings, but what shows on the face is the surprise (see OnPushed).
+            if (cause.Key == DeathCause.Push.Key) return;
             hurtUntil = Time.time + Mathf.Clamp(0.5f + amount * 0.02f, 0.5f, 1.4f);
         }
         void OnShocked() => shockUntil = Time.time + 1.2f;

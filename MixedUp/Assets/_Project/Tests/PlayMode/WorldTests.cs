@@ -146,7 +146,7 @@ namespace MixedUp.Tests
             Assert.IsNotNull(pad);
             var platform = GameObject.Find("Platform");
             Assert.IsNotNull(platform);
-            float platformTop = platform.transform.position.y + platform.transform.localScale.y * 0.5f;
+            float platformTop = platform.GetComponent<Collider>().bounds.max.y;
 
             var start = pad.transform.position + new Vector3(0f, 0.05f, -1.2f);
             player.Teleport(start);

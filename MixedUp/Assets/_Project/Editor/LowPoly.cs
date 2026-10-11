@@ -150,10 +150,9 @@ namespace MixedUp.EditorTools
         }
 
         /// <param name="accent">Palette index of the odd lighter facets (a darker teal gives a calmer sea, as at dusk).</param>
-        public static Mesh Water(string name, float x0, float x1, float z0, float z1, float y, int accent = LightTeal)
+        public static Mesh Water(string name, float x0, float x1, float z0, float z1, float y, int accent = LightTeal, float tile = 2.5f)
         {
             var b = new MeshBuilder();
-            const float tile = 2.5f;
             int nx = Mathf.CeilToInt((x1 - x0) / tile), nz = Mathf.CeilToInt((z1 - z0) / tile);
 
             float H(int i, int j) => y + (Hash(i, j, 11) % 100 / 100f - 0.5f) * 0.05f;
@@ -193,14 +192,18 @@ namespace MixedUp.EditorTools
             readonly float[,] heights;
             readonly float cx, cz;
             readonly System.Func<float, float, float> flatten;
+            readonly System.Func<float, float, float, float> reshape;
 
-            public HillField(Rect hole, float cell, float halfExtent, int seed, System.Func<float, float, float> flatten = null)
+            /// <param name="reshape">Optional last word on the height at (x, z, height): the harbour sinks its north under the sea.</param>
+            public HillField(Rect hole, float cell, float halfExtent, int seed, System.Func<float, float, float> flatten = null,
+                System.Func<float, float, float, float> reshape = null)
             {
                 this.hole = hole;
                 this.cell = cell;
                 this.halfExtent = halfExtent;
                 this.seed = seed;
                 this.flatten = flatten;
+                this.reshape = reshape;
                 n = Mathf.RoundToInt(halfExtent * 2f / cell);
                 cx = hole.center.x;
                 cz = hole.center.y;
@@ -227,7 +230,8 @@ namespace MixedUp.EditorTools
                 float broad = Noise(px, pz, 0.02f, seed * 3.1f);
                 float bumps = Noise(px, pz, 0.08f, seed * 1.7f);
                 float h = t * (3f + 52f * Mathf.Pow(ridge, 1.5f) * (0.5f + broad * 0.6f)) + bumps * 1.6f * t;
-                return h * calm + Mathf.Min(d, 45f) * 0.05f;
+                h = h * calm + Mathf.Min(d, 45f) * 0.05f;
+                return reshape != null ? reshape(px, pz, h) : h;
             }
 
             /// <summary>Height of the drawn (triangulated) surface at a point; falls back to the smooth height outside the grid.</summary>
@@ -258,6 +262,9 @@ namespace MixedUp.EditorTools
         public sealed class HillColors
         {
             public int[] low, mid, high, rock;
+            /// <summary>Optional colours for the slopes just above and below the water line (beaches), up to beachHeight.</summary>
+            public int[] beach;
+            public float beachHeight = 1.4f;
         }
 
         [System.ThreadStatic] static HillColors hillColors;
@@ -310,7 +317,8 @@ namespace MixedUp.EditorTools
 
             var colors = hillColors;
             int[] set;
-            if (steep > 0.4f && height > 10f) set = colors != null ? colors.rock : Rock;
+            if (colors?.beach != null && height < colors.beachHeight) set = colors.beach;
+            else if (steep > 0.4f && height > 10f) set = colors != null ? colors.rock : Rock;
             else if (height < 12f) set = colors != null ? colors.low : Grass;
             else if (height < 28f) set = colors != null ? colors.mid : Meadow;
             else if (height < 44f) set = colors != null ? colors.high : Earth;

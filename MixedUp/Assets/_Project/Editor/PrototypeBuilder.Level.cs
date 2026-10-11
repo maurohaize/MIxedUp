@@ -283,8 +283,15 @@ namespace MixedUp.EditorTools
             }
 
             // Stone walls near the electric box.
-            Prim(PrimitiveType.Cube, "StoneWall1", scenery, new Vector3(24f, 0.7f, 33f), new Vector3(8f, 1.4f, 0.8f), m.stone, true, null, true);
-            Prim(PrimitiveType.Cube, "StoneWall2", scenery, new Vector3(36f, 0.7f, 30f), new Vector3(0.8f, 1.4f, 7f), m.stone, true, null, true);
+            // Dry-stone walls of an old sheepfold near the electric box.
+            var wall1 = HideVisual(Prim(PrimitiveType.Cube, "StoneWall1", scenery, new Vector3(24f, 0.7f, 33f), new Vector3(8f, 1.4f, 0.8f), m.stone, true));
+            MeshObject("Stones", wall1.transform, Kit("Kit_StoneWall8", () => LowPolyKit.StoneWall("w", 8f, 1.4f, 0.8f, 4)), art.palette)
+                .transform.SetLocalPositionAndRotation(new Vector3(0f, -0.5f, 0f), Quaternion.identity);
+            wall1.transform.Find("Stones").localScale = new Vector3(1f / 8f, 1f / 1.4f, 1f / 0.8f);
+            var wall2 = HideVisual(Prim(PrimitiveType.Cube, "StoneWall2", scenery, new Vector3(36f, 0.7f, 30f), new Vector3(0.8f, 1.4f, 7f), m.stone, true));
+            MeshObject("Stones", wall2.transform, Kit("Kit_StoneWall7", () => LowPolyKit.StoneWall("w", 7f, 1.4f, 0.8f, 9)), art.palette)
+                .transform.SetLocalPositionAndRotation(new Vector3(0f, -0.5f, 0f), Quaternion.Euler(0f, 90f, 0f));
+            wall2.transform.Find("Stones").localScale = new Vector3(1f / 7f, 1f / 1.4f, 1f / 0.8f);
 
             // Warehouse landmark east of the start area.
             PlaceProp(scenery, art.warehouse, new Vector3(33f, 0f, -27f), 90f, 1f);

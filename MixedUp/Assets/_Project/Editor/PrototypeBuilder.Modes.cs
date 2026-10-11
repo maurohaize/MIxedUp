@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace MixedUp.EditorTools
 {
@@ -148,39 +149,92 @@ namespace MixedUp.EditorTools
             BuildIsland(group, m, art);
         }
 
-        /// <summary>A spiral of wooden ledges round a stone pillar, 7 m up, with a box on top. One mistake means a nasty fall.</summary>
-        static void BuildTower(Transform parent, Mats m, ArtAssets art)
+        /// <summary>Which map a borrowed challenge structure is dressed for: the same shape, a look that belongs there.</summary>
+        enum MapTheme { Meadow, Snow, Harbour }
+
+        static readonly int[] MeadowRock = { LowPolyKit.Grey, LowPolyKit.Grey, LowPolyKit.Stone };
+        static readonly int[] SnowRock = { LowPolyKit.Grey, LowPolyKit.Grey };
+
+        /// <summary>
+        /// A spiral of wooden ledges round a pillar, 7 m up, with a box on top. One mistake means a nasty fall. In the meadow the
+        /// pillar is a needle of mossy rock, on the summit an icy one, and in the harbour it is the old lighthouse under repair:
+        /// the ledges are the scaffolding boards.
+        /// </summary>
+        static void BuildTower(Transform parent, Mats m, ArtAssets art, MapTheme theme = MapTheme.Meadow)
         {
             var tower = new GameObject("ParkourTower").transform;
             tower.SetParent(parent, false);
             var centre = new Vector3(38f, 0f, -7f);
 
-            Prim(PrimitiveType.Cube, "Pillar", tower, centre + new Vector3(0f, 3.4f, 0f), new Vector3(1.4f, 6.8f, 1.4f), m.stone, true, null, true);
-            Prim(PrimitiveType.Cube, "TopLedge", tower, centre + new Vector3(0f, 6.85f, 0f), new Vector3(3.2f, 0.3f, 3.2f), m.wood, true, null, true);
-            Prim(PrimitiveType.Cube, "TopSnow", tower, centre + new Vector3(0f, 7.03f, 0f), new Vector3(2.8f, 0.06f, 2.8f), m.marker, false);
+            HideVisual(Prim(PrimitiveType.Cube, "Pillar", tower, centre + new Vector3(0f, 3.4f, 0f), new Vector3(1.4f, 6.8f, 1.4f), m.stone, true));
+            HideVisual(Prim(PrimitiveType.Cube, "TopLedge", tower, centre + new Vector3(0f, 6.85f, 0f), new Vector3(3.2f, 0.3f, 3.2f), m.wood, true));
 
+            var b = new LowPoly.MeshBuilder();
+            bool snow = theme == MapTheme.Snow;
             const int ledges = 8;
             for (int i = 0; i < ledges; i++)
             {
                 float angle = i * 48f * Mathf.Deg2Rad;
                 float height = 0.7f + i * 0.78f;
                 var at = centre + new Vector3(Mathf.Cos(angle) * 3.7f, height - 0.15f, Mathf.Sin(angle) * 3.7f);
-                Prim(PrimitiveType.Cube, "Ledge" + (i + 1), tower, at, new Vector3(2.3f, 0.3f, 2.3f), i % 2 == 0 ? m.wood : m.woodDark, true, Quaternion.Euler(0f, -angle * Mathf.Rad2Deg, 0f), true);
+                var rotation = Quaternion.Euler(0f, -angle * Mathf.Rad2Deg, 0f);
+                HideVisual(Prim(PrimitiveType.Cube, "Ledge" + (i + 1), tower, at, new Vector3(2.3f, 0.3f, 2.3f), m.wood, true, rotation));
+
+                var local = at - centre;
+                LowPolyKit.Planks(b, local + Vector3.up * 0.15f, new Vector2(2.3f, 2.3f), 0.3f, rotation, i * 7 + 1, snow);
+                // two brackets tie each board to the pillar, so it does not float
+                var dir = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+                var across = new Vector3(-dir.z, 0f, dir.x);
+                float pillar = theme == MapTheme.Harbour ? Mathf.Lerp(1.15f, 0.92f, height / 6.6f) : 0.75f;
+                foreach (float side in new[] { -0.55f, 0.55f })
+                {
+                    LowPolyKit.Beam(b, dir * pillar + across * side * 0.6f + Vector3.up * (height - 1.15f), local + across * side - dir * 0.9f + Vector3.up * -0.12f, 0.12f, LowPolyKit.DarkWood);
+                    LowPolyKit.Beam(b, dir * pillar + across * side * 0.6f + Vector3.up * (height - 0.25f), local + across * side - dir * 0.9f + Vector3.up * -0.12f, 0.1f, LowPolyKit.DarkWood);
+                }
             }
+
+            if (theme == MapTheme.Harbour)
+            {
+                var body = MeshObject("Lighthouse", tower, Kit("Kit_LighthouseBody", () => LowPolyKit.LighthouseBody("l", (ledges - 1) * 48f)), art.palette);
+                body.transform.position = centre;
+                var room = MeshObject("LanternRoom", tower, Kit("Kit_LanternRoom", () => LowPolyKit.LanternRoom("r")), art.palette);
+                room.transform.position = centre + Vector3.up * 7f;
+                EnsureKitMaterials();
+                var glass = Prim(PrimitiveType.Cylinder, "LanternGlass", tower, centre + Vector3.up * (7f + LowPolyKit.LanternGlassMid), new Vector3(1.55f, 0.58f, 1.55f), lanternGlass, false);
+                glass.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
+            }
+            else
+            {
+                LowPolyKit.RockBlock(b, Vector3.zero, new Vector3(1.4f, 6.8f, 1.4f), 0.32f, 11, snow ? SnowRock : MeadowRock, snow ? LowPolyKit.Snow : LowPolyKit.Moss);
+                LowPolyKit.FootRocks(b, Vector3.zero, new Vector2(0.75f, 0.75f), 6, 0.55f, 13, snow ? SnowRock : MeadowRock);
+                LowPolyKit.Planks(b, new Vector3(0f, 7.0f, 0f), new Vector2(3.2f, 3.2f), 0.3f, Quaternion.identity, 99, snow);
+                if (snow) LowPolyKit.Icicles(b, new Vector3(0f, 6.85f - 0.25f, 0f), new Vector3(3.0f, 0.3f, 3.0f), 14, 5);
+                else
+                    for (int i = 0; i < 7; i++)   // ivy climbing the rock
+                        LowPolyKit.Blob(b, new Vector3(Mathf.Cos(i * 2.1f) * 0.85f, 0.8f + i * 0.85f, Mathf.Sin(i * 2.1f) * 0.85f), new Vector3(0.35f, 0.5f, 0.35f), i % 2 == 0 ? LowPolyKit.Moss : LowPolyKit.Olive, i, 1, 0.2f);
+            }
+            var dressingMesh = MeshObject("TowerDressing", tower, Kit("Kit_Tower_" + theme, () => b.ToMesh("t")), art.palette);
+            dressingMesh.transform.position = centre;
 
             // a flag and a lantern at the top so it can be seen from afar
             var dressing = new GameObject("Dressing").transform;
             dressing.SetParent(tower, false);
             var flag = MeshObject("TowerFlag", dressing, flags[0], art.palette);
             flag.transform.position = centre + new Vector3(1.2f, 7.0f, 1.2f);
-            var lamp = MeshObject("TowerLamp", dressing, lampMesh, art.palette);
-            lamp.transform.position = centre + new Vector3(-1.1f, 7.0f, -1.1f);
-            AddLampLight(lamp.transform, new Vector3(0f, 2.78f, 0f), 10f, 2.4f);
+            if (theme != MapTheme.Harbour)
+            {
+                var lamp = MeshObject("TowerLamp", dressing, lampMesh, art.palette);
+                lamp.transform.position = centre + new Vector3(-1.1f, 7.0f, -1.1f);
+                AddLampLight(lamp.transform, new Vector3(0f, 2.78f, 0f), 10f, 2.4f);
+            }
             tower.gameObject.AddComponent<SpawnAreaLights>().dressing = dressing.gameObject;
         }
 
-        /// <summary>A low tunnel under a grassy mound: only a crouching player fits through. The box lies at the dead end.</summary>
-        static void BuildTunnel(Transform parent, Mats m, ArtAssets art)
+        /// <summary>
+        /// A low tunnel under a mound: only a crouching player fits through. The box lies at the dead end. In the meadow the mound
+        /// is grassy; on the summit it is a snowy rock with the timber frame, rails and cart of an old mine.
+        /// </summary>
+        static void BuildTunnel(Transform parent, Mats m, ArtAssets art, MapTheme theme = MapTheme.Meadow)
         {
             var tunnel = new GameObject("CrawlTunnel").transform;
             tunnel.SetParent(parent, false);
@@ -192,13 +246,24 @@ namespace MixedUp.EditorTools
             Prim(PrimitiveType.Cube, "BackWall", tunnel, c + new Vector3(0f, 0.8f, 3.85f), new Vector3(3.8f, 1.6f, 0.4f), m.stone, true, null, true);
             // The collision of the mound is two boxes; what you see is a lumpy turf dome.
             foreach (var (name, centre, size) in new[] { ("Mound", new Vector3(0f, 2.3f, 0f), new Vector3(4.6f, 1.4f, 7.8f)), ("MoundTop", new Vector3(0f, 3.1f, 0.2f), new Vector3(3.4f, 0.9f, 6.2f)) })
-            {
-                var box = Prim(PrimitiveType.Cube, name, tunnel, c + centre, size, m.grass, true);
-                Object.DestroyImmediate(box.GetComponent<MeshRenderer>());
-                Object.DestroyImmediate(box.GetComponent<MeshFilter>());
-            }
-            var moundVisual = MeshObject("MoundVisual", tunnel, SaveInkedMesh(LowPolyProps.TunnelMound()), art.palette);
+                HideVisual(Prim(PrimitiveType.Cube, name, tunnel, c + centre, size, m.grass, true));
+            var mound = theme == MapTheme.Snow
+                ? Kit("Kit_MineMound", () => LowPolyKit.Recolor(LowPolyProps.TunnelMound(), "m", (LowPolyKit.Moss, LowPolyKit.Grey), (LowPolyKit.Olive, LowPolyKit.Snow), (LowPolyKit.Gold, LowPolyKit.Snow)))
+                : SaveInkedMesh(LowPolyProps.TunnelMound());
+            var moundVisual = MeshObject("MoundVisual", tunnel, mound, art.palette);
             moundVisual.transform.position = c;
+
+            if (theme == MapTheme.Snow)
+            {
+                var frame = MeshObject("MineFrame", tunnel, Kit("Kit_MineFrame", () => LowPolyKit.MineFrame("f", 1.0f, 1.4f)), art.palette);
+                frame.transform.position = c + new Vector3(0f, 0f, -4.18f);
+                WorldText(tunnel, "sign.mine", c + new Vector3(0f, 2.12f, -4.37f), Quaternion.identity, new Vector2(1.4f, 0.42f), 3f, UiFactory.Ink, -1, 0.8f);
+                var rails = new LowPoly.MeshBuilder();
+                LowPolyKit.Rails(rails, new Vector3(0f, 0f, 3.2f), new Vector3(0f, 0f, -8.5f));
+                MeshObject("Rails", tunnel, Kit("Kit_MineRails", () => rails.ToMesh("r")), art.palette).transform.position = c;
+                var cart = Piece(tunnel, "MineCart", Kit("Kit_MineCart", () => LowPolyKit.MineCart("c", LowPolyKit.Gold)), art.palette, c + new Vector3(0f, 0.12f, -7.6f), 0f, 1f, new Vector3(1.5f, 1.0f, 1.5f));
+                cart.transform.rotation = Quaternion.Euler(0f, 4f, 0f);
+            }
 
             // lanterns hanging from the roof of the passage; they only burn when a box lies in here
             var dressing = new GameObject("Dressing").transform;
@@ -214,19 +279,37 @@ namespace MixedUp.EditorTools
             PlaceProp(tunnel, art.cartel, c + new Vector3(2.3f, 0f, -4.4f), 200f, 1f);
         }
 
-        /// <summary>Two ledges one above the other, each reached from the one below by a bounce mushroom. The box is on the top one.</summary>
-        static void BuildMushroomCliff(Transform parent, Mats m, ArtAssets art)
+        /// <summary>
+        /// Two ledges one above the other, each reached from the one below by a bounce pad. The box is on the top one. Rocks with
+        /// mushrooms in the meadow, icy rocks with frosted mushrooms on the summit, stacked containers with inflatable buoys in the harbour.
+        /// </summary>
+        static void BuildMushroomCliff(Transform parent, Mats m, ArtAssets art, MapTheme theme = MapTheme.Meadow)
         {
             var cliff = new GameObject("MushroomCliff").transform;
             cliff.SetParent(parent, false);
 
-            Prim(PrimitiveType.Cube, "LedgeLow", cliff, new Vector3(30f, 1.8f, 50f), new Vector3(5f, 3.6f, 5f), m.stone, true, null, true);
-            Prim(PrimitiveType.Cube, "LedgeHigh", cliff, new Vector3(35.5f, 3.4f, 50f), new Vector3(4.2f, 6.8f, 4.2f), m.stone, true, null, true);
-            Prim(PrimitiveType.Cube, "LedgeLowGrass", cliff, new Vector3(30f, 3.65f, 50f), new Vector3(5.1f, 0.12f, 5.1f), m.grass, false);
-            Prim(PrimitiveType.Cube, "LedgeHighGrass", cliff, new Vector3(35.5f, 6.85f, 50f), new Vector3(4.3f, 0.12f, 4.3f), m.grass, false);
+            HideVisual(Prim(PrimitiveType.Cube, "LedgeLow", cliff, new Vector3(30f, 1.8f, 50f), new Vector3(5f, 3.6f, 5f), m.stone, true));
+            HideVisual(Prim(PrimitiveType.Cube, "LedgeHigh", cliff, new Vector3(35.5f, 3.4f, 50f), new Vector3(4.2f, 6.8f, 4.2f), m.stone, true));
+            Mesh low, high;
+            if (theme == MapTheme.Harbour)
+            {
+                int[] colours = { LowPolyKit.Brick, LowPolyKit.Teal, LowPolyKit.Gold, LowPolyKit.Navy, LowPolyKit.Rust };
+                low = Kit("Kit_ContainersLow", () => LowPolyKit.ContainerStack("c", new Vector3(5f, 3.6f, 5f), 2, colours, 4));
+                high = Kit("Kit_ContainersHigh", () => LowPolyKit.ContainerStack("c", new Vector3(4.2f, 6.8f, 4.2f), 3, colours, 9));
+            }
+            else
+            {
+                bool snow = theme == MapTheme.Snow;
+                int[] rock = snow ? SnowRock : MeadowRock;
+                int top = snow ? LowPolyKit.Snow : LowPolyKit.Grass;
+                low = Kit("Kit_CliffLow_" + theme, () => LowPolyKit.Rock("r", new Vector3(5f, 3.6f, 5f), 0.5f, 21, rock, top, true, snow));
+                high = Kit("Kit_CliffHigh_" + theme, () => LowPolyKit.Rock("r", new Vector3(4.2f, 6.8f, 4.2f), 0.5f, 37, rock, top, true, snow));
+            }
+            MeshObject("LedgeLowVisual", cliff, low, art.palette).transform.position = new Vector3(30f, 0f, 50f);
+            MeshObject("LedgeHighVisual", cliff, high, art.palette).transform.position = new Vector3(35.5f, 0f, 50f);
 
-            AddBounce(cliff, new Vector3(30f, GroundHeight(30f, 44.5f), 44.5f), art);
-            AddBounce(cliff, new Vector3(30.2f, 3.6f, 51.5f), art);
+            AddBounce(cliff, new Vector3(30f, GroundHeight(30f, 44.5f), 44.5f), art, theme);
+            AddBounce(cliff, new Vector3(30.2f, 3.6f, 51.5f), art, theme);
 
             var dressing = new GameObject("Dressing").transform;
             dressing.SetParent(cliff, false);
@@ -238,9 +321,13 @@ namespace MixedUp.EditorTools
             cliff.gameObject.AddComponent<SpawnAreaLights>().dressing = dressing.gameObject;
         }
 
-        static void AddBounce(Transform parent, Vector3 position, ArtAssets art)
+        static void AddBounce(Transform parent, Vector3 position, ArtAssets art, MapTheme theme = MapTheme.Meadow)
         {
-            var pad = MeshObject("BounceMushroom", parent, mushroomMesh, art.palette);
+            var pad = theme == MapTheme.Harbour
+                ? MeshObject("BounceBuoy", parent, Kit("Kit_BounceBuoy", () => LowPolyKit.BounceBuoy("b")), art.palette)
+                : theme == MapTheme.Snow
+                    ? MeshObject("BounceMushroom", parent, Kit("Kit_FrostMushroom", () => LowPolyKit.Recolor(LowPolyProps.Mushroom("m"), "m", (LowPolyKit.Brick, LowPolyKit.Teal), (LowPolyKit.Salmon, LowPolyKit.LightTeal))), art.palette)
+                    : MeshObject("BounceMushroom", parent, mushroomMesh, art.palette);
             pad.transform.position = position;
             pad.isStatic = false;
             var bounce = pad.AddComponent<BouncePad>();
