@@ -141,6 +141,51 @@ namespace MixedUp
             }
         }
 
+        // Vowel formants (Hz) of a small cartoon voice: "a", "e", "o". Each take of a voice sound is one vowel.
+        static readonly float[][] Vowels =
+        {
+            new[] { 850f, 1250f, 2800f },
+            new[] { 500f, 1900f, 2600f },
+            new[] { 560f, 920f, 2500f },
+        };
+
+        /// <summary>
+        /// A sung vowel with no words: a buzzy source (harmonics of f0) shaped by three formant resonances, so it reads
+        /// as a voice rather than a beep. The pitch glides from `f0Start` to `f0End`; `attack`/`release` are linear fades.
+        /// </summary>
+        static void AddVowel(Buffer b, float start, float length, float f0Start, float f0End, float[] formants, float gain,
+            float attack, float release, float vibrato = 0f, float vibratoRate = 6f)
+        {
+            int from = Mathf.RoundToInt(start * SampleRate), count = Mathf.RoundToInt(length * SampleRate);
+            float[] width = { 90f, 120f, 180f }, weight = { 1f, 0.55f, 0.22f };
+            int harmonics = Mathf.Min(24, Mathf.FloorToInt(4200f / Mathf.Max(60f, Mathf.Min(f0Start, f0End))));
+            var amp = new float[harmonics + 1];
+            float phase = 0f;
+            for (int i = 0; i < count && from + i < b.Length; i++)
+            {
+                float t = i / (float)SampleRate, k = count > 1 ? i / (float)(count - 1) : 0f;
+                float f0 = Mathf.Lerp(f0Start, f0End, k) * (1f + vibrato * Mathf.Sin(t * vibratoRate * 6.2832f));
+                if (i % 64 == 0)
+                {
+                    for (int h = 1; h <= harmonics; h++)
+                    {
+                        float fh = f0 * h, a = 0f;
+                        for (int f = 0; f < 3; f++)
+                        {
+                            float d = (fh - formants[f]) / width[f];
+                            a += weight[f] / (1f + d * d);
+                        }
+                        amp[h] = a / Mathf.Pow(h, 0.35f);
+                    }
+                }
+                phase += f0 / SampleRate;
+                float p = (phase - Mathf.Floor(phase)) * 6.2832f, wave = 0f;
+                for (int h = 1; h <= harmonics; h++) wave += amp[h] * Mathf.Sin(p * h);
+                float env = Mathf.Clamp01(t / Mathf.Max(0.001f, attack)) * Mathf.Clamp01((length - t) / Mathf.Max(0.001f, release));
+                b.data[from + i] += wave * gain * env;
+            }
+        }
+
         /// <summary>A plucked note: a few decaying harmonics, bright at first and mellow after.</summary>
         static void AddPluck(Buffer b, float start, float length, float freq, float gain, float decay = 0.25f)
         {
@@ -338,10 +383,15 @@ namespace MixedUp
                     AddTone(b, 0f, 1.1f, 1320f * v, 1320f * v, 0.2f, 0.002f, 0.35f);
                     AddTone(b, 0f, 0.8f, 2210f * v, 2210f * v, 0.1f, 0.002f, 0.2f);
                     break;
-                case SfxId.Voice:   // a babble blip (no words): a rounded "oh/ah" that drops a little, like a critter talking
-                    b = new Buffer(0.11f);
-                    AddTone(b, 0f, 0.1f, 330f * v, 290f * v, 0.7f, 0.01f, 0.05f, 0, 0.012f, 28f);
-                    AddTone(b, 0f, 0.09f, 330f * v * 2.4f, 290f * v * 2.2f, 0.22f, 0.01f, 0.04f);
+                case SfxId.Voice:   // one babbled syllable ("ba", "te", "mo"): the friends chatter without words
+                    b = new Buffer(0.14f);
+                    if (variant == 0) AddNoise(b, rng, 0f, 0.025f, 400f, 300f, 0.7f, 0.5f, 0.001f, 0.012f, 1);
+                    if (variant == 1) AddNoise(b, rng, 0f, 0.02f, 4200f, 4200f, 0.7f, 0.35f, 0.001f, 0.008f, 2);
+                    AddVowel(b, variant == 2 ? 0.004f : 0.012f, 0.12f, 235f, 210f, Vowels[variant], 0.6f, 0.012f, 0.05f, 0.01f, 9f);
+                    break;
+                case SfxId.VoiceLong:   // a held vowel for shouts and screams ("¡AAAAH!", "¡voooy!"), falling at the end
+                    b = new Buffer(0.8f);
+                    AddVowel(b, 0f, 0.78f, 250f, 205f, Vowels[variant], 0.6f, 0.03f, 0.22f, 0.035f, 6.5f);
                     break;
                 case SfxId.Win:
                     b = new Buffer(1.6f);
@@ -365,7 +415,7 @@ namespace MixedUp
                 case SfxId.FootSnow: case SfxId.FootWater: case SfxId.FootMud: peak = 0.3f; soft = 2200f; break;
                 case SfxId.Jump: case SfxId.Crouch: peak = 0.32f; soft = 2600f; break;
                 case SfxId.Land: peak = 0.4f; soft = 1800f; break;
-                case SfxId.Voice: peak = 0.5f; soft = 3200f; break;
+                case SfxId.Voice: case SfxId.VoiceLong: peak = 0.55f; soft = 4200f; break;
                 case SfxId.IceCrack: case SfxId.Zap: peak = 0.6f; soft = 6500f; break;
                 case SfxId.Bell: case SfxId.Pickup: case SfxId.Deliver: case SfxId.Heal: peak = 0.6f; soft = 5500f; break;
                 default: peak = 0.62f; soft = 3800f; break;

@@ -117,16 +117,32 @@ const EndCard: React.FC<{vertical: boolean}> = ({vertical}) => {
 // ---------------------------------------------------------------- sound
 
 const sfxFile = (id: string, n: number) => staticFile(`sfx/${id}_${n % 3}.wav`);
+const isVoice = (id: string) => id.startsWith('Voice');
 
-const SfxLayer: React.FC<{cues: {at: number; id: string; volume: number; pitch: number}[]}> = ({cues}) => (
+type Cue = {at: number; id: string; volume: number; pitch: number};
+
+const SfxLayer: React.FC<{cues: Cue[]}> = ({cues}) => (
   <>
     {cues.map((c, i) => (
       <Sequence key={i} from={sec(c.at)} durationInFrames={sec(3)}>
-        <Audio src={sfxFile(c.id, i)} volume={c.volume} playbackRate={c.id === 'Voice' ? c.pitch : 1} />
+        <Audio src={sfxFile(c.id, i)} volume={c.volume} playbackRate={isVoice(c.id) ? c.pitch : 1} />
       </Sequence>
     ))}
   </>
 );
+
+// The music steps back while somebody talks (a quick dip, released slowly), so the babble reads over it.
+const duckAt = (voices: Cue[], t: number) => {
+  let dip = 0;
+  for (const v of voices) {
+    const held = v.id === 'VoiceLong' ? 0.7 : 0.14;
+    const d = t - v.at;
+    if (d < -0.06 || d > held + 0.35) continue;
+    const k = d < 0 ? 1 + d / 0.06 : d <= held ? 1 : 1 - (d - held) / 0.35;
+    dip = Math.max(dip, k);
+  }
+  return 1 - 0.42 * dip;
+};
 
 // ---------------------------------------------------------------- the trailer
 
@@ -137,7 +153,7 @@ export const Trailer: React.FC<{edit: Edit; format: 'h' | 'v'}> = ({edit, format
 
   // Subtitles and sounds of each clip, moved onto the timeline.
   const lines: Line[] = [];
-  const cues: {at: number; id: string; volume: number; pitch: number}[] = [];
+  const cues: Cue[] = [];
   for (const c of clips) {
     const data = getShot(c.shot, format) ?? getShot(c.shot, 'h');
     if (!data) continue;
@@ -149,11 +165,13 @@ export const Trailer: React.FC<{edit: Edit; format: 'h' | 'v'}> = ({edit, format
     for (const s of data.sfx) {
       if (s.t < c.from || s.t > c.from + c.dur) continue;
       if (s.id.startsWith('Foot') && s.distance > 9) continue;
-      const fall = Math.max(0, 1 - s.distance / 38);
-      const vol = Math.min(1, s.volume * fall * (s.id.startsWith('Foot') ? 0.35 : 0.8));
+      // Voices are dialogue: they stay clear even from a friend far from the camera.
+      const fall = isVoice(s.id) ? Math.max(0.6, 1 - s.distance / 45) : Math.max(0, 1 - s.distance / 38);
+      const vol = Math.min(1, s.volume * fall * (s.id.startsWith('Foot') ? 0.35 : isVoice(s.id) ? 0.95 : 0.8));
       if (vol > 0.03) cues.push({at: c.at + (s.t - c.from), id: s.id, volume: vol, pitch: s.pitch});
     }
   }
+  const voices = cues.filter((c) => isVoice(c.id) && c.at < keyArtAt + 4);
 
   return (
     <AbsoluteFill style={{background: 'black'}}>
@@ -188,7 +206,7 @@ export const Trailer: React.FC<{edit: Edit; format: 'h' | 'v'}> = ({edit, format
               const t = f / FPS;
               const fin = m.fadeIn ? Math.min(1, t / m.fadeIn) : 1;
               const fout = m.fadeOut ? Math.min(1, (m.dur - t) / m.fadeOut) : 1;
-              return Math.max(0, Math.min(fin, fout)) * (m.volume ?? 0.9);
+              return Math.max(0, Math.min(fin, fout)) * (m.volume ?? 0.9) * duckAt(voices, m.at + t);
             }}
           />
         </Sequence>

@@ -11,6 +11,7 @@ namespace MixedUp.Trailer
     {
         public string displayName;
         public Color colour = Color.white;
+        public float voice = 1f, pace = 0.085f;
 
         public PlayerController Controller { get; private set; }
         public PlayerStatus Status { get; private set; }

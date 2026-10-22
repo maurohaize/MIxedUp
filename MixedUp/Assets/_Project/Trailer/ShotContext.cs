@@ -114,6 +114,8 @@ namespace MixedUp.Trailer
             actor.Bind();
             actor.displayName = friend.name;
             actor.colour = Friends.Clothes(friend);
+            actor.voice = friend.voice;
+            actor.pace = friend.pace;
             cast.Add(actor);
             return actor;
         }
@@ -156,27 +158,151 @@ namespace MixedUp.Trailer
                 t = Mathf.Max(0f, T), dur = seconds, who = who != null ? who.displayName : "",
                 colour = who != null ? "#" + ColorUtility.ToHtmlStringRGB(who.colour) : "#FFFFFF", text = text
             });
-            if (who != null) Run(Babble(who, text, seconds));
+            if (who != null) Run(Speak(who, text, seconds));
         }
 
-        /// <summary>No voices, but everybody chatters: a few short blips per line, each friend with their own pitch, higher when shouting.</summary>
-        IEnumerator Babble(TrailerActor who, string text, float seconds)
+        // ------------------------------------------------------------- voices
+
+        /// <summary>Sounds a friend makes without a subtitle.</summary>
+        public enum Reaction { Laugh, Oof, Hup, Yay, Gasp, Scream, Hmph, Aww }
+
+        public void React(TrailerActor who, Reaction reaction, float delay = 0f)
         {
-            int letters = 0;
-            foreach (char ch in text) if (char.IsLetter(ch)) letters++;
-            if (letters == 0) yield break;
-            bool shout = text.Contains("!") || text.ToUpperInvariant() == text;
-            int blips = Mathf.Clamp(letters / 2, 2, 16);
-            float gap = Mathf.Min(shout ? 0.07f : 0.09f, seconds * 0.85f / blips);
-            int seed = who.displayName != null ? who.displayName.GetHashCode() : 0;
-            float basePitch = 0.82f + (Mathf.Abs(seed) % 7) * 0.075f;
-            var rng = new System.Random(text.GetHashCode() ^ seed);
-            for (int i = 0; i < blips; i++)
+            if (who != null) Run(Reacting(who, reaction, delay));
+        }
+
+        void Voice(TrailerActor who, float pitch, float volume, bool held = false) =>
+            AudioManager.Play(held ? SfxId.VoiceLong : SfxId.Voice, who.Position + Vector3.up * 1.3f, volume, pitch);
+
+        IEnumerator Reacting(TrailerActor who, Reaction reaction, float delay)
+        {
+            if (delay > 0f) yield return Wait(delay);
+            float v = who.voice;
+            switch (reaction)
             {
-                float pitch = basePitch * (shout ? 1.28f : 1f) * (0.88f + (float)rng.NextDouble() * 0.34f);
-                if (i == blips - 1 && text.TrimEnd().EndsWith("?")) pitch *= 1.25f;
-                AudioManager.Play(SfxId.Voice, who.Position + Vector3.up * 1.3f, shout ? 0.95f : 0.7f, pitch);
-                yield return Wait(gap);
+                case Reaction.Laugh:   // "ja-ja-ja-ja", a little lower each time
+                    for (int i = 0; i < 5; i++) { Voice(who, v * (1.32f - i * 0.05f), 0.8f); yield return Wait(0.085f); }
+                    break;
+                case Reaction.Oof:
+                    Voice(who, v * 0.82f, 0.95f);
+                    yield return Wait(0.07f);
+                    Voice(who, v * 0.66f, 0.8f);
+                    break;
+                case Reaction.Hup:
+                    Voice(who, v * 1.12f, 0.6f);
+                    break;
+                case Reaction.Yay:
+                    Voice(who, v * 1.28f, 0.85f, true);
+                    break;
+                case Reaction.Gasp:
+                    Voice(who, v * 1.5f, 0.75f);
+                    break;
+                case Reaction.Scream:
+                    Voice(who, v * 1.4f, 1f, true);
+                    yield return Wait(0.55f);
+                    Voice(who, v * 1.22f, 0.9f, true);
+                    break;
+                case Reaction.Hmph:
+                    Voice(who, v * 0.9f, 0.6f);
+                    yield return Wait(0.13f);
+                    Voice(who, v * 0.74f, 0.6f);
+                    break;
+                case Reaction.Aww:
+                    Voice(who, v * 1.05f, 0.6f, true);
+                    break;
+            }
+        }
+
+        struct Syllable
+        {
+            public bool held, pause;
+            public float length;
+        }
+
+        const string Accented = "áéíóúü", Unaccented = "aeiouu";
+
+        static bool IsVowel(char ch) => "aeiou".IndexOf(Plain(ch)) >= 0;
+
+        static char Plain(char ch)
+        {
+            ch = char.ToLowerInvariant(ch);
+            int i = Accented.IndexOf(ch);
+            return i >= 0 ? Unaccented[i] : ch;
+        }
+
+        /// <summary>Splits a line into what the babble needs: one blip per vowel group, held vowels ("¡AAAH!", "voooy") and pauses.</summary>
+        static List<Syllable> Syllables(string text)
+        {
+            var list = new List<Syllable>();
+            int i = 0;
+            while (i < text.Length)
+            {
+                char ch = text[i];
+                if (IsVowel(ch))
+                {
+                    int run = 1, same = 1;
+                    while (i + run < text.Length && IsVowel(text[i + run]))
+                    {
+                        if (Plain(text[i + run]) == Plain(ch)) same++;
+                        run++;
+                    }
+                    list.Add(same >= 3 ? new Syllable { held = true, length = Mathf.Clamp(0.22f + same * 0.05f, 0.3f, 0.75f) } : new Syllable { length = 1f });
+                    i += run;
+                    continue;
+                }
+                if (ch == '.' || ch == '…' || ch == ',' || ch == ';' || ch == ':')
+                {
+                    // "..." is one longer pause, not three
+                    bool afterPause = list.Count > 0 && list[list.Count - 1].pause;
+                    float pause = afterPause ? Mathf.Min(0.32f, list[list.Count - 1].length + 0.06f) : ch == ',' ? 0.12f : 0.18f;
+                    if (afterPause) list[list.Count - 1] = new Syllable { pause = true, length = pause };
+                    else list.Add(new Syllable { pause = true, length = pause });
+                }
+                i++;
+            }
+            while (list.Count > 0 && list[list.Count - 1].pause) list.RemoveAt(list.Count - 1);
+            return list;
+        }
+
+        /// <summary>
+        /// No words, but everybody talks: one babbled syllable per vowel group in the friend's own voice, with the tune of the
+        /// sentence (falls when stating, rises at the end of a question, higher and louder when exclaiming or shouting).
+        /// </summary>
+        IEnumerator Speak(TrailerActor who, string text, float seconds)
+        {
+            var syllables = Syllables(text);
+            int spoken = 0;
+            foreach (var s in syllables) if (!s.pause) spoken++;
+            if (spoken == 0) yield break;
+
+            int letters = 0, upper = 0;
+            foreach (char ch in text) if (char.IsLetter(ch)) { letters++; if (char.IsUpper(ch)) upper++; }
+            bool shout = letters >= 3 && upper >= letters * 0.6f;
+            bool exclaim = text.Contains("!");
+            bool question = text.Contains("?");
+
+            float step = who.pace * (shout ? 0.82f : exclaim ? 0.9f : 1f);
+            float natural = 0f;
+            foreach (var s in syllables) natural += s.pause || s.held ? s.length : step;
+            float fit = Mathf.Min(1f, seconds * 0.92f / Mathf.Max(0.01f, natural));
+
+            float lift = shout ? 1.3f : exclaim ? 1.14f : 1f;
+            float volume = shout ? 1f : exclaim ? 0.9f : 0.75f;
+            uint seed = 2166136261;
+            foreach (char ch in who.displayName + text) seed = (seed ^ ch) * 16777619;
+            var rng = new System.Random((int)(seed & 0x7fffffff));
+
+            int n = 0;
+            foreach (var s in syllables)
+            {
+                if (s.pause) { yield return Wait(s.length * fit); continue; }
+                float k = spoken > 1 ? n / (float)(spoken - 1) : 0f;
+                float tune = 1.05f - 0.12f * k;                                                  // statements fall towards the end
+                if (question && spoken > 1 && n >= spoken - 2) tune = n == spoken - 1 ? 1.3f : 1.12f;   // questions climb at the end
+                float pitch = who.voice * lift * tune * (0.95f + (float)rng.NextDouble() * 0.1f);
+                Voice(who, pitch, volume * (n == 0 ? 1f : 0.85f + (float)rng.NextDouble() * 0.15f), s.held);
+                n++;
+                yield return Wait((s.held ? s.length : step) * fit);
             }
         }
 

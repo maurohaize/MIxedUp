@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using R = MixedUp.Trailer.ShotContext.Reaction;
 
 namespace MixedUp.Trailer
 {
@@ -310,6 +311,7 @@ namespace MixedUp.Trailer
             var iker = c.cast[0];
             yield return c.At(0.1f);
             c.Say(iker, "¡AAAAAAAAAH!", 2.6f);
+            c.React(iker, R.Scream, 0.75f);
             c.Run(iker.Walk(Vector3.back, 2.8f, true));
             yield return c.At(1.4f);
             iker.Jump();
@@ -346,10 +348,12 @@ namespace MixedUp.Trailer
             c.Say(ane, "¿Qué cajas?", 1.2f);
             yield return c.At(4.0f);
             c.Say(iker, "Las que explotan.", 1.5f);
+            c.React(ane, R.Gasp, 1.0f);
+            c.React(mauro, R.Hmph, 1.2f);
             yield return c.At(5.0f);
             foreach (var a in c.cast) c.Run(a.Face(fire, 0.5f));
             yield return c.At(5.8f);
-            c.Say(maite, "Genial.", 1.4f);
+            c.Say(maite, "Genial. Qué ilusión.", 1.6f);
         }
 
         static IEnumerator LobbyHug(ShotContext c)
@@ -359,9 +363,12 @@ namespace MixedUp.Trailer
             var maite = c.cast[3];
             yield return c.At(0.4f);
             mauro.HugNearest();
+            c.React(mauro, R.Aww);
+            c.React(c.cast[1], R.Aww, 0.15f);
             yield return c.At(1.2f);
             iker.FaceNow(maite.Position);
             iker.Shove();
+            c.React(maite, R.Oof, 0.1f);
             yield return c.At(1.6f);
             c.Say(maite, "¡Oye!", 1.2f);
             yield return c.At(2.8f);
@@ -369,6 +376,8 @@ namespace MixedUp.Trailer
             yield return c.At(3.4f);
             maite.FaceNow(iker.Position);
             maite.Shove();
+            c.React(iker, R.Oof, 0.1f);
+            c.React(c.cast[1], R.Laugh, 0.3f);
         }
 
         static IEnumerator LobbyReady(ShotContext c)
@@ -378,20 +387,24 @@ namespace MixedUp.Trailer
             c.Say(mauro, "Vale... ¿listos?", 1.5f);
             yield return c.At(2.2f);
             c.Say(c.cast[0], "¡Sí!", 1.2f);
+            for (int i = 1; i < c.cast.Count; i++) c.React(c.cast[i], R.Yay, 0.04f * i);
             foreach (var a in c.cast) a.Jump();
         }
 
         static IEnumerator MeadowArrive(ShotContext c)
         {
             yield return c.At(0.4f);
-            c.Say(c.cast[0], "Vale. Seis cajas. Fácil.", 1.9f);
+            c.Say(c.cast[0], "Seis cajas, un camión. ¿Qué puede salir mal?", 2.0f);
             yield return c.At(2.4f);
+            c.React(c.cast[1], R.Yay);
+            c.React(c.cast[3], R.Yay, 0.12f);
             c.Run(c.cast[0].MoveTo(V(6f, 0f, -6f), true));
             c.Run(c.cast[1].MoveTo(V(-8f, 0f, -8f), true));
             c.Run(c.cast[2].MoveTo(V(14f, 0f, -10f), true));
             c.Run(c.cast[3].MoveTo(V(-16f, 0f, -2f), true));
             yield return c.At(3.1f);
             c.cast[2].Jump();
+            c.React(c.cast[2], R.Hup);
         }
 
         static IEnumerator HotPotato(ShotContext c)
@@ -403,8 +416,9 @@ namespace MixedUp.Trailer
             c.Say(iker, "Quema... quema... ¡QUEMA!", 2.2f);
             yield return c.At(2.4f);
             iker.GiveTo(mauro);
+            c.React(iker, R.Laugh, 0.15f);
             yield return c.At(2.9f);
-            c.Say(mauro, "¡¿Por qué me la das a mí?!", 1.8f);
+            c.Say(mauro, "¡¿Y me la das A MÍ?!", 1.8f);
             c.Run(mauro.MoveTo(V(0f, 0.05f, -24f), true));
             c.Run(iker.MoveTo(V(-4f, 0.05f, -6f), false));
         }
@@ -433,10 +447,12 @@ namespace MixedUp.Trailer
                 }
             }
             ane.Jump();
+            c.React(ane, R.Hup);
+            c.React(maite, R.Oof, 0.35f);
             yield return c.Wait(0.9f);
             c.Say(ane, "¡Ja!", 0.9f);
             yield return c.Wait(1.4f);
-            c.Say(maite, "Vale... eso dolió.", 1.6f);
+            c.Say(maite, "Vale... eso ha dolido.", 1.6f);
         }
 
         static IEnumerator RiverPush(ShotContext c)
@@ -449,6 +465,7 @@ namespace MixedUp.Trailer
             yield return c.At(1.6f);
             mauro.FaceNow(iker.Position);
             mauro.Shove();
+            c.React(iker, R.Scream, 0.1f);
             yield return c.At(2.9f);
             c.Say(mauro, "Ups.", 1.2f);
         }
@@ -471,6 +488,7 @@ namespace MixedUp.Trailer
             var duck = NearestDuck(ane.Position);
             yield return c.At(0.6f);
             if (duck != null) duck.Interact(ane.Interactor);
+            c.React(ane, R.Gasp, 0.1f);
             yield return c.At(0.8f);
             c.Say(ane, "Hola, patito.", 1.5f);
             yield return c.At(2.2f);
@@ -486,6 +504,7 @@ namespace MixedUp.Trailer
             c.Say(maite, "¡Allá voooy!", 1.6f);
             yield return c.At(2.0f);
             yield return maite.Walk(Vector3.forward, 1.0f);
+            c.React(maite, R.Yay);
             yield return maite.MoveTo(V(-18f, 2.5f, 43.2f), false, 0.4f, 2f);
             maite.PickUp();
         }
@@ -494,7 +513,7 @@ namespace MixedUp.Trailer
         {
             var iker = c.cast[0];
             yield return c.At(0.2f);
-            c.Say(iker, "Agachándote llegas a más sitios...", 2.2f);
+            c.Say(iker, "Si te agachas, cabes. Es ciencia.", 2.0f);
             yield return c.At(0.6f);
             iker.Crouch(true);
             yield return iker.MoveTo(V(-37f, 0.1f, 35f), false, 0.3f, 6f, 1f);
@@ -510,8 +529,9 @@ namespace MixedUp.Trailer
             yield return c.At(2.2f);
             c.Run(c.cast[3].Walk(Vector3.right, 0.6f));
             c.Run(c.cast[1].Walk(Vector3.left, 0.5f));
+            c.React(c.cast[2], R.Laugh, 0.25f);
             yield return c.At(3.0f);
-            c.Say(c.cast[1], "¡No puedo parar!", 1.6f);
+            c.Say(c.cast[1], "¡No puedo paraaar!", 1.6f);
             yield return c.At(4.6f);
             c.Say(c.cast[3], "Me encanta este sitio.", 1.6f);
         }
@@ -521,6 +541,7 @@ namespace MixedUp.Trailer
             var iker = c.cast[0];
             yield return c.At(0.2f);
             yield return iker.MoveTo(V(-22f, 0.05f, -14.6f), true, 0.2f, 2.4f);
+            c.React(iker, R.Oof);
             yield return c.At(2.1f);
             c.Say(iker, "...Perdón.", 1.3f);
         }
@@ -531,6 +552,7 @@ namespace MixedUp.Trailer
             yield return c.At(0.2f);
             yield return maite.MoveTo(V(-30f, 2.6f, -4.5f), false, 0.3f, 2.8f);
             maite.Stop();
+            c.React(maite, R.Gasp);
             yield return c.At(3.2f);
             c.Say(maite, "¡Otra vez no!", 1.4f);
         }
@@ -541,6 +563,7 @@ namespace MixedUp.Trailer
             c.Say(c.cast[0], "Qué bonito es esto...", 1.8f);
             yield return c.At(3.0f);
             c.Say(c.cast[1], "Calla y rema.", 1.4f);
+            c.React(c.cast[0], R.Hmph, 1.2f);
         }
 
         static IEnumerator HarbourZap(ShotContext c)
@@ -551,6 +574,7 @@ namespace MixedUp.Trailer
             c.Say(iker, "Tranquila, sé lo que hago.", 1.6f);
             yield return c.At(1.4f);
             yield return iker.Walk(Vector3.forward, 1.1f);
+            c.React(iker, R.Scream, 0.2f);
             yield return c.At(3.0f);
             c.Say(ane, "¡TE DIJE QUE NO TE METIERAS AL AGUA!", 2.2f);
         }
@@ -562,7 +586,7 @@ namespace MixedUp.Trailer
                 var a = c.cast[i];
                 c.Run(DeliverOne(c, a, 0.3f + i * 0.9f));
             }
-            yield return c.At(3.6f);
+            yield return c.At(2.9f);
             c.Say(c.cast[0], "¡La última!", 1.2f);
         }
 
@@ -572,6 +596,7 @@ namespace MixedUp.Trailer
             var to = c.Truck != null ? c.Truck.InteractionTransform.position : V(0f, 0f, -31.5f);
             yield return a.MoveTo(new Vector3(a.Position.x * 0.5f, 0f, to.z - 1.6f), true, 0.4f, 3f);
             a.Deliver(c.Truck);
+            c.React(a, R.Hup);
         }
 
         static IEnumerator Boom(ShotContext c)
@@ -582,7 +607,10 @@ namespace MixedUp.Trailer
             yield return c.At(2.0f);
             c.Mark("boom");
             if (c.Truck != null) c.Run(TrailerSets.BlowUp(c.Truck, c));
-            yield return c.At(4.4f);
+            for (int i = 0; i < c.cast.Count; i++) c.React(c.cast[i], R.Gasp, 0.08f + 0.05f * i);
+            yield return c.At(2.9f);
+            c.React(c.cast[2], R.Laugh);
+            yield return c.At(3.6f);
             c.Say(c.cast[3], "¿Quién ha puesto la caliente al lado de la eléctrica?", 2.0f);
         }
 
@@ -592,6 +620,9 @@ namespace MixedUp.Trailer
             foreach (var a in c.cast) a.FaceNow(camera);
             yield return c.At(1.5f);
             c.cast[2].Jump();
+            c.React(c.cast[2], R.Yay);
+            c.React(c.cast[0], R.Laugh, 0.3f);
+            c.React(c.cast[3], R.Laugh, 0.45f);
         }
     }
 }
