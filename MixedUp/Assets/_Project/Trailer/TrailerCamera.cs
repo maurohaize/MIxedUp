@@ -23,6 +23,8 @@ namespace MixedUp.Trailer
         public float shake = 0.05f;
         public float time;
         public bool smoothFollow = true;
+        [Tooltip("Pull the camera in front of walls and rocks that would hide the subject.")]
+        public bool avoidObstacles;
         public float smoothing = 6f;
 
         Camera cam;
@@ -59,11 +61,28 @@ namespace MixedUp.Trailer
             float n3 = Mathf.PerlinNoise(time * 0.27f, 9.3f) - 0.5f;
             Vector3 drift = new Vector3(n1, n2, n3) * (2f * shake);
 
-            transform.position = smoothedPosition + drift;
+            var position = smoothedPosition + drift;
+            if (avoidObstacles) position = KeepInView(smoothedLook, position);
+            transform.position = position;
             var forward = (smoothedLook + drift * 0.5f) - transform.position;
             if (forward.sqrMagnitude > 1e-6f)
                 transform.rotation = Quaternion.LookRotation(forward.normalized, Vector3.up) * Quaternion.Euler(0f, 0f, pose.roll + n2 * shake * 20f);
             if (cam != null && pose.fov > 1f) cam.fieldOfView = pose.fov;
+        }
+
+        static Vector3 KeepInView(Vector3 subject, Vector3 position)
+        {
+            var toCamera = position - subject;
+            float distance = toCamera.magnitude;
+            if (distance < 0.5f) return position;
+            var direction = toCamera / distance;
+            float nearest = distance;
+            foreach (var hit in Physics.SphereCastAll(subject, 0.3f, direction, distance, ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (hit.distance <= 0f || hit.collider.GetComponentInParent<TrailerActor>() != null) continue;
+                nearest = Mathf.Min(nearest, hit.distance);
+            }
+            return nearest < distance ? subject + direction * Mathf.Max(1.2f, nearest - 0.1f) : position;
         }
 
         // ------------------------------------------------------------------ moves

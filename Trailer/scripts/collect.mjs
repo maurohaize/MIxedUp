@@ -4,8 +4,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const capture = path.resolve(process.argv[2] ?? path.join(root, 'capture'));
 const footage = path.join(root, 'public', 'footage');
 const sfxOut = path.join(root, 'public', 'sfx');

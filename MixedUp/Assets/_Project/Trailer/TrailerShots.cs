@@ -26,7 +26,7 @@ namespace MixedUp.Trailer
                     var iker = c.Actor(Friends.Iker, V(-32f, 4.4f, -12.6f), 180f);
                     iker.Hold(c.Box("frozen"));
                     c.Camera.shake = 0.08f;
-                    c.Camera.move = TrailerCamera.Dolly(V(-28.5f, 1.0f, -23f), V(-28.8f, 1.1f, -21.5f), V(-32f, 3.6f, -14f), V(-32f, 1.6f, -19f), 3.2f, c.vertical ? 68f : 48f);
+                    c.Camera.move = TrailerCamera.Dolly(V(-28.5f, 2.6f, -23f), V(-28.8f, 2.8f, -21.5f), V(-32f, 3.6f, -14f), V(-32f, 2.6f, -15.5f), 3.2f, c.vertical ? 68f : 48f);
                 },
                 action = c => ColdOpen(c)
             },
@@ -112,6 +112,7 @@ namespace MixedUp.Trailer
                     c.Actor(Friends.Ane, V(0.4f, 0.05f, -21.4f), 350f);
                     c.Actor(Friends.Iker, V(4.0f, 0.05f, -21.2f), 10f);
                     c.Actor(Friends.Maite, V(-1.4f, 0.05f, -20.8f), 345f);
+                    c.Camera.avoidObstacles = true;
                     c.Camera.move = TrailerCamera.Dolly(V(1.4f, 1.6f, -26.5f), V(1.4f, 2.4f, -25.0f), V(1.4f, 1.4f, -16f), V(1.4f, 2.2f, -4f), 5.5f, c.vertical ? 72f : 50f);
                 },
                 action = c => MeadowArrive(c)
@@ -137,6 +138,7 @@ namespace MixedUp.Trailer
                     var centre = sweeper != null ? sweeper.transform.position : V(22f, 0f, 26f);
                     c.Actor(Friends.Ane, centre + V(-1.6f, 0.1f, -4.6f), 0f);
                     c.Actor(Friends.Maite, centre + V(1.6f, 0.1f, -4.8f), 0f);
+                    c.Camera.avoidObstacles = true;
                     c.Camera.move = TrailerCamera.Static(centre + V(5.5f, 1.4f, -6.5f), centre + V(-0.6f, 0.8f, 0f), c.vertical ? 74f : 52f);
                 },
                 action = c => LogJump(c)
@@ -221,7 +223,7 @@ namespace MixedUp.Trailer
                 {
                     var maite = c.Actor(Friends.Maite, V(-30f, 0.05f, -14.5f), 0f);
                     maite.Hold(c.Box("frozen"));
-                    c.Camera.move = TrailerCamera.Static(V(-24.5f, 2.2f, -11f), V(-30f, 1.8f, -6.5f), 50f);
+                    c.Camera.move = TrailerCamera.Static(V(-27.5f, 1.8f, -16.5f), V(-30f, 1.8f, -8.5f), 50f);
                 },
                 action = c => Glacier(c)
             },

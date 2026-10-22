@@ -84,6 +84,9 @@ namespace MixedUp.Trailer
             if (Instance != null) return;
             var request = TrailerRequest.Load();
             if (request == null || string.IsNullOrEmpty(request.output)) return;
+            // The GPU Resident Drawer crashes the editor when scenes are reloaded back to back while filming.
+            if (UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline is UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset urp)
+                urp.gpuResidentDrawerMode = UnityEngine.Rendering.GPUResidentDrawerMode.Disabled;
             var go = new GameObject("TrailerDirector");
             DontDestroyOnLoad(go);
             var director = go.AddComponent<TrailerDirector>();
@@ -136,10 +139,13 @@ namespace MixedUp.Trailer
             Time.captureFramerate = request.fps;
             UnityEngine.Random.InitState(1234);
             current = new ShotContext(this, shot, vertical, w, h);
+            Log("prepare");
             current.Prepare();
+            Log("setup");
             shot.setup?.Invoke(current);
             if (shot.action != null) current.Run(shot.action(current));
 
+            Log("preroll " + shot.preroll + " dt=" + Time.deltaTime);
             // Settle (physics, boxes landing, cameras catching up) before the first frame that counts.
             current.T = -shot.preroll;
             while (current.T < 0f)
@@ -157,6 +163,7 @@ namespace MixedUp.Trailer
             Directory.CreateDirectory(frameDir);
             AudioManager.Played += OnSfx;
 
+            Log("recording start");
             int total = Mathf.RoundToInt(shot.duration * request.fps);
             if (request.maxFrames > 0) total = Mathf.Min(total, request.maxFrames);
             frame = 0;
@@ -164,7 +171,8 @@ namespace MixedUp.Trailer
             float started = Time.realtimeSinceStartup;
             while (frame < total)
             {
-                yield return new WaitForEndOfFrame();
+                // WaitForEndOfFrame never fires in batchmode (no game view rendering); Capture() renders the camera itself.
+                if (Application.isBatchMode) yield return null; else yield return new WaitForEndOfFrame();
                 Capture();
                 frame++;
                 current.T += 1f / request.fps;
