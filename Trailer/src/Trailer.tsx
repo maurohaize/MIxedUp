@@ -118,11 +118,11 @@ const EndCard: React.FC<{vertical: boolean}> = ({vertical}) => {
 
 const sfxFile = (id: string, n: number) => staticFile(`sfx/${id}_${n % 3}.wav`);
 
-const SfxLayer: React.FC<{cues: {at: number; id: string; volume: number}[]}> = ({cues}) => (
+const SfxLayer: React.FC<{cues: {at: number; id: string; volume: number; pitch: number}[]}> = ({cues}) => (
   <>
     {cues.map((c, i) => (
       <Sequence key={i} from={sec(c.at)} durationInFrames={sec(3)}>
-        <Audio src={sfxFile(c.id, i)} volume={c.volume} />
+        <Audio src={sfxFile(c.id, i)} volume={c.volume} playbackRate={c.id === 'Voice' ? c.pitch : 1} />
       </Sequence>
     ))}
   </>
@@ -137,7 +137,7 @@ export const Trailer: React.FC<{edit: Edit; format: 'h' | 'v'}> = ({edit, format
 
   // Subtitles and sounds of each clip, moved onto the timeline.
   const lines: Line[] = [];
-  const cues: {at: number; id: string; volume: number}[] = [];
+  const cues: {at: number; id: string; volume: number; pitch: number}[] = [];
   for (const c of clips) {
     const data = getShot(c.shot, format) ?? getShot(c.shot, 'h');
     if (!data) continue;
@@ -151,7 +151,7 @@ export const Trailer: React.FC<{edit: Edit; format: 'h' | 'v'}> = ({edit, format
       if (s.id.startsWith('Foot') && s.distance > 9) continue;
       const fall = Math.max(0, 1 - s.distance / 38);
       const vol = Math.min(1, s.volume * fall * (s.id.startsWith('Foot') ? 0.35 : 0.8));
-      if (vol > 0.03) cues.push({at: c.at + (s.t - c.from), id: s.id, volume: vol});
+      if (vol > 0.03) cues.push({at: c.at + (s.t - c.from), id: s.id, volume: vol, pitch: s.pitch});
     }
   }
 

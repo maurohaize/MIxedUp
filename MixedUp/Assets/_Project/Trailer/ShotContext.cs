@@ -156,6 +156,28 @@ namespace MixedUp.Trailer
                 t = Mathf.Max(0f, T), dur = seconds, who = who != null ? who.displayName : "",
                 colour = who != null ? "#" + ColorUtility.ToHtmlStringRGB(who.colour) : "#FFFFFF", text = text
             });
+            if (who != null) Run(Babble(who, text, seconds));
+        }
+
+        /// <summary>No voices, but everybody chatters: a few short blips per line, each friend with their own pitch, higher when shouting.</summary>
+        IEnumerator Babble(TrailerActor who, string text, float seconds)
+        {
+            int letters = 0;
+            foreach (char ch in text) if (char.IsLetter(ch)) letters++;
+            if (letters == 0) yield break;
+            bool shout = text.Contains("!") || text.ToUpperInvariant() == text;
+            int blips = Mathf.Clamp(letters / 2, 2, 16);
+            float gap = Mathf.Min(shout ? 0.07f : 0.09f, seconds * 0.85f / blips);
+            int seed = who.displayName != null ? who.displayName.GetHashCode() : 0;
+            float basePitch = 0.82f + (Mathf.Abs(seed) % 7) * 0.075f;
+            var rng = new System.Random(text.GetHashCode() ^ seed);
+            for (int i = 0; i < blips; i++)
+            {
+                float pitch = basePitch * (shout ? 1.28f : 1f) * (0.88f + (float)rng.NextDouble() * 0.34f);
+                if (i == blips - 1 && text.TrimEnd().EndsWith("?")) pitch *= 1.25f;
+                AudioManager.Play(SfxId.Voice, who.Position + Vector3.up * 1.3f, shout ? 0.95f : 0.7f, pitch);
+                yield return Wait(gap);
+            }
         }
 
         public void Mark(string label) => markers.Add(new ShotMarker { t = T, label = label });

@@ -338,6 +338,11 @@ namespace MixedUp
                     AddTone(b, 0f, 1.1f, 1320f * v, 1320f * v, 0.2f, 0.002f, 0.35f);
                     AddTone(b, 0f, 0.8f, 2210f * v, 2210f * v, 0.1f, 0.002f, 0.2f);
                     break;
+                case SfxId.Voice:   // a babble blip (no words): a rounded "oh/ah" that drops a little, like a critter talking
+                    b = new Buffer(0.11f);
+                    AddTone(b, 0f, 0.1f, 330f * v, 290f * v, 0.7f, 0.01f, 0.05f, 0, 0.012f, 28f);
+                    AddTone(b, 0f, 0.09f, 330f * v * 2.4f, 290f * v * 2.2f, 0.22f, 0.01f, 0.04f);
+                    break;
                 case SfxId.Win:
                     b = new Buffer(1.6f);
                     foreach (var (t, f) in new[] { (0f, 523.25f), (0.14f, 659.25f), (0.28f, 783.99f), (0.42f, 1046.5f) }) AddPluck(b, t, 0.9f, f * v, 0.5f, 0.45f);
@@ -360,6 +365,7 @@ namespace MixedUp
                 case SfxId.FootSnow: case SfxId.FootWater: case SfxId.FootMud: peak = 0.3f; soft = 2200f; break;
                 case SfxId.Jump: case SfxId.Crouch: peak = 0.32f; soft = 2600f; break;
                 case SfxId.Land: peak = 0.4f; soft = 1800f; break;
+                case SfxId.Voice: peak = 0.5f; soft = 3200f; break;
                 case SfxId.IceCrack: case SfxId.Zap: peak = 0.6f; soft = 6500f; break;
                 case SfxId.Bell: case SfxId.Pickup: case SfxId.Deliver: case SfxId.Heal: peak = 0.6f; soft = 5500f; break;
                 default: peak = 0.62f; soft = 3800f; break;
