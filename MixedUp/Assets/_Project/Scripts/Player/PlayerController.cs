@@ -92,7 +92,19 @@ namespace MixedUp
         public bool MovementLocked => Time.time < lockedUntil;
         public Transform PushTransform => transform;
         public bool CanBePushed => status != null && !status.IsDead;
-        public bool CanControl => isLocal && status != null && !status.IsDead && !GameManager.InputBlocked;
+        public bool CanControl => isLocal && status != null && !status.IsDead && !GameManager.InputBlocked && !puppet;
+
+        [Header("Puppet (scripted characters, e.g. the trailer)")]
+        [Tooltip("Driven by code instead of the player's input.")]
+        public bool puppet;
+        /// <summary>World-space direction to walk in (length 0..1). Only used when `puppet` is on.</summary>
+        [System.NonSerialized] public Vector3 puppetMove;
+        [System.NonSerialized] public bool puppetSprint;
+        [System.NonSerialized] public bool puppetCrouch;
+        bool puppetJump;
+
+        /// <summary>Asks a puppet to jump on the next frame it can.</summary>
+        public void PuppetJump() => puppetJump = true;
 
         void Awake()
         {
@@ -176,12 +188,20 @@ namespace MixedUp
             float dt = Time.deltaTime;
             if (dt <= 0f) return;
 
+            bool puppetControl = puppet && status != null && !status.IsDead && !MovementLocked;
             bool control = CanControl && !MovementLocked;
             Vector2 input = control ? GameInput.Move.ReadValue<Vector2>() : Vector2.zero;
             bool sprint = control && GameInput.Sprint.IsPressed();
             if (control && GameInput.Jump.WasPressedThisFrame() && !crouching) jumpBufferTimer = jumpBuffer;
 
             Vector3 moveDir = CameraRelative(input);
+            if (puppetControl)
+            {
+                moveDir = Vector3.ClampMagnitude(new Vector3(puppetMove.x, 0f, puppetMove.z), 1f);
+                sprint = puppetSprint;
+                if (puppetJump && !crouching) jumpBufferTimer = jumpBuffer;
+            }
+            puppetJump = false;
             bool hasInput = moveDir.sqrMagnitude > 0.0001f;
 
             ProbeGround(out bool probeHit);
@@ -199,7 +219,7 @@ namespace MixedUp
             }
             wasGrounded = grounded;
 
-            UpdateCrouch(control && GameInput.Crouch.IsPressed(), dt);
+            UpdateCrouch(puppetControl ? puppetCrouch : control && GameInput.Crouch.IsPressed(), dt);
             if (crouching) sprint = false;
 
             var mods = status.Modifiers;

@@ -38,6 +38,7 @@ namespace MixedUp
             Instance = null;
             PlayedCount = 0;
             Counts.Clear();
+            Played = null;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -49,9 +50,13 @@ namespace MixedUp
             go.AddComponent<AudioManager>();
         }
 
+        /// <summary>Every effect requested, with where and how loud (the trailer recorder writes them down to rebuild the sound).</summary>
+        public static event System.Action<SfxId, Vector3?, float, float> Played;
+
         /// <summary>Plays an effect. `position` null = flat (not 3D), like interface sounds.</summary>
         public static void Play(SfxId id, Vector3? position = null, float volume = 1f, float pitch = 1f)
         {
+            Played?.Invoke(id, position, volume, pitch);
             PlayedCount++;
             LastPlayed = id;
             Counts[id] = Counts.TryGetValue(id, out int n) ? n + 1 : 1;
