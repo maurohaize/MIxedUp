@@ -152,8 +152,9 @@ lobby.create,SALA SORTU,CREAR SALA,CREATE ROOM
 lobby.join,SALA SARTU,UNIRSE A UNA SALA,JOIN A ROOM
 lobby.code,Sala kodea,Código de sala,Room code
 lobby.code_hint,ABC123,ABC123,ABC123
-lobby.hint_demo,Sarerik gabe probatu: sartu AMETSA kodea lagun simulatu batzuekin jolasteko.,Prueba sin red: entra con el código AMETSA y juega con amigos simulados.,No network? Join with the code AMETSA and play with stand-in friends.
-lobby.err.bad,Kodeak 6 karaktere izan behar ditu.,El código tiene que tener 6 caracteres.,The code needs 6 characters.
+lobby.code_hint_ip,192.168.1.5:7777,192.168.1.5:7777,192.168.1.5:7777
+lobby.hint_demo,"Idatzi lagun baten kodea edo IP helbidea sartzeko. Sarerik gabe probatzeko: AMETSA.","Escribe el código o la IP de un amigo para entrar. Para probar sin red: AMETSA.","Type a friend's code or IP address to join. To try it offline: AMETSA."
+lobby.err.bad,Kode edo IP baliogabea modu honetarako.,Código o IP no válidos para este modo.,Invalid code or IP for this mode.
 lobby.err.notfound,Ez da sala hori aurkitu.,No se encontró esa sala.,That room was not found.
 lobby.err.full,Sala beteta dago.,La sala está llena.,The room is full.
 lobby.err.started,Partida hasita dago jada.,La partida ya ha empezado.,The game has already started.
@@ -168,3 +169,72 @@ lobby.start,HASI PARTIDA,EMPEZAR PARTIDA,START GAME
 lobby.leave,IRTEN,SALIR,LEAVE
 lobby.need_ready,Jokalari guztiak prest egon behar dira.,Todos los jugadores tienen que estar listos.,Everyone has to be ready.
 lobby.waiting_host,Anfitrioiak hasiko du partida.,El anfitrión empezará la partida.,The host will start the game.
+# --- Achievements ---
+ui.achievements,LORPENAK,LOGROS,ACHIEVEMENTS
+ui.achievements_title,LORPENAK,LOGROS,ACHIEVEMENTS
+ach.summary,{0} / {1} lortuta,{0} / {1} conseguidos,{0} / {1} unlocked
+ach.unlocked,Lorpena lortuta: {0}!,¡Logro conseguido: {0}!,Achievement unlocked: {0}!
+ach.log.name,Enbor jauzilaria,Saltador de troncos,Log hopper
+ach.log.desc,Jauzi egin biraka dabilen enborraren gainetik 67 aldiz.,Salta el tronco giratorio 67 veces.,Jump over the spinning log 67 times.
+ach.ducks.name,Ahate maitalea,Amigo de los patos,Duck whisperer
+ach.ducks.desc,Laztandu ibaiko ahate guztiak.,Acaricia todos los patos.,Pet every rubber duck in the river.
+ach.combos.name,Zientzialari erotua,Científico loco,Mad scientist
+ach.combos.desc,Probatu konbinazio guztiak.,Prueba todas las combinaciones.,Try every combination.
+ach.snowman.name,Elur-gizonaren etsaia,Enemigo del muñeco,Snowman wrecker
+ach.snowman.desc,Bota elur-gizona.,Derriba el muñeco de nieve.,Knock down the snowman.
+ach.mushrooms.name,Perretxiko errebotea,Rebote de setas,Mushroom bouncer
+ach.mushrooms.desc,Egin salto perretxiko batean 30 aldiz.,Rebota 30 veces en las setas saltarinas.,Bounce on the mushrooms 30 times.
+ach.first_box.name,Lehen entrega,Primera entrega,First delivery
+ach.first_box.desc,Entregatu kutxa bat kamioian.,Entrega una caja en el camión.,Deliver a box to the truck.
+ach.deliveries.name,Banatzaile aditua,Repartidor experto,Seasoned courier
+ach.deliveries.desc,Entregatu 50 kutxa guztira.,Entrega 50 cajas en total.,Deliver 50 boxes in total.
+ach.hugs.name,Besarkada-zalea,Abrazos gratis,Free hugs
+ach.hugs.desc,Besarkatu zure lagunak 10 aldiz.,Abraza a tus compañeros 10 veces.,Hug your teammates 10 times.
+ach.shoves.name,Bultzada adiskidetsua,Empujón amistoso,Friendly shove
+ach.shoves.desc,Bultzatu beste jokalari bat 5 aldiz.,Empuja a otro jugador 5 veces.,Shove another player 5 times.
+ach.splashes.name,Txapuzoia,Chapuzón,Big splash
+ach.splashes.desc,Egin zipriztin bat uretan 15 aldiz.,Salpica en el agua 15 veces.,Splash into the water 15 times.
+ach.victory.name,Lan ona,Trabajo bien hecho,Job well done
+ach.victory.desc,Irabazi partida bat.,Gana una partida.,Win a game.
+ach.all_modes.name,Moduen maisua,Maestro de modos,Mode master
+ach.all_modes.desc,Irabazi partida bana joko modu guztietan.,Gana una partida en cada modo de juego.,Win a game in every game mode.
+ach.deaths.name,Hil modu guztiak,Mil maneras de morir,A thousand ways to go
+ach.deaths.desc,Hil zaitez 6 modu desberdinetan.,Muere de 6 formas distintas.,Die in 6 different ways.
+ach.boom.name,BUM!,¡BUM!,KABOOM!
+ach.boom.desc,Egin ezazu kamioia lehertu.,Haz explotar el camión.,Blow up the truck.
+ach.rich.name,Aberatsa,Hucha llena,Piggy bank
+ach.rich.desc,Bildu 1000 txanpon.,Reúne 1000 monedas.,Collect 1000 coins.
+ach.veteran.name,Besteranoa,Veterano,Veteran
+ach.veteran.desc,Amaitu 10 entrega.,Completa 10 entregas.,Finish 10 deliveries.
+ach.cave.name,Espeleologoa,Espeleólogo,Spelunker
+ach.cave.desc,Hartu tuneleko kutxa.,Recoge la caja del túnel.,Grab the box inside the tunnel.
+# --- Tips near hard boxes ---
+hintbox.tunnel,Aholku: makurtuta toki gehiagotara iristen zara (C).,Pista: agachándote (C) llegas a más sitios.,Tip: crouch (C) to reach more places.
+hintbox.tower,Aholku: hartu lasterra eta jauzi egin ertzean.,Pista: coge carrerilla y salta justo en el borde.,Tip: take a run-up and jump right at the edge.
+hintbox.cliff,Aholku: perretxikoek goiko hegaletara jaurtitzen zaituzte.,Pista: las setas te lanzan hasta las repisas de arriba.,Tip: the mushrooms launch you up to the ledges.
+hintbox.sweeper,Aholku: jauzi egin enborra zure azpitik pasatzean.,Pista: salta justo cuando el tronco pase bajo tus pies.,Tip: jump just as the log sweeps under your feet.
+hintbox.ice,Aholku: izotzak irristatzen du; hartu abiada eta ez gelditu.,Pista: el hielo resbala; coge velocidad y no frenes.,Tip: ice is slippery; build up speed and do not stop.
+# --- Online ---
+lobby.connection_relay,Konexioa: kodea (internet),Conexión: código (internet),Connection: code (internet)
+lobby.connection_direct,Konexioa: IP zuzena,Conexión: IP directa,Connection: direct IP
+lobby.connecting,Konektatzen...,Conectando...,Connecting...
+lobby.address,IP helbidea,Dirección IP,IP address
+lobby.not_connected,Konexiorik gabe,Sin conexión,Not connected
+lobby.hint_direct,"Sare lokalean: eman IP hau lagunei. Internetetik: ireki UDP 7777 portua.","En red local: da esta IP a tus amigos. Por internet: abre el puerto UDP 7777.","On a local network: give this IP to your friends. Over the internet: open UDP port 7777."
+lobby.err.relay,"Kode bidezko salak Unity Relay behar du (ikus README). Erabili IP zuzena.","Las salas con código necesitan Unity Relay (mira el README). Usa la IP directa.","Code rooms need Unity Relay (see the README). Use the direct IP."
+lobby.err.relay_failed,Ezin izan da Relay bidezko sala sortu.,No se pudo crear la sala con Relay.,Could not create the room through Relay.
+lobby.err.connect,Ezin izan da konektatu.,No se pudo conectar.,Could not connect.
+lobby.err.host,Ezin izan da sala sortu.,No se pudo crear la sala.,Could not create the room.
+lobby.err.avatar,Falta sareko pertsonaia (exekutatu MixedUp > Build Prototype Scene).,Falta el avatar de red (ejecuta MixedUp > Build Prototype Scene).,The network avatar is missing (run MixedUp > Build Prototype Scene).
+lobby.tab_hint,TAB: sagua erabili / mugitu,TAB: usar el ratón / moverse,TAB: use the mouse / move
+lobby.map,MAPA,MAPA,MAP
+toast.only_host,Anfitrioiak bakarrik berrabiaraz dezake.,Solo el anfitrión puede reiniciar.,Only the host can restart.
+map.meadow.name,BELARDI ERREPARTUA,PRADERA DEL REPARTO,DELIVERY MEADOW
+map.meadow.desc,"Jatorrizko mapa: ibaia, kobazuloa eta muino izoztua.","El mapa original: río, cueva y colina helada.","The original map: river, cave and icy hill."
+lobby.mouse_mode,SAGU MODUA (TAB itzultzeko),MODO RATÓN (TAB para volver),MOUSE MODE (TAB to go back)
+hintbox.crates,Aholku: pilatu kaxak eta salto egin bakoitzera.,Pista: sube las cajas de una en una saltando.,Tip: climb the crates one by one by jumping.
+hintbox.raft,Aholku: baltsak uhartera eramango zaitu; itxaron bere txanda.,Pista: la balsa te lleva a la isla; espera a que llegue.,Tip: the raft takes you to the island; wait for it to arrive.
+map.summit.name,IZOTZ GAINA,CUMBRE HELADA,FROZEN SUMMIT
+map.summit.desc,"Mendi elurtua: izotz laku erraldoia, pinuak eta irristakorra dena. Maila altuagoa.","Un paso de montaña nevado con un lago helado enorme, pinos y todo resbaladizo. Nivel superior.","A snowy mountain pass with a huge frozen lake, pines and slippery everything. A higher level."
+map.harbour.name,ARRATSALDEKO PORTUA,PUERTO AL ANOCHECER,DUSK HARBOUR
+map.harbour.desc,"Kai bat, badia sakon bat eta zurezko pasarelak. Ura eta elektrizitatea hurbil: gau eta erronka moduetarako.","Un muelle, una bahía poco profunda y pasarelas de madera. Agua y electricidad muy cerca: ideal para el modo nocturno y el desafío.","A quay, a shallow bay and wooden piers. Water and electricity close together: made for the night and challenge modes."

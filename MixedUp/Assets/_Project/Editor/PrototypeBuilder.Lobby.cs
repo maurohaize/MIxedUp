@@ -66,19 +66,22 @@ namespace MixedUp.EditorTools
             At((RectTransform)panel.nameInput.transform, 120f, 250f, 620f, 84f);
 
             panel.createButton = UiFactory.NewButton("Create", entry, "", "lobby.create", new Vector2(620f, 112f));
-            At((RectTransform)panel.createButton.transform, 100f, 420f, 620f, 112f);
+            At((RectTransform)panel.createButton.transform, 100f, 390f, 620f, 112f);
+            panel.connectionButton = UiFactory.NewButton("Connection", entry, "", null, new Vector2(620f, 92f), UiFactory.ButtonStyle.Plank);
+            At((RectTransform)panel.connectionButton.transform, 100f, 520f, 620f, 92f);
+            panel.connectionLabel = panel.connectionButton.GetComponentInChildren<TMP_Text>();
 
             var codeLabel = UiFactory.NewText("CodeLabel", entry, "", 40f, Brick, TextAlignmentOptions.MidlineLeft, "lobby.code");
             At(codeLabel.rectTransform, 820f, 190f, 560f, 54f);
-            panel.codeInput = NewInput("CodeInput", entry, new Vector2(560f, 84f), "lobby.code_hint", TMP_InputField.CharacterValidation.Alphanumeric);
+            panel.codeInput = NewInput("CodeInput", entry, new Vector2(560f, 84f), "lobby.code_hint");
             At((RectTransform)panel.codeInput.transform, 820f, 250f, 560f, 84f);
             panel.joinButton = UiFactory.NewButton("Join", entry, "", "lobby.join", new Vector2(560f, 112f));
             At((RectTransform)panel.joinButton.transform, 800f, 420f, 560f, 112f);
 
             var hint = UiFactory.NewText("DemoHint", entry, "", 32f, new Color(UiFactory.Ink.r, UiFactory.Ink.g, UiFactory.Ink.b, 0.7f), TextAlignmentOptions.Top, "lobby.hint_demo");
-            At(hint.rectTransform, 120f, 585f, 1260f, 90f);
+            At(hint.rectTransform, 120f, 640f, 1260f, 90f);
             panel.messageLabel = UiFactory.NewText("Message", entry, "", 40f, UiFactory.Danger, TextAlignmentOptions.Center);
-            At(panel.messageLabel.rectTransform, 120f, 690f, 1260f, 60f);
+            At(panel.messageLabel.rectTransform, 120f, 726f, 1260f, 60f);
 
             panel.backButton = UiFactory.NewButton("Back", entry, "", "ui.back", new Vector2(340f, 92f), UiFactory.ButtonStyle.SignLeft);
             At((RectTransform)panel.backButton.transform, 70f, 790f, 340f, 92f);

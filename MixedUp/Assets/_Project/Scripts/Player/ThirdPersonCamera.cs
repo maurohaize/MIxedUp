@@ -44,6 +44,11 @@ namespace MixedUp
                 var status = dummy.GetComponent<PlayerStatus>();
                 if (status != null && !status.IsDead) candidates.Add(dummy.transform);
             }
+            foreach (var avatar in NetAvatar.All)
+            {
+                if (avatar == null || !avatar.IsSpawned || avatar.IsOwner || avatar.ghost == null) continue;
+                if (!avatar.CurrentPose.Has(AvatarPose.Dead)) candidates.Add(avatar.ghost.transform);
+            }
         }
 
         Transform UpdateSpectating(Transform own)

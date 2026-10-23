@@ -508,11 +508,26 @@ def crop_sand(src, box, name, tolerance=34, clear=()):
     print("wrote", name, out.size)
 
 
-def copy_trim(src, name):
+def add_ink_border(im, width=7):
+    """Draws the same dark ink outline the buttons have around the silhouette of a picture."""
+    pad = width + 2
+    padded = Image.new("RGBA", (im.width + pad * 2, im.height + pad * 2), (0, 0, 0, 0))
+    padded.alpha_composite(im, (pad, pad))
+    alpha = padded.getchannel("A").point(lambda v: 255 if v > 8 else 0)
+    grown = alpha.filter(ImageFilter.MaxFilter(width * 2 + 1)).filter(ImageFilter.GaussianBlur(0.8))
+    border = Image.new("RGBA", padded.size, INK + (255,))
+    border.putalpha(grown)
+    border.alpha_composite(padded)
+    return border
+
+
+def copy_trim(src, name, border=False):
     im = Image.open(os.path.join(OLD, "Assets", "Images", src)).convert("RGBA")
     bbox = im.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
     if bbox:
         im = im.crop(bbox)
+    if border:
+        im = add_ink_border(im)
     im.save(os.path.join(OUT, name))
     print("wrote", name, im.size)
 
@@ -536,7 +551,7 @@ def main():
     sketch_frame()
 
     if os.path.isdir(OLD):
-        copy_trim(os.path.join("ui", "logo.png"), "logo.png")
+        copy_trim(os.path.join("ui", "logo.png"), "logo.png", border=True)
         copy_trim(os.path.join("ui", "barra 1.png"), "bar_brick.png")
         crop_sand(os.path.join("Menus", "gameover.png"), (440, 20, 1010, 572), "art_gameover.png", clear=[(0, 225, 30, 295)])
         crop_sand(os.path.join("Menus", "win.png"), (385, 40, 1010, 520), "art_win.png", clear=[(0, 0, 118, 280)])

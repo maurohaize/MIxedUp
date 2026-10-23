@@ -93,6 +93,7 @@ namespace MixedUp.Tests
         [UnityTest]
         public IEnumerator PlayLoadsTheLevel()
         {
+            LevelCatalog.Selected = LevelCatalog.Prototype;
             menu.playButton.onClick.Invoke();
             float waited = 0f;
             while (SceneManager.GetActiveScene().name != "Level_Prototype" && waited < 10f)

@@ -23,6 +23,8 @@ namespace MixedUp
         [Tooltip("Glow that makes boxes easy to find in the dark.")]
         public GameObject beaconPrefab;
         public NightLighting night;
+        [Tooltip("Where each player of an online game starts, in the order they joined. Empty = the default spots of the first map.")]
+        public Vector3[] onlineSpots = System.Array.Empty<Vector3>();
 
         /// <summary>The mode to use instead of the saved choice (tests set it before loading the scene).</summary>
         public static GameModeInfo Override;
@@ -45,13 +47,15 @@ namespace MixedUp
         {
             Instance = this;
             var room = RoomSession.Active;
-            Mode = Override ?? (room != null ? GameModes.Find(room.modeId) : null) ?? GameModes.Selected;
-            Seed = Random.Range(1, int.MaxValue);
+            bool online = OnlineMatch.Started;
+            Mode = Override ?? (online ? OnlineMatch.Mode : null) ?? (room != null ? GameModes.Find(room.modeId) : null) ?? GameModes.Selected;
+            Seed = online && OnlineMatch.Seed != 0 ? OnlineMatch.Seed : Random.Range(1, int.MaxValue);
             var rng = new System.Random(Seed);
 
             if (truck != null) truck.order = OrderFactory.Create(Mode, boxKinds, rules, truck.order, rng);
 
-            if (RoomSession.IsMultiplayer) SpawnRoomMates();
+            if (online) foreach (var dummy in FindObjectsByType<TeammateDummy>()) Destroy(dummy.gameObject);
+            else if (RoomSession.IsMultiplayer) SpawnRoomMates();
 
             boxesRoot = new GameObject("Boxes").transform;
             PlaceBoxes(rng);
@@ -59,6 +63,17 @@ namespace MixedUp
 
             if (GameManager.Instance != null) GameManager.Instance.timeLimitSeconds = Mode.timeLimit;
             if (Mode.night && night != null) night.Apply();
+        }
+
+        void Start()
+        {
+            // In an online game every player starts on their own spot instead of all on the same one.
+            var local = PlayerRegistry.Local;
+            if (!OnlineMatch.Started || local == null || NetAvatar.Local == null) return;
+
+            var spots = onlineSpots.Length > 0 ? onlineSpots : DefaultOnlineSpots;
+            int index = Mathf.Max(0, NetAvatar.Sorted().IndexOf(NetAvatar.Local)) % spots.Length;
+            local.Teleport(spots[index]);
         }
 
         void OnDestroy()
@@ -71,6 +86,11 @@ namespace MixedUp
         static readonly Vector3[] MateSpots =
         {
             new Vector3(-4f, 0.05f, -31f), new Vector3(0f, 0.05f, -34f), new Vector3(8f, 0.05f, -31f)
+        };
+
+        static readonly Vector3[] DefaultOnlineSpots =
+        {
+            new Vector3(4f, 0.05f, -31f), new Vector3(-4f, 0.05f, -31f), new Vector3(0f, 0.05f, -34f), new Vector3(8f, 0.05f, -31f)
         };
 
         /// <summary>One character for every other member of the room, in their own colours and with their name overhead.</summary>

@@ -1,0 +1,21 @@
+{
+  "name": "mixedup-trailer",
+  "private": true,
+  "version": "1.0.0",
+  "description": "MIXED UP trailer (Remotion). Gameplay footage is rendered by Unity: MixedUp > Grabar trailer.",
+  "scripts": {
+    "studio": "remotion studio",
+    "render:h": "remotion render TrailerH out/MixedUp_Trailer_16x9.mp4",
+    "render:v": "remotion render TrailerV out/MixedUp_Trailer_9x16.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.538",
+    "@remotion/google-fonts": "^4.0.538",
+    "@remotion/media-utils": "^4.0.538",
+    "@types/react": "^18.3.31",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.538",
+    "typescript": "^5.9.3"
+  }
+}

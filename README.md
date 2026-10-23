@@ -9,7 +9,7 @@ sin que nada explote. Idiomas: euskera, español e inglés.
 1. Abre la carpeta `MixedUp/` con Unity 6000.6.0f1.
 2. Abre `Assets/Scenes/MainMenu.unity` y pulsa Play (el menú principal lleva al nivel `Level_Prototype`).
 3. Si cambias scripts con campos serializados nuevos o el arte, vuelve a generar las escenas con
-   **MixedUp > Build Prototype Scene**. Esa orden recrea materiales, prefabs, el nivel y el menú principal
+   **MixedUp > Build Prototype Scene**. Esa orden recrea materiales, prefabs, los niveles, el lobby y el menú principal
    (los datos ya existentes en `Assets/_Project/Data` se conservan para no perder tus ajustes).
 
 ## Controles
@@ -45,11 +45,50 @@ Se eligen en el menú principal (tarjeta de la esquina) o los elige el anfitrió
 Todos se pueden ganar (los pedidos aleatorios solo se aceptan si existe una colocación segura, `PuzzleSolver`) y perder
 (morir, quedarte sin tiempo o que explote el camión).
 
-## Multijugador (en preparación)
+## Mapas
 
-El menú principal tiene **Multijugador**: crear sala (código de 6 caracteres) o unirse con un código. Ahora funciona sin red con
-amigos simulados (`LocalRoomService`; el código `AMETSA` abre una sala de prueba). Todo pasa por `IRoomService`, así que el servicio
-real (Relay/Lobby con Netcode for GameObjects, ya añadido al `manifest.json`) se enchufará sin tocar los menús.
+Se eligen en el menú principal (tarjeta "MAPA", partida en solitario) o los elige el anfitrión en el lobby:
+
+| Mapa | Escena | De qué va |
+| --- | --- | --- |
+| Pradera del reparto | `Level_Prototype` | El mapa original: río, cueva, colina helada, tronco giratorio |
+| Cumbre helada | `Level_Summit` | Nivel superior: lago helado enorme (todo resbala), campamento con hoguera, pilón eléctrico, rampa de hielo, torre, túnel y acantilado de setas |
+| Puerto al anochecer | `Level_Harbour` | Muelles sobre una bahía poco profunda, balsa a la isla, barcaza, pila de cajas y faro. Agua y electricidad muy cerca: ideal para "Entrega nocturna" y "Desafío" |
+
+Todos los mapas funcionan con todos los modos de partida. Se generan con **MixedUp > Build Prototype Scene**
+(`PrototypeBuilder.Maps.cs` es el andamio común; cada mapa solo rellena su terreno, hazards y puntos de cajas).
+
+## Multijugador online
+
+**Multijugador** en el menú: crea una sala o únete a la de un amigo. Hay dos formas de conectarse (botón "Conexión" de la sala):
+
+| Conexión | Qué se comparte | Qué hace falta |
+| --- | --- | --- |
+| **IP directa** | `ip:puerto` (por defecto `7777`, UDP) | Nada más. En la misma red local funciona tal cual; por internet el anfitrión abre el puerto UDP 7777 en su router |
+| **Código (internet)** | Un código de 6 caracteres | Unity Relay (ver abajo) |
+
+Al crear o entrar en una sala todos aparecen en el **lobby**, una plaza junto al camión donde se puede caminar mientras se van
+uniendo los demás. Se ve el código o la IP, quién está listo, y el anfitrión elige **mapa y modo** y pulsa *Empezar*: todos son
+teletransportados al mapa elegido, con la misma semilla (mismas cajas en los mismos sitios). Pulsa **TAB** en el lobby para usar el ratón.
+La sala demo sin red sigue disponible escribiendo el código `AMETSA`.
+
+### Activar el modo "Código" (Unity Relay)
+
+1. En Unity: *Window > Package Manager > + > Add package by name*: `com.unity.services.relay` y `com.unity.services.authentication`.
+2. *Project Settings > Services*: enlaza el proyecto con tu cuenta de Unity y activa Relay.
+3. Listo: el assembly `Scripts/Net/Relay` solo se compila cuando existe el paquete de Relay y registra el servicio por sí solo.
+
+### Estado de la red (primera fase)
+
+Ya sincronizado: conexión, lobby (nombres, colores, listo), mapa/modo/semilla elegidos por el anfitrión, cambio de escena para todos,
+posición y animación de cada jugador (los demás se ven como "fantasmas" con su nombre), jugadores muertos que pueden espectar.
+Todavía local en cada máquina: las cajas del mapa, el camión, el pedido y el puzle (cada jugador ve y mueve su propia copia).
+Es lo siguiente a sincronizar.
+
+## Logros y pistas
+
+El menú tiene un botón **Logros** (17 retos: saltar el tronco 67 veces, acariciar todos los patos, probar todas las combinaciones,
+derribar el muñeco de nieve...). Cerca de las cajas difíciles aparece una pista (por ejemplo, agacharse en el túnel).
 
 ## Estructura (`MixedUp/Assets/_Project`)
 
@@ -60,7 +99,7 @@ real (Relay/Lobby con Netcode for GameObjects, ya añadido al `manifest.json`) s
 | `Scripts/Player` | Movimiento, inventario, estado, apariencia (`CharacterCustomization`), cajas en las manos (`CarriedBoxesView`) |
 | `Scripts/World` | Cajas del mapa, camión, zonas peligrosas (agua, hielo, barro, fuego), tronco giratorio, setas saltarinas |
 | `Scripts/Audio` | Todo el sonido sintetizado por código (`ProceduralAudio`): efectos, música y ambiente. No hay archivos de audio |
-| `Scripts/Net` | Salas y sesión multijugador (`IRoomService`, `LocalRoomService`, `RoomSession`) |
+| `Scripts/Net` | Salas offline (`IRoomService`, `LocalRoomService`), y en `Online/` la red real (`OnlineSession`, `NetAvatar`, `OnlineLobby`); `Relay/` es opcional |
 | `Scripts/Puzzle` | Reglas de combinación, estado del viaje, recompensa, cartera |
 | `Scripts/UI` | HUD, menús, ajustes (`SettingsPanel`), menú principal (`MainMenu`), vista previa del personaje |
 | `Editor` | Los constructores de escena (`PrototypeBuilder*.cs`), mallas procedurales (`LowPoly*.cs`, `CharacterMeshes`) |

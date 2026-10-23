@@ -5,7 +5,7 @@ namespace MixedUp
     {
         FootGrass, FootDirt, FootWood, FootStone, FootSnow, FootWater, FootMud,
         Jump, Land, Splash, Pickup, Pass, Deliver, Hurt, Death, Zap, Bounce, Whoosh,
-        UiClick, UiHover, Heal, Push, Squeak, IceCrack, Collapse, Win, Lose, Hug, Crouch, Bell, Gust
+        UiClick, UiHover, Heal, Push, Squeak, IceCrack, Collapse, Win, Lose, Hug, Crouch, Bell, Gust, Voice, VoiceLong
     }
 
     public enum MusicId { Menu, Game }

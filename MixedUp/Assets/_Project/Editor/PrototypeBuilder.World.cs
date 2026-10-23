@@ -66,8 +66,12 @@ namespace MixedUp.EditorTools
         static bool WorldBlocked(float x, float z, float margin) => InWorldSpot(x, z, margin) || DistanceToTrail(x, z) < 2.4f + margin;
 
         /// <summary>Rolling meadows north of the river; everything near a landmark, the start meadow and the edges stay flat.</summary>
+        /// <summary>The other maps are flat: while they are built every placement helper sees a ground at y = 0.</summary>
+        static bool flatTerrain;
+
         static float GroundHeight(float x, float z)
         {
+            if (flatTerrain) return 0f;
             float north = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(15f, 26f, z));
             if (north <= 0f) return 0f;
 

@@ -39,7 +39,7 @@ namespace MixedUp
         public DeathCause LastCause { get; private set; }
 
         /// <summary>True when there is more than one player: health no longer regenerates by itself, a hug is needed.</summary>
-        public static bool HugsRequired => RoomSession.IsMultiplayer || PlayerRegistry.All.Count > 1;
+        public static bool HugsRequired => RoomSession.IsMultiplayer || PlayerRegistry.All.Count > 1 || NetAvatar.All.Count > 1;
 
         public HazardState Hazards { get; set; }
         public MovementModifiers Modifiers { get; private set; } = MovementModifiers.Default;
